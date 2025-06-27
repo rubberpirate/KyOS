@@ -1,0 +1,17 @@
+[Unit]
+Description=Automatic login for live environment
+After=systemd-user-sessions.service
+
+[Service]
+Type=idle
+ExecStart=/usr/local/bin/auto-login-live
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+[Install]
+WantedBy=multi-user.target

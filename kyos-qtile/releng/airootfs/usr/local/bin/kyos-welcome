@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Script name: kyos-welcome
+# Description: A welcome app for KyOS
+# Dependencies: arandr, waypaper, yad
+# GitHub: https://github.com/rubberpirate/kyos/kyos-welcome
+# License: https://github.com/rubberpirate/kyos/kyos-welcome
+# Contributors: Kage (modified from Derek Taylor's original)
+
+
+yad --form --title="Welcome to KyOS!" --height=420 --width=600 \
+--center --text-align="left" --window-icon=/usr/share/miyolinux/icons/miyolinux.png \
+--borders=10 --no-buttons \
+--image="/opt/kyos-welcome/kyos-logo.png" \
+--text="<span font_weight='bold' font='18' color='#c678dd'>Welcome to KyOS GNU/Linux</span> 
+
+Need help using KyOS or customizing it?
+Maybe you just want to learn more about Linux?
+We've got you covered.
+
+Subscribe to <span font_weight='bold' color='#98be65'><a href='https://github.com/rubberpirate/kyos'>KyOS</a></span> on GitHub to help support development.
+" \
+--columns=4 \
+--field="  Appearance!/opt/kyos-welcome/appearance.svg!Change GTK theme and icons":fbtn "lxappearance" \
+--field="  Autostart Programs!/opt/kyos-welcome/autostart.svg!Add/remove autostart programs":fbtn "alacritty -e auto" \
+--field="  Change Colorscheme!/opt/kyos-welcome/color.svg!Change colorscheme for KyOS desktop":fbtn "kyos-colorscheme -r" \
+--field="  Change Default Shell!/opt/kyos-welcome/shell.svg!Change your user's default shell":fbtn "alacritty -e echo SHELL" \
+--field="  KyOS Documentation!/opt/kyos-welcome/docs.svg!Visit KyOS website for documentation":fbtn "brave https://github.com/rubberpirate/kyos" \
+--field="  KyOS News!/opt/kyos-welcome/news.svg!KyOS important news announcements ":fbtn "alacritty" \
+--field="  Fix Pacman Errors!/opt/kyos-welcome/pacman.svg!Fix common pacman errors":fbtn "alacritty" \
+--field="  Random Stuff!input-keyboard!Change the keyboard layout":fbtn "miyo-keyboard" \
+--field="  Screen Resolution!/opt/kyos-welcome/monitor.svg!Change screen resolution":fbtn "arandr" \
+--field="  Update System!/opt/kyos-welcome/update.svg!Update your software":fbtn "alacritty -e doas pacman -Syu" \
+--field="  View Qtile Keybindings!/opt/kyos-welcome/keybindings.svg!View all Qtile keybindings":fbtn "qtilekeys-yad" \
+--field="  Wallpaper!/opt/kyos-welcome/wallpaper.svg!Change wallpaper":fbtn "waypaper" \

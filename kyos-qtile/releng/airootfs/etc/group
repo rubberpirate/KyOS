@@ -1,0 +1,16 @@
+root:x:0:root
+sys:x:3:bin,kyos
+network:x:90:kyos
+power:x:98:kyos
+adm:x:999:kyos
+wheel:x:998:kyos
+uucp:x:987:kyos
+optical:x:990:kyos
+rfkill:x:983:kyos
+video:x:986:kyos
+storage:x:988:kyos
+audio:x:995:kyos
+users:x:985:kyos
+nopasswdlogin:x:966:kyos
+autologin:x:967:kyos
+kyos:x:1000:

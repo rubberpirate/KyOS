@@ -1,0 +1,979 @@
+#!/usr/bin/env bash
+#
+# Script name: kyosinstall-auto
+# Description: Fully automated KyOS installer with default options and no encryption
+# Dependencies: 
+# GitLab: https://www.gitlab.com/kyos/kyosinstall/
+# License: https://www.gitlab.com/kyos/kyosinstall/
+# Contributors: Derek Taylor
+
+# Set with the flags "-e", "-u","-o pipefail" cause the script to fail
+# if certain things happen, which is a good thing.  Otherwise, we can
+# get hidden bugs that are hard to discover.
+set -euo pipefail
+
+# Disable bash job control and history to avoid console issues
+set +m
+set +H
+
+# Let's clear the tty when starting script
+clear
+
+echo "=============================================="
+echo "KyOS AUTOMATED INSTALLER"
+echo "=============================================="
+echo "This will install KyOS with the following defaults:"
+echo "- Locale: en_US.UTF-8"
+echo "- Keyboard: us"
+echo "- Timezone: America/New_York"
+echo "- Hostname: kyos-pc"
+echo "- Username: kyos"
+echo "- Password: kyos123"
+echo "- Root password: root123"
+echo "- Filesystem: btrfs"
+echo "- Encryption: NO"
+echo "- Kernel: linux"
+echo "- Install KyOS desktop: YES"
+echo "=============================================="
+echo
+
+# Check firmware type but don't exit
+if [ -d "/sys/firmware/efi/" ]; then
+    firmware_type="UEFI"
+    echo "UEFI firmware detected - installation will use UEFI mode"
+else
+    firmware_type="BIOS"
+    echo "Legacy BIOS firmware detected - installation will use BIOS mode"
+fi
+echo
+
+BOLD='\e[1m'
+GREEN='\e[92m'
+RED='\e[91m'
+YELLOW='\e[93m'
+RESET='\e[0m'
+
+print_info () {
+    echo -ne "${BOLD}${YELLOW}$1${RESET}\n"
+}
+
+print_choice () {
+    echo -ne "${BOLD}${GREEN}>> $1${RESET}\n\n"
+}
+
+vm_check () {
+    hypervisor=$(systemd-detect-virt 2>/dev/null || echo "none")
+    case $hypervisor in
+        kvm )       pacstrap /mnt qemu-guest-agent &>/dev/null
+                    systemctl enable qemu-guest-agent --root=/mnt &>/dev/null
+                    ;;
+        vmware  )   pacstrap /mnt open-vm-tools &>/dev/null
+                    systemctl enable vmtoolsd --root=/mnt &>/dev/null
+                    systemctl enable vmware-vmblock-fuse --root=/mnt &>/dev/null
+                    ;;
+        oracle )    pacstrap /mnt virtualbox-guest-utils &>/dev/null
+                    systemctl enable vboxservice --root=/mnt &>/dev/null
+                    ;;
+        microsoft ) pacstrap /mnt hyperv &>/dev/null
+                    systemctl enable hv_fcopy_daemon --root=/mnt &>/dev/null
+                    systemctl enable hv_kvp_daemon --root=/mnt &>/dev/null
+                    systemctl enable hv_vss_daemon --root=/mnt &>/dev/null
+                    ;;
+    esac
+}
+
+echo -e "${BOLD}${GREEN}\
+     _| | |_ ___  ___ (_)_ __  ___| |_ __ _| | |
+    / _\` | __/ _ \/ __| | '_ \/ __| __/ _\` | | |
+   | (_| | || (_) \__ \ | | | \__ \ || (_| | | |
+    \__,_|\__\___/|___/_|_| |_|___/\__\__,_|_|_|
+${RESET}" 
+echo -e "${BOLD}       The AUTOMATED installation script for KyOS${RESET}\n"
+
+# Set all default values
+locale="en_US.UTF-8"
+keymap="us"
+timezone="America/New_York"
+hostname="kyos-pc"
+username="kyos"
+userpass="kyos123"
+rootpass="root123"
+fs_type="btrfs"
+encryption="no"
+kernel="linux"
+kyos_desktop="yes"
+
+# Check for TUI configuration file
+if [[ -n "${CONFIG_FILE:-}" && -f "${CONFIG_FILE:-}" ]]; then
+    print_info "Loading configuration from: $CONFIG_FILE"
+    source "$CONFIG_FILE"
+    # Map TUI variables to installer variables
+    [[ -n "${TIMEZONE:-}" ]] && timezone="$TIMEZONE"
+    [[ -n "${KEYMAP:-}" ]] && keymap="$KEYMAP"
+    [[ -n "${LOCALE:-}" ]] && locale="$LOCALE"
+    [[ -n "${USERNAME:-}" ]] && username="$USERNAME"
+    [[ -n "${PASSWORD:-}" ]] && userpass="$PASSWORD"
+    [[ -n "${ROOT_PASSWORD:-}" ]] && rootpass="$ROOT_PASSWORD"
+    [[ -n "${HOSTNAME:-}" ]] && hostname="$HOSTNAME"
+    [[ -n "${ENCRYPT:-}" ]] && encryption="$ENCRYPT"
+    print_info "Configuration loaded successfully."
+elif [[ -f "/tmp/kyos-tui-config" ]]; then
+    print_info "Loading TUI configuration..."
+    source /tmp/kyos-tui-config
+    # Map TUI variables to installer variables
+    [[ -n "${TIMEZONE:-}" ]] && timezone="$TIMEZONE"
+    [[ -n "${KEYMAP:-}" ]] && keymap="$KEYMAP"
+    [[ -n "${LOCALE:-}" ]] && locale="$LOCALE"
+    [[ -n "${USERNAME:-}" ]] && username="$USERNAME"
+    [[ -n "${PASSWORD:-}" ]] && userpass="$PASSWORD"
+    [[ -n "${ROOT_PASSWORD:-}" ]] && rootpass="$ROOT_PASSWORD"
+    [[ -n "${HOSTNAME:-}" ]] && hostname="$HOSTNAME"
+    [[ -n "${ENCRYPT:-}" ]] && encryption="$ENCRYPT"
+    print_info "TUI configuration loaded successfully."
+fi
+
+print_info "Using configuration:"
+echo -e "locale:\t\t${BOLD}${GREEN}$locale${RESET}"
+echo -e "keymap:\t\t${BOLD}${GREEN}$keymap${RESET}"
+echo -e "timezone:\t${BOLD}${GREEN}$timezone${RESET}"
+echo -e "hostname:\t${BOLD}${GREEN}$hostname${RESET}"
+echo -e "username:\t${BOLD}${GREEN}$username${RESET}"
+echo -e "filesystem:\t${BOLD}${GREEN}$fs_type${RESET}"
+echo -e "encryption:\t${BOLD}${GREEN}$encryption${RESET}"
+echo -e "kernel:\t\t${BOLD}${GREEN}$kernel${RESET}"
+echo -e "kyos_desktop:\t${BOLD}${GREEN}$kyos_desktop${RESET}"
+echo
+
+# Auto-select the first available disk
+print_info "Detecting available disks:"
+lsblk -e 7
+mapfile -t disk_array < <(lsblk -dpno NAME | grep -P "/dev/sd|nvme|vd")
+
+if [[ ${#disk_array[@]} -eq 0 ]]; then
+    echo "ERROR: No suitable disks found!"
+    exit 1
+fi
+
+disk="${disk_array[0]}"
+print_choice "Auto-selected disk: $disk"
+
+echo
+print_info "${RED}WARNING! All data on $disk will be destroyed!${RESET}"
+print_info "Starting installation in 10 seconds... (Ctrl+C to cancel)"
+for i in {10..1}; do
+    echo -n "$i... "
+    sleep 1
+done
+echo
+echo
+
+print_choice "Starting automated KyOS installation..."
+
+# Add debug information for VirtualBox troubleshooting
+print_info "System Information:"
+echo "Hypervisor: $(systemd-detect-virt 2>/dev/null || echo 'none')"
+echo "Disk: $disk"
+echo "Disk info:"
+lsblk "$disk" 2>/dev/null || echo "Could not get disk info"
+
+# VirtualBox-specific warning
+if [[ "$(systemd-detect-virt 2>/dev/null)" == "oracle" ]]; then
+    echo ""
+    echo "NOTE: VirtualBox detected. If installation fails:"
+    echo "1. Ensure VM has at least 20GB disk space"
+    echo "2. Use SATA controller (not IDE)"
+    echo "3. Enable EFI if using UEFI mode"
+    echo "4. Disable Hyper-V if on Windows host"
+    echo ""
+fi
+echo
+
+print_info "Reflector grabbing top 20 mirrors sorted by download rate."
+echo "This may take a couple of minutes."
+reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist &>/dev/null || echo "Warning: reflector failed, continuing with existing mirrors"
+
+print_info "Partitioning the disk: ${disk}"
+echo "File system type: $fs_type"
+echo "Firmware type: $firmware_type"
+
+# Cleanup any existing partitions and mounts
+print_info "Cleaning up existing partitions and mounts on ${disk}..."
+
+# Check if any processes are using the disk
+busy_processes=$(lsof "$disk"* 2>/dev/null | grep -v COMMAND || true)
+if [[ -n "$busy_processes" ]]; then
+    print_info "Warning: Found processes using the disk:"
+    echo "$busy_processes"
+    print_info "Attempting to kill processes using the disk..."
+    lsof -t "$disk"* 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+    sleep 2
+fi
+
+# Find all partitions on the selected disk
+existing_partitions=$(lsblk -lno NAME "${disk}" | grep -v "^$(basename "${disk}")$" | sed "s|^|/dev/|" || true)
+
+if [[ -n "$existing_partitions" ]]; then
+    print_info "Found existing partitions to clean up:"
+    echo "$existing_partitions"
+    
+    # Unmount any mounted partitions
+    for partition in $existing_partitions; do
+        if mountpoint -q "$partition" 2>/dev/null; then
+            print_info "Unmounting $partition..."
+            umount "$partition" 2>/dev/null || true
+        fi
+        
+        # Check if partition is mounted anywhere else
+        mount_points=$(findmnt -rno TARGET "$partition" 2>/dev/null || true)
+        if [[ -n "$mount_points" ]]; then
+            print_info "Force unmounting $partition from: $mount_points"
+            echo "$mount_points" | while read -r mount_point; do
+                umount "$mount_point" 2>/dev/null || true
+            done
+        fi
+    done
+    
+    # Also check for any mounts under /mnt
+    mnt_mounts=$(findmnt -rno SOURCE,TARGET | grep "^${disk}" | awk '{print $2}' || true)
+    if [[ -n "$mnt_mounts" ]]; then
+        print_info "Unmounting installation target mounts..."
+        echo "$mnt_mounts" | sort -r | while read -r mount_point; do
+            if [[ -n "$mount_point" ]]; then
+                print_info "Unmounting $mount_point"
+                umount "$mount_point" 2>/dev/null || true
+            fi
+        done
+    fi
+    
+    # Force unmount /mnt if it exists
+    if mountpoint -q /mnt 2>/dev/null; then
+        print_info "Force unmounting /mnt..."
+        umount -R /mnt 2>/dev/null || true
+    fi
+    
+    sleep 2
+fi
+
+# Close any device mapper devices that might be using the disk
+dm_devices=$(dmsetup ls | grep -E "${disk##*/}" | awk '{print $1}' 2>/dev/null || true)
+if [[ -n "$dm_devices" ]]; then
+    print_info "Removing device mapper devices..."
+    echo "$dm_devices" | while read -r dm_device; do
+        dmsetup remove "$dm_device" 2>/dev/null || true
+    done
+fi
+
+# Close any LUKS/encrypted volumes
+for partition in $existing_partitions; do
+    if cryptsetup isLuks "$partition" 2>/dev/null; then
+        luks_name=$(basename "$partition")
+        if [[ -e "/dev/mapper/$luks_name" ]]; then
+            print_info "Closing LUKS volume: $luks_name"
+            cryptsetup close "$luks_name" 2>/dev/null || true
+        fi
+    fi
+done
+
+# Deactivate any LVM volume groups on the disk
+vgs_on_disk=$(pvs --noheadings -o vg_name "$disk"* 2>/dev/null | sort -u | tr -d ' ' || true)
+if [[ -n "$vgs_on_disk" ]]; then
+    print_info "Deactivating LVM volume groups..."
+    echo "$vgs_on_disk" | while read -r vg; do
+        if [[ -n "$vg" ]]; then
+            vgchange -an "$vg" 2>/dev/null || true
+        fi
+    done
+fi
+
+# Stop any swap on the disk
+if swapon --show=NAME --noheadings | grep -q "${disk}"; then
+    print_info "Disabling swap on ${disk}..."
+    swapoff "${disk}"* 2>/dev/null || true
+fi
+
+# Final sync and wait
+sync
+sleep 1
+
+if [[ "$firmware_type" = "UEFI" ]]; then
+    print_info "Creating GPT partition table for UEFI system"
+    # Wipe existing partition table first
+    wipefs -af "$disk" || true
+    dd if=/dev/zero of="$disk" bs=1M count=10 2>/dev/null || true
+    sync
+    
+    parted -s "$disk" \
+        mklabel gpt \
+        mkpart ESP fat32 1MiB 1025MiB \
+        set 1 esp on \
+        mkpart primary 1025MiB 100%
+else
+    print_info "Creating GPT partition table for BIOS system with BIOS boot partition"
+    # Wipe existing partition table first
+    wipefs -af "$disk" || true
+    dd if=/dev/zero of="$disk" bs=1M count=10 2>/dev/null || true
+    sync
+    
+    parted -s "$disk" \
+        mklabel gpt \
+        mkpart biosboot 1MiB 2MiB \
+        set 1 bios_grub on \
+        mkpart ESP fat32 2MiB 1026MiB \
+        set 2 esp on \
+        mkpart primary 1026MiB 100%
+fi
+
+# Force partition table sync (critical for VirtualBox)
+print_info "Syncing partition table..."
+partprobe "$disk" 2>/dev/null || true
+udevadm settle
+sync
+sleep 3
+
+# Additional partition table sync attempt for stubborn VMs
+partprobe "$disk" 2>/dev/null || true
+udevadm trigger
+udevadm settle
+
+print_info "Checking partition table creation..."
+fdisk -l "$disk" || echo "Warning: Could not read partition table"
+
+print_info "Waiting for partition devices to be ready..."
+# Wait for partition devices to appear and use direct partition names for better compatibility
+if [[ "$firmware_type" = "UEFI" ]]; then
+    # For UEFI: partition 1 = ESP, partition 2 = root
+    if [[ "$disk" =~ nvme ]]; then
+        ESP="${disk}p1"
+        ROOT="${disk}p2"
+    else
+        ESP="${disk}1"
+        ROOT="${disk}2"
+    fi
+else
+    # For BIOS: partition 1 = biosboot, partition 2 = ESP, partition 3 = root
+    if [[ "$disk" =~ nvme ]]; then
+        ESP="${disk}p2"
+        ROOT="${disk}p3"
+    else
+        ESP="${disk}2"
+        ROOT="${disk}3"
+    fi
+fi
+
+# Force kernel to re-read partition table (especially important for VirtualBox)
+print_info "Forcing partition table re-read..."
+partprobe "$disk" 2>/dev/null || true
+udevadm settle
+sync
+
+# Wait for devices to exist with enhanced checking
+print_info "Waiting for partition devices: $ESP and $ROOT"
+for i in {1..60}; do
+    # Force udev to settle and check devices
+    udevadm settle
+    
+    if [[ -b "$ESP" && -b "$ROOT" ]]; then
+        print_info "Partition devices are ready."
+        break
+    fi
+    
+    if [[ $i -eq 30 ]]; then
+        print_info "Still waiting... Forcing another partition table re-read..."
+        partprobe "$disk" 2>/dev/null || true
+        udevadm trigger
+        udevadm settle
+    fi
+    
+    echo "Waiting for devices... (attempt $i/60)"
+    sleep 1
+done
+
+# Final check with detailed error reporting
+if [[ ! -b "$ESP" ]]; then
+    echo "ERROR: EFI partition $ESP not found!"
+    echo "Disk: $disk"
+    echo "Available partitions:"
+    ls -la "${disk}"* 2>/dev/null || echo "No partitions found"
+    echo "Block devices:"
+    lsblk "$disk" 2>/dev/null || echo "Cannot list block devices"
+    echo "Partition table:"
+    fdisk -l "$disk" 2>/dev/null || echo "Cannot read partition table"
+    exit 1
+fi
+
+if [[ ! -b "$ROOT" ]]; then
+    echo "ERROR: Root partition $ROOT not found!"
+    echo "Disk: $disk"
+    echo "Available partitions:"
+    ls -la "${disk}"* 2>/dev/null || echo "No partitions found"
+    echo "Block devices:"
+    lsblk "$disk" 2>/dev/null || echo "Cannot list block devices"
+    echo "Partition table:"
+    fdisk -l "$disk" 2>/dev/null || echo "Cannot read partition table"
+    exit 1
+fi
+
+print_info "Formatting EFI Partition as FAT32."
+# Clear any existing filesystem signatures first
+wipefs -a "$ESP" 2>/dev/null || true
+udevadm settle
+
+# Try formatting with retries for VirtualBox compatibility
+for attempt in {1..3}; do
+    if mkfs.fat -F 32 "$ESP"; then
+        print_info "EFI partition formatted successfully."
+        break
+    else
+        echo "Formatting attempt $attempt failed. Retrying..."
+        sleep 2
+        udevadm settle
+        if [[ $attempt -eq 3 ]]; then
+            echo "ERROR: Failed to format EFI partition $ESP after 3 attempts"
+            echo "Partition info:"
+            lsblk "$ESP" 2>/dev/null || echo "Cannot get partition info"
+            exit 1
+        fi
+    fi
+done
+
+# No encryption - format directly
+if [[ "$fs_type" = "btrfs" ]]; then
+    BTRFS="$ROOT"
+    
+    print_info "Formatting the BTRFS partition: $BTRFS"
+    # Clear any existing filesystem signatures first
+    wipefs -a "$BTRFS" 2>/dev/null || true
+    udevadm settle
+    
+    # Try formatting with retries for VirtualBox compatibility
+    for attempt in {1..3}; do
+        if mkfs.btrfs -f "$BTRFS"; then
+            print_info "BTRFS partition formatted successfully."
+            break
+        else
+            echo "BTRFS formatting attempt $attempt failed. Retrying..."
+            sleep 2
+            udevadm settle
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to format BTRFS partition $BTRFS after 3 attempts"
+                echo "Partition info:"
+                lsblk "$BTRFS" 2>/dev/null || echo "Cannot get partition info"
+                exit 1
+            fi
+        fi
+    done
+    
+    # Mount BTRFS root with retries
+    print_info "Mounting BTRFS partition: $BTRFS"
+    for attempt in {1..3}; do
+        if mount "$BTRFS" /mnt; then
+            print_info "BTRFS partition mounted successfully."
+            break
+        else
+            echo "Mount attempt $attempt failed. Retrying..."
+            sleep 2
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to mount BTRFS partition $BTRFS after 3 attempts"
+                exit 1
+            fi
+        fi
+    done
+    
+    print_info "Creating BTRFS subvolumes."
+    subvols=(snapshots var_pkgs var_log home root srv)
+    for subvol in '' "${subvols[@]}"; do
+        btrfs su cr /mnt/@"$subvol" || {
+            echo "ERROR: Failed to create subvolume @$subvol"
+            exit 1
+        }
+    done
+    
+    umount /mnt
+    
+    print_info "Mounting the newly created subvolumes."
+    # Mount root subvolume with retries
+    for attempt in {1..3}; do
+        if mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@ "$BTRFS" /mnt; then
+            print_info "Root subvolume mounted successfully."
+            break
+        else
+            echo "Root subvolume mount attempt $attempt failed. Retrying..."
+            sleep 2
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to mount root subvolume after 3 attempts"
+                exit 1
+            fi
+        fi
+    done
+    
+    mkdir -p /mnt/{home,root,srv,.snapshots,var/{log,cache/pacman/pkg}}
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@home "$BTRFS" /mnt/home
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@root "$BTRFS" /mnt/root
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@srv "$BTRFS" /mnt/srv
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@snapshots "$BTRFS" /mnt/.snapshots
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@var_log "$BTRFS" /mnt/var/log
+    mount -o rw,noatime,compress-force=zstd:1,space_cache=v2,subvol=@var_pkgs "$BTRFS" /mnt/var/cache/pacman/pkg
+    
+    mkdir -p /mnt/boot
+    # Mount EFI partition with retries for BTRFS setup
+    for attempt in {1..3}; do
+        if mount "$ESP" /mnt/boot; then
+            print_info "EFI partition mounted successfully to /mnt/boot."
+            break
+        else
+            echo "EFI mount attempt $attempt failed. Retrying..."
+            sleep 2
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to mount EFI partition to /mnt/boot after 3 attempts"
+                exit 1
+            fi
+        fi
+    done
+    
+else
+    # ext4 filesystem
+    print_info "Formatting the ext4 partition: $ROOT"
+    # Clear any existing filesystem signatures first
+    wipefs -a "$ROOT" 2>/dev/null || true
+    udevadm settle
+    
+    # Try formatting with retries for VirtualBox compatibility
+    for attempt in {1..3}; do
+        if mkfs.ext4 -F "$ROOT"; then
+            print_info "ext4 partition formatted successfully."
+            break
+        else
+            echo "ext4 formatting attempt $attempt failed. Retrying..."
+            sleep 2
+            udevadm settle
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to format ext4 partition $ROOT after 3 attempts"
+                echo "Partition info:"
+                lsblk "$ROOT" 2>/dev/null || echo "Cannot get partition info"
+                exit 1
+            fi
+        fi
+    done
+    
+    # Mount ext4 root with retries
+    print_info "Mounting ext4 partition: $ROOT"
+    for attempt in {1..3}; do
+        if mount "$ROOT" /mnt; then
+            print_info "ext4 partition mounted successfully."
+            break
+        else
+            echo "ext4 mount attempt $attempt failed. Retrying..."
+            sleep 2
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to mount ext4 partition $ROOT after 3 attempts"
+                exit 1
+            fi
+        fi
+    done
+    
+    mkdir -p /mnt/boot
+    # Mount EFI partition with retries for ext4 setup
+    for attempt in {1..3}; do
+        if mount "$ESP" /mnt/boot; then
+            print_info "EFI partition mounted successfully to /mnt/boot."
+            break
+        else
+            echo "EFI mount attempt $attempt failed. Retrying..."
+            sleep 2
+            if [[ $attempt -eq 3 ]]; then
+                echo "ERROR: Failed to mount EFI partition to /mnt/boot after 3 attempts"
+                exit 1
+            fi
+        fi
+    done
+fi
+
+print_info "Checking for CPU type and installing ucode."
+proc_type=$(lscpu)
+if grep -E "GenuineIntel" <<< ${proc_type}; then
+    print_info "Installing Intel microcode."
+    pacstrap /mnt intel-ucode
+elif grep -E "AuthenticAMD" <<< ${proc_type}; then
+    print_info "Installing AMD microcode."
+    pacstrap /mnt amd-ucode
+fi
+
+# Re-installing keyring because sometimes we have key problems
+print_info "Installing the base system and bootloader."
+echo "This may take several minutes depending on your internet connection."
+pacstrap -K /mnt base base-devel "${kernel}" linux-firmware grub efibootmgr dosfstools os-prober mtools networkmanager dhcpcd git sudo
+
+if [[ "$fs_type" = "btrfs" ]]; then
+    print_info "Installing important btrfs-related packages."
+    pacstrap /mnt btrfs-progs snapper
+fi
+
+if [[ "$kyos_desktop" = "yes" ]]; then
+    print_info "Installing KyOS Qtile desktop packages."
+    
+    # Setup chaotic-aur repository first
+    print_info "Setting up chaotic-aur repository for AUR packages."
+    print_info "Retrieving the primary key to enable installation of keyring and mirrorlist..."
+    
+    # Step 1: Get the primary key
+    arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com || {
+        print_info "Trying alternative keyserver..."
+        arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keys.gnupg.net || {
+            print_info "Trying another keyserver..."
+            arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver pgp.mit.edu || {
+                print_info "Warning: Could not retrieve chaotic-aur key. Skipping chaotic-aur setup."
+                return 0
+            }
+        }
+    }
+    
+    # Step 2: Locally sign the key
+    print_info "Locally signing the chaotic-aur key..."
+    arch-chroot /mnt pacman-key --lsign-key 3056513887B78AEB
+    
+    # Step 3: Install keyring and mirrorlist packages
+    print_info "Installing chaotic-keyring and chaotic-mirrorlist packages..."
+    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' || {
+        print_info "Trying alternative mirror for keyring..."
+        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' || {
+            print_info "Warning: Could not install chaotic-keyring. Skipping chaotic-aur setup."
+            return 0
+        }
+    }
+    
+    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' || {
+        print_info "Trying alternative mirror for mirrorlist..."
+        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' || {
+            print_info "Warning: Could not install chaotic-mirrorlist. Skipping chaotic-aur setup."
+            return 0
+        }
+    }
+    
+    # Copy the complete pacman.conf from live environment to target system
+    print_info "Configuring pacman.conf with all repositories."
+    cp /etc/pacman.conf /mnt/etc/pacman.conf
+    
+    # Configure pacman.conf with custom repositories
+    print_info "Configuring pacman.conf with all repositories."
+    
+    # Start with a clean pacman.conf and add our repositories
+    # First copy the basic structure
+    cp /etc/pacman.conf /mnt/etc/pacman.conf
+    
+    # Ensure dtos-core-repo is present
+    if ! grep -q "\[dtos-core-repo\]" /mnt/etc/pacman.conf; then
+        print_info "Adding dtos-core-repo to pacman.conf"
+        cat >> /mnt/etc/pacman.conf << 'EOF'
+
+[dtos-core-repo]
+SigLevel = Optional DatabaseOptional
+Server = https://gitlab.com/dtos/$repo/-/raw/main/$arch
+EOF
+    fi
+    
+    # Add chaotic-aur repository
+    print_info "Adding chaotic-aur repository to pacman.conf"
+    if ! grep -q "\[chaotic-aur\]" /mnt/etc/pacman.conf; then
+        cat >> /mnt/etc/pacman.conf << 'EOF'
+
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+EOF
+    fi
+    
+    # Copy mirrorlist files
+    cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+    cp /etc/pacman.d/chaotic-mirrorlist /mnt/etc/pacman.d/chaotic-mirrorlist 2>/dev/null || true
+    
+    # Update package databases with full system update
+    print_info "Running full system update and syncing mirrorlist..."
+    if ! arch-chroot /mnt pacman -Syu --noconfirm; then
+        print_info "Full system update failed, trying basic sync..."
+        if ! arch-chroot /mnt pacman -Sy --noconfirm; then
+            print_info "Warning: Failed to update package databases. Some packages may not be available."
+            print_info "Continuing with official repositories only..."
+            
+            # Remove problematic repositories if sync fails
+            sed -i '/\[chaotic-aur\]/,/^$/d' /mnt/etc/pacman.conf
+            sed -i '/\[dtos-core-repo\]/,/^$/d' /mnt/etc/pacman.conf
+            arch-chroot /mnt pacman -Sy --noconfirm
+        fi
+    else
+        print_info "Chaotic-AUR repository successfully configured and synchronized!"
+    fi
+    
+    # Install Pipewire audio system first to avoid conflicts
+    print_info "Setting up Pipewire audio system."
+    arch-chroot /mnt pacman -S --noconfirm --needed pipewire pipewire-alsa pipewire-pulse wireplumber pulsemixer
+    
+    # Install pipewire-jack separately with conflict resolution
+    print_info "Installing pipewire-jack (JACK compatibility)."
+    arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack || {
+        print_info "Resolving jack2 conflict..."
+        arch-chroot /mnt pacman -Rdd jack2 --noconfirm 2>/dev/null || true
+        arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack --overwrite '*'
+    }
+    
+    # Now install remaining packages
+    print_info "Installing remaining desktop packages."
+    failed_packages=()
+    
+    while IFS= read -r line; do
+        if [[ ! "$line" =~ ^#.* ]] && [[ -n "$line" ]]; then
+            # Skip Pipewire packages we already installed
+            if [[ "$line" =~ ^(pipewire|pipewire-alsa|pipewire-pulse|pipewire-jack|wireplumber|pulsemixer)$ ]]; then
+                continue
+            fi
+            
+            # Try to install package with better error handling
+            print_info "Installing $line"
+            if ! arch-chroot /mnt pacman -S --noconfirm --needed "$line"; then
+                print_info "Failed to install $line, attempting conflict resolution..."
+                
+                # Try removing jack2 if it conflicts
+                arch-chroot /mnt pacman -Rdd jack2 --noconfirm 2>/dev/null || true
+                
+                # Try installing again with overwrite
+                if ! arch-chroot /mnt pacman -S --noconfirm --needed "$line" --overwrite '*'; then
+                    print_info "WARNING: Failed to install package: $line"
+                    failed_packages+=("$line")
+                    continue
+                fi
+            fi
+        fi
+    done < /root/pkgs-qtile
+    
+    # Report failed packages
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        print_info "The following packages failed to install:"
+        for pkg in "${failed_packages[@]}"; do
+            echo "  - $pkg"
+        done
+        print_info "These packages can be installed manually after booting into the new system."
+        print_info "Try: sudo pacman -S <package-name>"
+        
+        # Create a script to install failed packages
+        cat > /mnt/home/"$username"/install-missing-packages.sh << 'EOF'
+#!/bin/bash
+# Script to install packages that failed during KyOS installation
+
+echo "Installing missing KyOS packages..."
+echo "You may need to set up chaotic-aur repository first if not already configured."
+
+failed_packages=(
+EOF
+        for pkg in "${failed_packages[@]}"; do
+            echo "    \"$pkg\"" >> /mnt/home/"$username"/install-missing-packages.sh
+        done
+        
+        cat >> /mnt/home/"$username"/install-missing-packages.sh << 'EOF'
+)
+
+for package in "${failed_packages[@]}"; do
+    echo "Installing $package..."
+    sudo pacman -S --noconfirm --needed "$package" || echo "Failed to install $package"
+done
+
+echo "Installation of missing packages completed."
+EOF
+        
+        chmod +x /mnt/home/"$username"/install-missing-packages.sh
+        arch-chroot /mnt chown "$username:$username" /home/"$username"/install-missing-packages.sh
+        print_info "Created /home/$username/install-missing-packages.sh for manual installation of failed packages."
+    fi
+fi
+
+print_info "Generating fstab."
+genfstab -U /mnt >> /mnt/etc/fstab
+
+print_info "Setting the hostname as $hostname."
+echo "$hostname" > /mnt/etc/hostname
+
+print_info "Setting up localization."
+echo "127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $hostname.localdomain   $hostname" > /mnt/etc/hosts
+
+print_info "Configuring selected locale and keymap."
+sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
+echo "LANG=$locale" > /mnt/etc/locale.conf
+echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
+
+print_info "Setting timezone to $timezone."
+arch-chroot /mnt ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime &>/dev/null
+arch-chroot /mnt hwclock --systohc
+
+print_info "Configuring users and passwords."
+arch-chroot /mnt useradd -m -G wheel,audio,video,optical,storage -s /bin/zsh "$username"
+echo "$username:$userpass" | arch-chroot /mnt chpasswd
+echo "root:$rootpass" | arch-chroot /mnt chpasswd
+
+print_info "Setting up sudo configuration."
+# Ensure sudo is properly configured for wheel group
+echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel-sudo
+
+# Also setup doas as alternative
+echo "permit persist :wheel" > /mnt/etc/doas.conf
+
+# Installation in chroot
+disk_var="$disk"
+username_var="$username"
+kyos_desktop_var="$kyos_desktop"
+firmware_var="$firmware_type"
+
+arch-chroot /mnt /bin/bash <<EOF
+    set -e  # Enable error checking after entering the environment
+    
+    echo "Generating locales."
+    locale-gen
+    
+    echo "Installing GRUB bootloader."
+    echo "Firmware type: $firmware_var"
+    echo "Target disk: $disk_var"
+    
+    if [[ "$firmware_var" = "UEFI" ]]; then
+        echo "Installing GRUB for UEFI system..."
+        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --debug || {
+            echo "GRUB UEFI installation failed, trying alternative method..."
+            grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable --debug
+        }
+    else
+        echo "Installing GRUB for BIOS system..."
+        echo "Using disk: $disk_var"
+        grub-install --target=i386-pc --debug $disk_var || {
+            echo "GRUB BIOS installation failed!"
+            echo "Checking if BIOS boot partition exists..."
+            parted $disk_var print
+            exit 1
+        }
+    fi
+    
+    echo "Generating GRUB configuration..."
+    grub-mkconfig -o /boot/grub/grub.cfg || {
+        echo "GRUB configuration generation failed!"
+        exit 1
+    }
+    
+    if [[ "$kyos_desktop_var" = "yes" ]]; then
+        echo "Installing alacritty themes."
+        mkdir -p /home/"$username_var"/.config/alacritty/themes
+        if command -v git >/dev/null 2>&1; then
+            git clone https://github.com/alacritty/alacritty-theme /home/"$username_var"/.config/alacritty/themes 2>/dev/null || echo "Warning: Could not clone alacritty themes (git failed)"
+        else
+            echo "Warning: git not available, skipping alacritty themes"
+        fi
+        chown -R "$username_var":"$username_var" /home/"$username_var"/.config
+    fi
+    
+    echo "Enabling essential services."
+    
+    if [[ "$kyos_desktop_var" = "yes" ]]; then
+        # Enable services one by one with error handling - desktop installation
+        systemctl enable NetworkManager 2>/dev/null && echo "✓ Enabled NetworkManager" || echo "⚠ NetworkManager not found"
+        systemctl enable bluetooth.service 2>/dev/null && echo "✓ Enabled bluetooth" || echo "⚠ Bluetooth not found" 
+        systemctl enable cups.service 2>/dev/null && echo "✓ Enabled CUPS printing" || echo "⚠ CUPS not found"
+        systemctl enable sddm.service 2>/dev/null && echo "✓ Enabled SDDM display manager" || echo "⚠ SDDM not found"
+        systemctl enable systemd-oomd.service 2>/dev/null && echo "✓ Enabled systemd-oomd" || echo "⚠ systemd-oomd not found"
+        systemctl enable reflector.timer 2>/dev/null && echo "✓ Enabled reflector timer" || echo "⚠ Reflector not found"
+        systemctl enable udisks2.service 2>/dev/null && echo "✓ Enabled udisks2" || echo "⚠ udisks2 not found"
+        systemctl enable avahi-daemon.service 2>/dev/null && echo "✓ Enabled avahi-daemon" || echo "⚠ Avahi not found"
+    else
+        # Enable services for minimal installation
+        systemctl enable reflector.timer 2>/dev/null && echo "✓ Enabled reflector timer" || echo "⚠ Reflector not found"
+        systemctl enable sddm.service 2>/dev/null && echo "✓ Enabled SDDM display manager" || echo "⚠ SDDM not found"
+        systemctl enable systemd-oomd.service 2>/dev/null && echo "✓ Enabled systemd-oomd" || echo "⚠ systemd-oomd not found"
+        systemctl enable udisks2.service 2>/dev/null && echo "✓ Enabled udisks2" || echo "⚠ udisks2 not found"
+    fi
+    
+    echo "Configuring sudo and doas."
+    # Keep sudo and also setup doas
+    # Don't remove sudo as many KyOS scripts may depend on it
+    echo "Both sudo and doas are available for administrative tasks."
+EOF
+
+# Copy configuration files and setup KyOS environment
+if [[ "$kyos_desktop" = "yes" ]]; then
+    print_info "Setting up KyOS configuration files."
+    
+    # Create necessary directories
+    mkdir -p /mnt/home/"$username"/.local/share/fonts/
+    mkdir -p /mnt/home/"$username"/.config
+    
+    # Copy skeleton files from live environment
+    if [[ -d /run/archiso/airootfs/etc/skel ]]; then
+        rsync -avr /run/archiso/airootfs/etc/skel/ /mnt/home/"$username"/ || echo "Warning: Could not copy skeleton files"
+    fi
+    
+    # Copy KyOS configuration if it exists
+    if [[ -d /mnt/etc/dtos ]]; then
+        rsync -avr /mnt/etc/dtos/ /mnt/home/"$username"/ || echo "Warning: Could not copy DTOS config from /etc/dtos"
+    fi
+    
+    # The KyOS packages should have installed their configs, but let's ensure user ownership
+    # KyOS packages typically install configs to /etc/skel or user directories during package installation
+    
+    print_info "KyOS configuration files installed via packages."
+fi
+
+# Check if we are in a VM and install VM tools
+vm_check
+
+# Set proper permissions and finalize KyOS setup
+print_info "Setting up file permissions and finalizing KyOS configuration."
+arch-chroot /mnt chown -R "$username:$username" /home/"$username"
+
+if [[ "$kyos_desktop" = "yes" ]]; then
+    # Set executable permissions for important KyOS scripts
+    arch-chroot /mnt chmod 755 /home/"$username"/.config/qtile/autostart.sh 2>/dev/null || echo "Warning: Could not set qtile autostart permissions"
+    arch-chroot /mnt chmod 755 /home/"$username"/.local/bin/* 2>/dev/null || echo "Warning: Could not set local bin permissions"
+    
+    # Ensure fish shell is properly configured
+    arch-chroot /mnt chsh -s /usr/bin/fish "$username" || echo "Warning: Could not set fish as default shell"
+    
+    # Run any KyOS-specific post-install commands
+    arch-chroot /mnt /bin/bash -c "
+        # Update font cache
+        fc-cache -f 2>/dev/null || true
+        
+        # Update desktop database  
+        update-desktop-database 2>/dev/null || true
+        
+        # Update icon cache
+        gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
+    " || echo "Warning: Some post-install commands failed"
+fi
+
+print_info "Installation of KyOS completed! You may now reboot the computer."
+
+# Verify installation
+print_info "Verifying installation..."
+echo "Checking user groups:"
+arch-chroot /mnt groups "$username" || echo "Warning: Could not check user groups"
+
+echo "Checking sudo configuration:"
+if [[ -f /mnt/etc/sudoers.d/wheel-sudo ]]; then
+    echo "✓ Sudo configured for wheel group"
+else
+    echo "✗ Sudo configuration may be missing"
+fi
+
+echo "Checking if user is in wheel group:"
+if arch-chroot /mnt groups "$username" | grep -q wheel; then
+    echo "✓ User $username is in wheel group"
+else
+    echo "✗ User $username is NOT in wheel group"
+fi
+        
+print_info "KyOS automated installation finished successfully!"
+echo "========================================"
+echo "Installation Summary:"
+echo "- Hostname: $hostname"
+echo "- Username: $username"
+echo "- Password: $userpass"
+echo "- Root password: $rootpass"
+echo "- Filesystem: $fs_type (no encryption)"
+echo "- Desktop: KyOS Qtile"
+echo "========================================"
+echo "You can now reboot your system with: reboot"
+
+exit

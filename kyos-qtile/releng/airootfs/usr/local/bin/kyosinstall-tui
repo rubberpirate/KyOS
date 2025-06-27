@@ -1,0 +1,531 @@
+#!/bin/bash
+
+# KyOS TUI Installer - An interactive installer script for KyOS (DistroTube OS).
+# This script guides the user through various configuration steps
+# for a KyOS installation, using 'gum' for a Text User Interface (TUI).
+# Inspired by Aegis TUI from Athena OS.
+
+version="1.0.0"
+
+# --- Script Initialization and Setup ---
+
+# Check if the script is run as root.
+if [ "$EUID" -ne 0 ]; then
+  echo "You must be root to perform this operation."
+  exit 1
+fi
+
+# Define TUI colors for 'gum' commands.
+main_color="#00ff00" # Green for KyOS theme
+warning_color="#ff0000" # Red for warnings
+info_color="#00ffff" # Cyan for info
+
+export BORDER_FOREGROUND="$main_color"
+export GUM_CONFIRM_SELECTED_BACKGROUND="$main_color"
+export GUM_CHOOSE_CURSOR_FOREGROUND="$main_color"
+export GUM_CHOOSE_SELECTED_FOREGROUND="$main_color"
+export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
+export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
+export FOREGROUND="#ffffff" # White for general foreground text
+
+# Enable shell options
+shopt -s expand_aliases
+
+# Initialize default values for configuration variables.
+timezone="America/New_York"
+x11keymap="us"
+locale="en_US.UTF-8"
+username="kyos"
+password=""
+root_password=""
+hostname="kyos"
+disk_dev=""
+is_uefi="false"
+encrypt_check="false"
+create_swap="true"
+swap_size="2GiB"
+partitions=() # Array to store partition settings
+partitions_setup="" # String for JSON output
+enable_ipv6="false"
+enable_multilib="true"
+enable_aur="true"
+install_mode="auto" # auto, interactive
+
+# --- Helper Functions for TUI Consistency and Error Handling ---
+
+# Function to display a consistent gum style box.
+gum_box() {
+    gum style --border normal --margin "1" --padding "1 2" "$@"
+}
+
+# Function to handle user cancellation (Ctrl+C or Esc) from gum commands.
+check_gum_exit() {
+    if [ $? -ne 0 ]; then
+        gum_box "$(gum style --foreground "$warning_color" "Operation cancelled by user. Exiting.")"
+        Exit
+    fi
+}
+
+# --- Core Configuration Functions ---
+
+Welcome() {
+    clear
+    local kyos_banner
+    kyos_banner=$(cat << 'EOF'
+ ██╗  ██╗██╗   ██╗ ██████╗ ███████╗
+ ██║ ██╔╝╚██╗ ██╔╝██╔═══██╗██╔════╝
+ █████╔╝  ╚████╔╝ ██║   ██║███████╗
+ ██╔═██╗   ╚██╔╝  ██║   ██║╚════██║
+ ██║  ██╗   ██║   ╚██████╔╝███████║
+ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚══════╝
+        Kage's Operating System
+EOF
+)
+
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "$(gum style --foreground "$main_color" "$kyos_banner")" "Ready to install KyOS (Kage's Operating System)?" "$(gum style --foreground "$main_color" "KyOS TUI Installer version: $version")")"
+    local CONTINUE=$?
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        Exit
+    fi
+}
+
+InstallModeSelect() {
+    clear
+    gum_box "Select installation mode"
+    install_mode=$(gum choose --limit 1 "Automated (recommended)" "Interactive")
+    check_gum_exit
+    
+    if [[ "$install_mode" == "Automated (recommended)" ]]; then
+        install_mode="auto"
+        gum_box "$(gum style --foreground "$info_color" "Automated mode selected")" "Will use sensible defaults for quick installation" "You can still review settings before installation"
+    else
+        install_mode="interactive"
+        gum_box "$(gum style --foreground "$info_color" "Interactive mode selected")" "You will configure each setting manually"
+    fi
+}
+
+Timezone() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default timezone
+    fi
+    
+    clear
+    gum_box "Select a timezone"
+    timezone=$(timedatectl list-timezones | gum filter --placeholder "e.g., America/New_York")
+    check_gum_exit
+}
+
+X11Keymap() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default keymap
+    fi
+    
+    clear
+    gum_box "Select a keyboard layout"
+    x11keymap=$(localectl list-x11-keymap-layouts | grep -v '^custom$' | gum filter --placeholder "select a keyboard layout")
+    check_gum_exit
+    # Set the X11 keymap temporarily if X is running
+    setxkbmap "$x11keymap" 2> /dev/null || true
+}
+
+Locale() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default locale
+    fi
+    
+    clear
+    gum_box "Select a locale"
+    locale=$(localectl list-locales | gum filter --placeholder "e.g., en_US.UTF-8")
+    check_gum_exit
+}
+
+Username() {
+    clear
+    gum_box "Please enter your username"
+    username=$(gum input --placeholder "kyos")
+    check_gum_exit
+    # Remove spaces from the input string
+    username="${username// /}"
+    # Set a default if input is empty
+    if [ -z "$username" ]; then
+        username="kyos"
+    fi
+}
+
+Password() {
+    local matches="false"
+    local passwrong="false"
+    while [[ "$matches" == "false" ]]; do
+        clear
+        if [[ "$passwrong" == "true" ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please try again")"
+        else
+            gum_box "Enter your password" "$(gum style --foreground "$info_color" "Minimum 4 characters recommended")"
+        fi
+        password=$(gum input --password --placeholder "Enter a secure password")
+        check_gum_exit
+        
+        # Basic password validation
+        if [[ ${#password} -lt 4 ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Password too short!")" "Please use at least 4 characters"
+            continue
+        fi
+        
+        clear
+        gum_box "Verify your password"
+        password_verif=$(gum input --password --placeholder "Type your password again")
+        check_gum_exit
+
+        if [[ "$password" == "$password_verif" ]]; then
+            matches="true"
+        else
+            passwrong="true"
+        fi
+    done
+
+    # Set a default if input is empty (shouldn't happen due to validation)
+    if [ -z "$password" ]; then
+        password="kyos"
+    fi
+}
+
+RootPassword() {
+    if [[ "$install_mode" == "auto" ]]; then
+        root_password="$password" # Use same password as user
+        return
+    fi
+    
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Use same password for root?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        root_password="$password"
+    else
+        local root_matches="false"
+        local root_passwrong="false"
+        while [[ "$root_matches" == "false" ]]; do
+            clear
+            if [[ "$root_passwrong" == "true" ]]; then
+                gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please try again")"
+            else
+                gum_box "Enter root password"
+            fi
+            root_password=$(gum input --password --placeholder "Enter root password")
+            check_gum_exit
+            clear
+            gum_box "Verify root password"
+            root_password_verif=$(gum input --password --placeholder "Type root password again")
+            check_gum_exit
+
+            if [[ "$root_password" == "$root_password_verif" ]]; then
+                root_matches="true"
+            else
+                root_passwrong="true"
+            fi
+        done
+
+        if [ -z "$root_password" ]; then
+            root_password="kyos"
+        fi
+    fi
+}
+
+Hostname() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default hostname
+    fi
+    
+    clear
+    gum_box "Please enter a hostname"
+    hostname=$(gum input --placeholder "kyos")
+    check_gum_exit
+    # Remove spaces from the input string
+    hostname="${hostname// /}"
+    # Set a default if input is empty
+    if [ -z "$hostname" ]; then
+        hostname="kyos"
+    fi
+}
+
+UEFICheck() {
+    # Determine if the system is UEFI or BIOS
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+}
+
+LUKSCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        encrypt_check="false" # No encryption in auto mode for simplicity
+        return
+    fi
+    
+    encrypt_check="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Do you want to encrypt the disk?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        encrypt_check="true"
+        gum_box "$(gum style --foreground "$warning_color" "Disk encryption will be enabled")" "You will need to enter a passphrase during boot"
+    fi
+}
+
+SwapCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default swap settings
+    fi
+    
+    create_swap="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Create a swap partition?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        create_swap="true"
+        gum_box "Select swap partition size"
+        swap_size=$(gum choose --limit 1 "1GiB" "2GiB" "4GiB" "8GiB")
+        check_gum_exit
+    fi
+}
+
+DiskSelection() {
+    clear
+    gum_box "Select disk for installation" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the entire disk')"
+    
+    # Create a formatted list of disks with size and model info
+    local disk_list=""
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            disk_list+="$line"$'\n'
+        fi
+    done < <(lsblk -pdo name,size,model | grep -E '^/dev/(sd|nvme|vd|hd)' | grep -v zram | grep -v loop | grep -v sr)
+    
+    if [[ -z "$disk_list" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No suitable disks found!")" "Please ensure you have a disk connected"
+        Exit
+    fi
+    
+    disk_dev=$(echo "$disk_list" | gum choose --limit 1)
+    check_gum_exit
+    
+    # Extract just the device name (first column)
+    disk_dev=$(echo "$disk_dev" | awk '{print $1}')
+    
+    gum_box "Selected disk: $disk_dev" "$(gum style --foreground "$warning_color" "All data will be erased!")"
+}
+
+Partitioning() {
+    DiskSelection
+    UEFICheck
+    SwapCheck
+    LUKSCheck
+}
+
+MiscSettings() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use defaults
+    fi
+    
+    clear
+    gum_box "Miscellaneous settings" "Use space to enable/disable"
+    
+    local selected_settings=$(gum choose --no-limit --height 20 "Enable IPv6" "Enable multilib repository" "Enable AUR support")
+    check_gum_exit
+
+    enable_ipv6="false"
+    enable_multilib="true"
+    enable_aur="true"
+    
+    if [[ "$selected_settings" == *"Enable IPv6"* ]]; then
+        enable_ipv6="true"
+    fi
+    if [[ "$selected_settings" == *"Enable multilib repository"* ]]; then
+        enable_multilib="true"
+    fi
+    if [[ "$selected_settings" == *"Enable AUR support"* ]]; then
+        enable_aur="true"
+    fi
+}
+
+Summary() {
+    clear
+    
+    local summary_text=(
+        "Installation Summary - Please Review:" ""
+        "$(gum style --foreground "$main_color" "System Configuration:")"
+        "  Timezone: $timezone"
+        "  Keyboard Layout: $x11keymap"
+        "  Locale: $locale"
+        ""
+        "$(gum style --foreground "$main_color" "User Configuration:")"
+        "  Username: $username"
+        "  Password: ${password:+********}"
+        "  Root Password: ${root_password:+********}"
+        "  Hostname: $hostname"
+        ""
+        "$(gum style --foreground "$main_color" "Disk Configuration:")"
+        "  Target Disk: $disk_dev"
+        "  UEFI Mode: $is_uefi"
+        "  Encryption: $encrypt_check"
+        "  Swap Partition: $create_swap"
+    )
+
+    if [[ "$create_swap" == "true" ]]; then
+        summary_text+=("  Swap Size: $swap_size")
+    fi
+
+    summary_text+=(
+        ""
+        "$(gum style --foreground "$main_color" "Additional Settings:")"
+        "  IPv6: $enable_ipv6"
+        "  Multilib: $enable_multilib"
+        "  AUR Support: $enable_aur"
+        ""
+        "$(gum style --foreground "$warning_color" "WARNING: This will erase all data on $disk_dev")"
+    )
+
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "${summary_text[@]}")"
+    local CONTINUE=$?
+    check_gum_exit
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        Change
+    fi
+}
+
+Change() {
+    clear
+    gum_box "What would you like to change?"
+    
+    local change_options=(
+        "Timezone" "Keyboard Layout" "Locale"
+        "Username" "Password" "Root Password" "Hostname"
+        "Disk Selection" "Encryption" "Swap Settings"
+        "Miscellaneous" "Back to Summary" "Exit"
+    )
+
+    local selected_function=$(gum choose --limit 1 --height 20 "${change_options[@]}")
+    check_gum_exit
+
+    case "$selected_function" in
+        "Timezone") Timezone ;;
+        "Keyboard Layout") X11Keymap ;;
+        "Locale") Locale ;;
+        "Username") Username ;;
+        "Password") Password ;;
+        "Root Password") RootPassword ;;
+        "Hostname") Hostname ;;
+        "Disk Selection") DiskSelection ;;
+        "Encryption") LUKSCheck ;;
+        "Swap Settings") SwapCheck ;;
+        "Miscellaneous") MiscSettings ;;
+        "Back to Summary") Summary ;;
+        "Exit") Exit ;;
+    esac
+    
+    Summary # Return to summary after making changes
+}
+
+Install() {
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Begin KyOS installation?" "$(gum style --foreground "$warning_color" 'This will start the installation process')")"
+    local CONTINUE=$?
+    check_gum_exit
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        Exit
+    else
+        gum_box "Starting KyOS installation..." "Please wait while the system is installed"
+        
+        # Create a temporary configuration file for the installer
+        cat > /tmp/kyos-tui-config << EOF
+# KyOS TUI Configuration
+TIMEZONE="$timezone"
+KEYMAP="$x11keymap"
+LOCALE="$locale"
+USERNAME="$username"
+PASSWORD="$password"
+ROOT_PASSWORD="$root_password"
+HOSTNAME="$hostname"
+DISK="$disk_dev"
+ENCRYPT="$encrypt_check"
+SWAP="$create_swap"
+SWAP_SIZE="$swap_size"
+IPV6="$enable_ipv6"
+MULTILIB="$enable_multilib"
+AUR="$enable_aur"
+EOF
+
+        # Prepare arguments for the automated installer
+        local install_args=""
+        
+        # Add encryption flag if disabled
+        if [[ "$encrypt_check" == "false" ]]; then
+            install_args="--no-encryption"
+        fi
+        
+        # Add specific disk if provided
+        if [[ -n "$disk_dev" ]]; then
+            install_args="$install_args --disk=$disk_dev"
+        fi
+        
+        # Add TUI config flag
+        install_args="$install_args --config=/tmp/kyos-tui-config"
+        
+        # Call the automated installer with TUI-provided settings
+        /usr/local/bin/kyosinstall-auto $install_args
+        local exit_code=$?
+
+        # Cleanup temp config
+        rm -f /tmp/kyos-tui-config
+
+        if [ $exit_code -ne 0 ]; then
+            gum_box "$(gum style --foreground "$warning_color" "Installation failed!")" "Check the terminal output for details"
+            gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Do you want to retry the installation?")"
+            local retry_confirm=$?
+            
+            if [[ $retry_confirm -eq 0 ]]; then
+                Install # Retry installation
+            else
+                Exit
+            fi
+        else
+            gum_box "$(gum style --foreground "$main_color" "KyOS installation completed successfully!")" "You can now reboot into your new KyOS system" "Remove the installation media before rebooting"
+            
+            gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Reboot now?")"
+            local reboot_confirm=$?
+            
+            if [[ $reboot_confirm -eq 0 ]]; then
+                reboot
+            fi
+        fi
+    fi
+}
+
+Exit() {
+    gum_box "Thank you for trying KyOS!" "Have a great day!"
+    exit 0
+}
+
+# --- Main Script Execution Flow ---
+
+# Trap to ensure cleanup on script exit
+trap 'exit 0' EXIT INT TERM
+
+# Main execution flow
+Welcome
+InstallModeSelect
+Timezone
+X11Keymap
+Locale
+Username
+Password
+RootPassword
+Hostname
+Partitioning
+MiscSettings
+Summary
+Install

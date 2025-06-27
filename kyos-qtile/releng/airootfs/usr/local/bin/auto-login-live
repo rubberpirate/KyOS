@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Auto-login script for live environment
+
+# Wait for system to be ready
+sleep 2
+
+# Start X server with Qtile
+exec startx /usr/local/bin/start-qtile-live

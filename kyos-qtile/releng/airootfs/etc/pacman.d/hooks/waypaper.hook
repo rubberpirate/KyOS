@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = waypaper-git
+Target = waypaper
+
+[Action]
+Description = Pacman hook to change waypager desktop executable to 'pape' script
+When = PostTransaction
+Exec = /usr/bin/bash -c "sed -i 's/^Exec=waypaper/Exec=pape/' /usr/share/applications/waypaper.desktop"

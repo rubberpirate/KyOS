@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Live session starter
+
+clear
+echo "Starting KyOS Live Environment..."
+echo "Please wait while the desktop loads..."
+
+# Start X server with Qtile
+if command -v startx >/dev/null 2>&1; then
+    exec startx /usr/local/bin/start-qtile-live -- vt1
+else
+    echo "Error: X server not available"
+    echo "Dropping to shell..."
+    exec /bin/bash
+fi

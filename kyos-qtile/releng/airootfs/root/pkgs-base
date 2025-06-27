@@ -1,0 +1,55 @@
+# Base System Packages
+base-devel
+sudo
+polkit
+doas
+opendoas
+doasedit
+efibootmgr
+fish
+git
+grub
+htop
+intel-ucode
+iwd
+linux
+linux-firmware
+linux-firmware-nvidia
+linux-headers
+nano
+neovim
+networkmanager
+ntfs-3g
+openssh
+os-prober
+vim
+wget
+zsh
+
+# Archive Support
+unzip
+unrar
+p7zip
+zip
+
+# Development Tools
+visual-studio-code-bin
+
+# System Performance and Monitoring
+brightnessctl
+btop
+imagemagick
+fastfetch
+pfetch
+
+# Python Dependencies
+python-pipx
+python-colorama
+python-plyer
+python-art
+python-psutil
+
+# System Tools
+zram-generator
+sof-firmware
+xdotool

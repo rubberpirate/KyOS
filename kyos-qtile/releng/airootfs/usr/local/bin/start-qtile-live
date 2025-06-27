@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Start Qtile for live environment
+
+# Set up environment
+export XDG_SESSION_TYPE=x11
+export XDG_CURRENT_DESKTOP=qtile
+
+# Start Qtile
+exec qtile start

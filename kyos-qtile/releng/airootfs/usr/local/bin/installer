@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# KyOS Installer Launcher
+# Provides choice between automated and interactive installation
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+    echo "ERROR: Do not run this script as root directly."
+    echo "The script will ask for sudo privileges when needed."
+    exit 1
+fi
+
+echo "========================================"
+echo "    KyOS (Arch Linux) Installer"
+echo "========================================"
+echo "This will install KyOS with these defaults:"
+echo "- No user input required"
+echo "- No disk encryption"
+echo "- Username: kyos / Password: kyos123"
+echo "- Root password: root123"
+echo "- Hostname: kyos-pc"
+echo "- Full KyOS desktop environment"
+echo "========================================"
+echo
+
+echo "Available options:"
+echo "1) Run automated installer (Recommended)"
+echo "2) Run interactive installer"
+echo "3) Run TUI installer (Modern interface)"
+echo "4) Exit"
+echo
+
+while true; do
+    echo -n "Enter your choice (1-4): "
+    read -r choice
+    
+    case $choice in
+        1)
+            echo "Starting automated installer..."
+            echo "NOTE: This requires root privileges. You will be prompted for your password."
+            exec sudo /usr/local/bin/kyosinstall-auto
+            ;;
+        2)
+            echo "Starting interactive installer..."
+            echo "NOTE: This requires root privileges. You will be prompted for your password."
+            exec sudo /usr/local/bin/kyosinstall
+            ;;
+        3)
+            echo "Starting TUI installer..."
+            echo "NOTE: This requires root privileges. You will be prompted for your password."
+            exec sudo /usr/local/bin/kyosinstall-tui
+            ;;
+        4)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Please enter 1, 2, 3, or 4."
+            ;;
+    esac
+done

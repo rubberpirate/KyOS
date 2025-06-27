@@ -1,4 +1,4 @@
-# Complete Guide to Creating Custom Arch Linux ISO
+# Complete Guide to Creating KyOS - Custom Arch Linux ISO
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -11,24 +11,28 @@
 8. [Boot Configuration](#boot-configuration)
 9. [Branding and Customization](#branding-and-customization)
 10. [Building the ISO](#building-the-iso)
-11. [Advanced Configurations](#advanced-configurations)
-12. [Troubleshooting](#troubleshooting)
-13. [Best Practices](#best-practices)
+11. [VirtualBox Compatibility](#virtualbox-compatibility)
+12. [Advanced Configurations](#advanced-configurations)
+13. [KyOS Rebranding Process](#kyos-rebranding-process)
+14. [Troubleshooting](#troubleshooting)
+15. [Best Practices](#best-practices)
 
 ---
 
 ## Overview
 
-This guide provides comprehensive documentation for creating a custom Arch Linux ISO distribution based on the archiso framework, using the DTOS (Derek Taylor's Operating System) structure as a reference. The ISO will include custom branding, package selection, configurations, and installation scripts.
+This guide provides comprehensive documentation for creating KyOS - a custom Arch Linux ISO distribution based on the archiso framework. Originally forked from DTOS (Derek Taylor's Operating System), KyOS has been completely rebranded and optimized for modern use cases, including VirtualBox compatibility. The ISO includes custom branding, curated package selection, optimized configurations, and intelligent installation scripts.
 
 ### What You'll Learn
-- Complete archiso project structure
-- Package management strategies (official repos + AUR)
-- Custom configuration deployment
-- Branding and personalization
-- Installation script development
-- Boot loader configuration
-- System service management
+- Complete archiso project structure for KyOS
+- Advanced package management (official repos + AUR + custom packages)
+- Custom configuration deployment and user management
+- Complete system rebranding from DTOS to KyOS
+- VirtualBox compatibility and optimization
+- Installation script development with TUI support
+- Boot loader configuration for multiple boot methods
+- System service management and customization
+- Qtile window manager optimization for VMs
 
 ---
 
@@ -145,8 +149,8 @@ your-custom-iso/
 │   │   │   │   ├── your-installer   # Main installation script - primary system installer program
 │   │   │   │   ├── choose-mirror    # Mirror selection utility - tool for selecting package repository mirrors
 │   │   │   │   ├── welcome-app      # Welcome application - first-run application for new users
-│   │   │   │   ├── dtosinstall      # DTOS installer - DTOS-specific installation script
-│   │   │   │   ├── dtos-welcome     # DTOS welcome app - DTOS-specific welcome application
+│   │   │   │   ├── kyosinstall       # KyOS installer - KyOS-specific installation script
+│   │   │   │   ├── kyos-welcome      # KyOS welcome app - KyOS-specific welcome application
 │   │   │   │   ├── Installation_guide # Installation guide - interactive installation documentation
 │   │   │   │   ├── livecd-sound     # Live CD audio setup - configures audio for live environment
 │   │   │   │   └── custom-tools     # Other custom utilities - additional system utilities and tools
@@ -431,1872 +435,493 @@ your-custom-iso/
 - **When to Edit**: Customize BIOS boot experience
 - **Elements**: Boot menu, splash screen, timeout settings
 
-### Custom Applications (airootfs/opt/)
-
-#### **dtos-welcome/**
-- **Purpose**: Complete welcome application package
-- **Use Case**: Provides rich welcome experience with GUI and features
-- **When to Edit**: Develop custom welcome application for your distro
-- **Structure**: Source code, resources, configuration files
-
-### Optional Files Based on DTOS Structure
-
-#### **airootfs/etc/sddm.conf.d/kde_settings.conf**
-- **Purpose**: SDDM display manager configuration
-- **Use Case**: Customizes login screen appearance and behavior
-- **When to Edit**: Change login screen theme, user selection, session options
-- **Settings**: Theme, avatar display, session selection
-
-#### **airootfs/etc/xdg/reflector/reflector.conf**
-- **Purpose**: Reflector mirror ranking configuration
-- **Use Case**: Automatic mirror selection and ranking
-- **When to Edit**: Modify mirror selection criteria or update frequency
-- **Parameters**: Country selection, protocol preferences, mirror count
-
-This comprehensive file breakdown helps you understand exactly what each file does and when you need to modify it for your custom ISO.
-
 ---
 
----
+## VirtualBox Compatibility
 
-## Core Configuration Files
+KyOS includes intelligent VirtualBox detection and optimization to ensure a smooth desktop experience in virtualized environments. The system automatically adjusts compositor settings, application startup, and visual effects based on the detected virtualization platform.
 
-### 1. profiledef.sh - ISO Definition
+### Automatic Detection
+
+The system uses `systemd-detect-virt` to identify VirtualBox and applies appropriate optimizations:
+
 ```bash
-#!/usr/bin/env bash
-# shellcheck disable=SC2034
-
-# Basic ISO Information
-iso_name="yourcustomlinux"                                    # ISO filename prefix
-iso_label="YOURCUSTOM_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
-iso_publisher="Your Name <your@email.com>"                   # Publisher information
-iso_application="Your Custom Linux Live/Install DVD"         # ISO description
-iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
-install_dir="arch"                                           # Installation directory name
-
-# Build Configuration
-buildmodes=('iso')                                           # Build modes (iso, netboot)
-bootmodes=(                                                  # Supported boot modes
-    'bios.syslinux.mbr'         # BIOS MBR boot
-    'bios.syslinux.eltorito'    # BIOS CD/DVD boot
-    'uefi-ia32.systemd-boot.esp'    # UEFI 32-bit
-    'uefi-x64.systemd-boot.esp'     # UEFI 64-bit
-    'uefi-ia32.systemd-boot.eltorito'   # UEFI 32-bit CD/DVD
-    'uefi-x64.systemd-boot.eltorito'   # UEFI 64-bit CD/DVD
-)
-
-# System Configuration
-arch="x86_64"                                               # Target architecture
-pacman_conf="pacman.conf"                                   # Pacman config file
-airootfs_image_type="squashfs"                             # Filesystem image type
-
-# Compression Settings
-airootfs_image_tool_options=(                              # SquashFS compression options
-    '-comp' 'xz'                # Compression algorithm
-    '-Xbcj' 'x86'               # BCJ filter for x86
-    '-b' '1M'                   # Block size
-    '-Xdict-size' '1M'          # Dictionary size
-)
-bootstrap_tarball_compression=(                            # Bootstrap compression
-    'zstd' '-c' '-T0'          # Zstandard compression
-    '--auto-threads=logical'    # Use all logical cores
-    '--long' '-19'              # Maximum compression
-)
-
-# File Permissions
-file_permissions=(
-    ["/etc/doas.conf"]="0:0:400"                          # Privilege escalation config
-    ["/etc/shadow"]="0:0:400"                             # Password hashes
-    ["/etc/gshadow"]="0:0:0400"                           # Group passwords
-    ["/root"]="0:0:750"                                   # Root home directory
-    ["/root/.automated_script.sh"]="0:0:755"              # Automated script
-    ["/root/.gnupg"]="0:0:700"                            # GPG directory
-    ["/usr/local/bin/choose-mirror"]="0:0:755"            # Mirror chooser
-    ["/usr/local/bin/your-installer"]="0:0:755"           # Installation script
-    ["/usr/local/bin/welcome-app"]="0:0:755"              # Welcome application
-)
+# Check if running in VirtualBox
+if [ "$(systemd-detect-virt)" = "oracle" ]; then
+    echo "VirtualBox detected - applying compatibility settings"
+    # Apply VirtualBox-specific configurations
+fi
 ```
 
-### 2. bootstrap_packages.x86_64 - Build Dependencies
-```
-# Minimal packages needed for building the ISO
-arch-install-scripts
-base
-```
+### VirtualBox-Optimized Files
 
-### 3. pacman.conf - Package Manager Configuration
-```ini
-#
-# Pacman Configuration for Custom ISO
-#
+#### 1. Qtile Autostart Script (`~/.config/qtile/scripts/autostart.sh`)
 
-[options]
-# General Options
-HoldPkg      = pacman glibc
-Architecture = auto
+**Features:**
+- Skips picom compositor in VirtualBox (prevents transparency issues)
+- Disables problematic applications (eww, volctl) that cause rendering problems
+- Maintains essential applications (nm-applet, flameshot, blueman-applet)
 
-# Repositories - Official Arch Linux
-[core]
-Include = /etc/pacman.d/mirrorlist
-
-[extra]
-Include = /etc/pacman.d/mirrorlist
-
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-
-# Custom Repositories
-[your-custom-repo]
-SigLevel = Optional TrustAll
-Server = https://your-server.com/repo/$arch
-
-# Chaotic AUR - Pre-compiled AUR packages
-[chaotic-aur]
-Include = /etc/pacman.d/chaotic-mirrorlist
-```
-
----
-
-## Package Management
-
-### Package Organization Strategy
-
-#### 1. Live Environment Packages (packages.x86_64)
-Essential packages for the live environment:
-```
-# Base System
-base
-linux
-linux-firmware
-linux-headers
-
-# Hardware Support
-amd-ucode
-intel-ucode
-broadcom-wl
-sof-firmware
-
-# Network Tools
-dhcpcd
-iwd
-wpa_supplicant
-networkmanager
-
-# Installation Tools
-arch-install-scripts
-archinstall
-gptfdisk
-parted
-
-# File Systems
-btrfs-progs
-dosfstools
-e2fsprogs
-exfatprogs
-f2fs-tools
-jfsutils
-ntfs-3g
-xfsprogs
-
-# System Tools
-sudo
-nano
-vim
-git
-curl
-wget
-
-# Your Essential Additions
-chaotic-aur/chaotic-keyring
-chaotic-aur/chaotic-mirrorlist
-```
-
-#### 2. Installation Package Lists
-
-**airootfs/root/pkgs-base (Essential System)**
-```
-# Base Development
-base-devel
-git
-
-# Boot and System
-grub
-efibootmgr
-os-prober
-mkinitcpio
-
-# Network
-networkmanager
-dhcpcd
-
-# File System
-btrfs-progs
-dosfstools
-e2fsprogs
-
-# System Management
-systemd
-polkit
-dbus
-
-# Essential Tools
-bash-completion
-man-db
-man-pages
-nano
-vim
-neovim
-
-# Package Management
-pacman-contrib
-reflector
-yay  # AUR helper
-
-# Security
-sudo
-doas
-```
-
-**airootfs/root/pkgs-desktop (Desktop Environment)**
-```
-# Window Manager
-qtile
-python-psutil
-python-click
-python-xcffib
-python-cairocffi
-
-# Display Server
-xorg-server
-xorg-xinit
-xorg-xrandr
-xorg-xsetroot
-
-# Terminal
-alacritty
-xterm
-
-# Application Launcher
-rofi
-dmenu
-
-# File Manager
-pcmanfm-gtk3
-gvfs
-
-# Audio
-pulseaudio
-pavucontrol
-alsa-utils
-
-# Fonts
-ttf-dejavu
-ttf-liberation
-noto-fonts
-ttf-font-awesome
-
-# Themes
-arc-gtk-theme
-papirus-icon-theme
-
-# Display Manager
-sddm
-```
-
-**airootfs/root/pkgs-applications (Applications)**
-```
-# Web Browser
-firefox
-chromium
-
-# Text Editor
-code
-gedit
-
-# Media
-vlc
-mpv
-gimp
-shotwell
-
-# Office
-libreoffice-fresh
-
-# Development
-python
-nodejs
-npm
-
-# System Monitoring
-htop
-neofetch
-```
-
-**airootfs/root/pkgs-aur (AUR Packages)**
-```
-# AUR packages (installed via chaotic-aur or custom repo)
-qtile-extras
-brave-bin
-visual-studio-code-bin
-yay
-yay-bin
-```
-
-### AUR Package Handling Strategies
-
-#### Option 1: Chaotic AUR (Recommended)
 ```bash
-# Add to pacman.conf
-[chaotic-aur]
-Include = /etc/pacman.d/chaotic-mirrorlist
+#!/bin/bash
 
-# Add packages to regular package lists
-# They install like normal packages
-```
+export PATH="/home/user/.local/bin:$PATH"
 
-#### Option 2: Custom Repository
-```bash
-# Build AUR packages and host them
-mkdir -p /path/to/your/repo
-cd /path/to/your/repo
-
-# Build packages
-git clone https://aur.archlinux.org/qtile-extras.git
-cd qtile-extras
-makepkg -si
-
-# Create repository database
-repo-add your-repo.db.tar.xz *.pkg.tar.xz
-
-# Upload to your server
-rsync -av . your-server:/path/to/repo/
-```
-
-#### Option 3: Post-Installation Build
-```bash
-# In your installer script
-arch-chroot /mnt bash -c "
-    # Install AUR helper
-    sudo -u $username bash -c '
-        cd /tmp
-        git clone https://aur.archlinux.org/yay.git
-        cd yay
-        makepkg -si --noconfirm
-        yay -S qtile-extras --noconfirm
-    '
-"
-```
-
----
-
-## System Configuration
-
-### 1. OS Identification (airootfs/etc/os-release)
-```ini
-NAME="Your Custom Linux"
-PRETTY_NAME="Your Custom Linux"
-ID=yourcustomlinux
-ID_LIKE=arch
-BUILD_ID=rolling
-ANSI_COLOR="0;36"
-HOME_URL="https://yourwebsite.com/"
-DOCUMENTATION_URL="https://wiki.yourwebsite.com/"
-SUPPORT_URL="https://forum.yourwebsite.com/"
-BUG_REPORT_URL="https://github.com/yourusername/issues"
-PRIVACY_POLICY_URL="https://yourwebsite.com/privacy"
-LOGO=yourcustomlinux
-```
-
-### 2. Welcome Message (airootfs/etc/motd)
-```
-Welcome to Your Custom Linux Live Environment!
-
-To install Your Custom Linux, run: your-installer
-For help, type: Installation_guide
-
-Network Configuration:
-- Ethernet: Should work automatically
-- Wi-Fi: Use 'iwctl' utility
-- Mobile: Use 'mmcli' utility
-
-Documentation: https://wiki.yourwebsite.com
-Support: https://forum.yourwebsite.com
-
-Enjoy your custom Linux experience!
-```
-
-### 3. System Defaults
-
-**Hostname (airootfs/etc/hostname)**
-```
-yourcustomlinux
-```
-
-**Locale (airootfs/etc/locale.conf)**
-```
-LANG=en_US.UTF-8
-LC_ADDRESS=en_US.UTF-8
-LC_IDENTIFICATION=en_US.UTF-8
-LC_MEASUREMENT=en_US.UTF-8
-LC_MONETARY=en_US.UTF-8
-LC_NAME=en_US.UTF-8
-LC_NUMERIC=en_US.UTF-8
-LC_PAPER=en_US.UTF-8
-LC_TELEPHONE=en_US.UTF-8
-LC_TIME=en_US.UTF-8
-```
-
-### 4. User Configuration Template (airootfs/etc/skel/)
-
-**Qtile Configuration (.config/qtile/config.py)**
-```python
-# Your Custom Qtile Configuration
-from libqtile import bar, layout, widget
-from libqtile.config import Click, Drag, Group, Key, Match, Screen
-from libqtile.lazy import lazy
-
-# Mod key
-mod = "mod4"  # Super/Windows key
-
-# Key bindings
-keys = [
-    # Window management
-    Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
-    Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
-    Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
-    Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    
-    # Launch applications
-    Key([mod], "Return", lazy.spawn("alacritty"), desc="Launch terminal"),
-    Key([mod], "d", lazy.spawn("rofi -show drun"), desc="Launch rofi"),
-    
-    # System
-    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload config"),
-    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-]
-
-# Groups (workspaces)
-groups = [Group(i) for i in "123456789"]
-
-# Layouts
-layouts = [
-    layout.MonadTall(margin=8, border_focus="#ff6c6b", border_normal="#1e2029"),
-    layout.Max(),
-]
-
-# Widgets
-widget_defaults = dict(
-    font="sans",
-    fontsize=12,
-    padding=3,
-)
-
-# Screens
-screens = [
-    Screen(
-        top=bar.Bar(
-            [
-                widget.GroupBox(),
-                widget.Prompt(),
-                widget.WindowName(),
-                widget.Spacer(),
-                widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
-                widget.QuickExit(),
-            ],
-            24,
-            background="#1e2029",
-        ),
-    ),
-]
-
-# Your custom configuration continues...
-```
-
-**Terminal Configuration (.config/alacritty/alacritty.yml)**
-```yaml
-# Your Custom Alacritty Configuration
-window:
-  padding:
-    x: 10
-    y: 10
-
-font:
-  normal:
-    family: "JetBrains Mono"
-    style: Regular
-  size: 12.0
-
-colors:
-  primary:
-    background: '#1e2029'
-    foreground: '#abb2bf'
-  
-  normal:
-    black:   '#1e2029'
-    red:     '#e06c75'
-    green:   '#98c379'
-    yellow:  '#e5c07b'
-    blue:    '#61afef'
-    magenta: '#c678dd'
-    cyan:    '#56b6c2'
-    white:   '#abb2bf'
-
-shell:
-  program: /bin/bash
-  args:
-    - --login
-```
-
-### 5. System Services Configuration
-
-**Custom Service (airootfs/etc/systemd/system/your-welcome.service)**
-```ini
-[Unit]
-Description=Your Custom Welcome Application
-After=graphical-session.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/welcome-app
-User=root
-Environment=DISPLAY=:0
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Service Enablement (airootfs/etc/systemd/system/multi-user.target.wants/)**
-```bash
-# Create symlinks to enable services
-ln -sf ../your-welcome.service your-welcome.service
-ln -sf ../NetworkManager.service NetworkManager.service
-```
-
----
-
-## Custom Scripts and Applications
-
-### 1. Main Installer Script (airootfs/usr/local/bin/your-installer)
-```bash
-#!/usr/bin/env bash
-
-# Your Custom Linux Installer
-# Based on DTOS installer structure
-
-set -e
-
-# Color definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-BOLD='\033[1m'
-RESET='\033[0m'
-
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${RESET} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${RESET} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${RESET} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${RESET} $1"
-}
-
-# Menu function
-menu() {
-    local title="$1"
-    local prompt="$2"
-    
-    echo -e "\n${BOLD}$title${RESET}"
-    echo "===================="
-    
-    local i=1
-    for option in "${my_array[@]}"; do
-        echo "$i) $option"
-        ((i++))
-    done
-    
-    echo
-    read -p "$prompt" choice_num
-    
-    if [[ $choice_num =~ ^[0-9]+$ ]] && [ $choice_num -ge 1 ] && [ $choice_num -le ${#my_array[@]} ]; then
-        choice="${my_array[$((choice_num-1))]}"
-        choice="${choice// \[recommended\]/}"
-    else
-        log_error "Invalid selection. Please try again."
-        menu "$title" "$prompt"
-    fi
-}
-
-# System detection
-detect_system() {
-    log_info "Detecting system configuration..."
-    
-    # Detect virtualization
-    if systemd-detect-virt -q; then
-        virt_type=$(systemd-detect-virt)
-        log_info "Detected virtualization: $virt_type"
-    fi
-    
-    # Detect UEFI/BIOS
-    if [ -d /sys/firmware/efi ]; then
-        firmware_type="UEFI"
-        log_info "UEFI firmware detected"
-    else
-        firmware_type="BIOS"
-        log_info "BIOS firmware detected"
-    fi
-}
-
-# Disk selection
-select_disk() {
-    log_info "Available disks:"
-    lsblk -d -o NAME,SIZE,MODEL | grep -E '^[sv]d[a-z]|^nvme'
-    
-    echo
-    read -p "Enter the disk to install to (e.g., sda, nvme0n1): " disk
-    
-    if [ ! -b "/dev/$disk" ]; then
-        log_error "Invalid disk selection"
-        select_disk
-        return
-    fi
-    
-    disk="/dev/$disk"
-    log_info "Selected disk: $disk"
-}
-
-# Filesystem selection
-select_filesystem() {
-    my_array=("ext4 [recommended]" "btrfs" "xfs")
-    menu "Select Filesystem" "Choose filesystem type: "
-    fs_type="$choice"
-    log_info "Selected filesystem: $fs_type"
-}
-
-# User configuration
-configure_user() {
-    read -p "Enter username: " username
-    
-    while true; do
-        read -s -p "Enter password for $username: " userpass1
-        echo
-        read -s -p "Confirm password: " userpass2
-        echo
-        
-        if [[ "$userpass1" == "$userpass2" ]]; then
-            userpass="$userpass1"
-            log_success "Password set for $username"
-            break
-        else
-            log_error "Passwords do not match. Please try again."
-        fi
-    done
-}
-
-# Desktop selection
-select_desktop() {
-    my_array=("full [recommended]" "minimal" "none")
-    menu "Desktop Installation" "Choose desktop installation type: "
-    desktop_type="$choice"
-    log_info "Desktop type: $desktop_type"
-}
-
-# Hostname configuration
-configure_hostname() {
-    read -p "Enter hostname [yourcustomlinux]: " hostname
-    hostname="${hostname:-yourcustomlinux}"
-    log_info "Hostname: $hostname"
-}
-
-# Installation summary
-show_summary() {
-    log_info "Installation Summary:"
-    echo "===================="
-    echo "Disk: $disk"
-    echo "Filesystem: $fs_type"
-    echo "Username: $username"
-    echo "Hostname: $hostname"
-    echo "Desktop: $desktop_type"
-    echo "Firmware: $firmware_type"
-    echo "===================="
-    
-    read -p "Proceed with installation? (y/N): " confirm
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-        log_info "Installation cancelled."
-        exit 0
-    fi
-}
-
-# Disk partitioning
-partition_disk() {
-    log_info "Partitioning disk: $disk"
-    
-    # Wipe disk
-    wipefs -af "$disk"
-    sgdisk -Z "$disk"
-    
-    if [ "$firmware_type" = "UEFI" ]; then
-        # UEFI partitioning
-        sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI System" "$disk"
-        sgdisk -n 2:0:0 -t 2:8300 -c 2:"Linux filesystem" "$disk"
-        
-        # Format partitions
-        mkfs.fat -F32 "${disk}1"
-        
-        if [ "$fs_type" = "btrfs" ]; then
-            mkfs.btrfs -f "${disk}2"
-        elif [ "$fs_type" = "xfs" ]; then
-            mkfs.xfs -f "${disk}2"
-        else
-            mkfs.ext4 -F "${disk}2"
-        fi
-        
-        # Mount partitions
-        mount "${disk}2" /mnt
-        mkdir -p /mnt/boot/efi
-        mount "${disk}1" /mnt/boot/efi
-        
-    else
-        # BIOS partitioning
-        sgdisk -n 1:0:+1M -t 1:ef02 -c 1:"BIOS boot" "$disk"
-        sgdisk -n 2:0:0 -t 2:8300 -c 2:"Linux filesystem" "$disk"
-        
-        # Format partition
-        if [ "$fs_type" = "btrfs" ]; then
-            mkfs.btrfs -f "${disk}2"
-        elif [ "$fs_type" = "xfs" ]; then
-            mkfs.xfs -f "${disk}2"
-        else
-            mkfs.ext4 -F "${disk}2"
-        fi
-        
-        # Mount partition
-        mount "${disk}2" /mnt
-    fi
-    
-    log_success "Disk partitioned and mounted"
-}
-
-# Package installation
-install_packages() {
-    log_info "Installing base system..."
-    
-    # Install base system
-    pacstrap -K /mnt base base-devel linux linux-headers linux-firmware
-    pacstrap /mnt - < /root/pkgs-base
-    
-    # Install filesystem-specific packages
-    if [ "$fs_type" = "btrfs" ]; then
-        log_info "Installing Btrfs packages..."
-        pacstrap /mnt btrfs-progs
-    fi
-    
-    # Install desktop packages
-    case "$desktop_type" in
-        "full")
-            log_info "Installing full desktop environment..."
-            pacstrap /mnt - < /root/pkgs-desktop
-            pacstrap /mnt - < /root/pkgs-applications
-            ;;
-        "minimal")
-            log_info "Installing minimal desktop..."
-            pacstrap /mnt - < /root/pkgs-desktop
-            ;;
-        "none")
-            log_info "Skipping desktop installation..."
-            ;;
-    esac
-    
-    log_success "Package installation completed"
-}
-
-# System configuration
-configure_system() {
-    log_info "Configuring system..."
-    
-    # Generate fstab
-    genfstab -U /mnt >> /mnt/etc/fstab
-    
-    # Configure chroot environment
-    arch-chroot /mnt bash -c "
-        # Timezone
-        ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
-        hwclock --systohc
-        
-        # Locale
-        sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-        locale-gen
-        echo 'LANG=en_US.UTF-8' > /etc/locale.conf
-        
-        # Hostname
-        echo '$hostname' > /etc/hostname
-        cat > /etc/hosts << EOF
-127.0.0.1   localhost
-::1         localhost
-127.0.1.1   $hostname.localdomain   $hostname
-EOF
-        
-        # Root password
-        echo 'root:root' | chpasswd
-        
-        # User creation
-        useradd -m -G wheel,audio,video,optical,storage -s /bin/bash $username
-        echo '$username:$userpass' | chpasswd
-        
-        # Sudo configuration
-        sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
-        
-        # Enable services
-        systemctl enable NetworkManager
-        systemctl enable sddm
-        
-        # Install and configure bootloader
-        if [ '$firmware_type' = 'UEFI' ]; then
-            grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id='Your Custom Linux'
-        else
-            grub-install --target=i386-pc $disk
-        fi
-        
-        grub-mkconfig -o /boot/grub/grub.cfg
-    "
-    
-    log_success "System configuration completed"
-}
-
-# Post-installation tasks
-post_install() {
-    log_info "Running post-installation tasks..."
-    
-    # Install AUR packages if desktop was installed
-    if [ "$desktop_type" != "none" ]; then
-        arch-chroot /mnt sudo -u $username bash -c "
-            cd /tmp
-            git clone https://aur.archlinux.org/yay.git
-            cd yay
-            makepkg -si --noconfirm
-            
-            # Install AUR packages
-            yay -S qtile-extras --noconfirm
-        "
-    fi
-    
-    # Copy custom configurations
-    cp -r /etc/skel/. /mnt/home/$username/
-    chown -R $username:$username /mnt/home/$username
-    
-    log_success "Post-installation completed"
-}
-
-# Main installation function
-main() {
-    echo -e "${BOLD}Your Custom Linux Installer${RESET}"
-    echo "================================"
-    
-    detect_system
-    select_disk
-    select_filesystem
-    configure_user
-    select_desktop
-    configure_hostname
-    show_summary
-    
-    partition_disk
-    install_packages
-    configure_system
-    post_install
-    
-    log_success "Installation completed successfully!"
-    log_info "You can now reboot into your new system."
-    
-    read -p "Reboot now? (y/N): " reboot_confirm
-    if [[ "$reboot_confirm" =~ ^[Yy]$ ]]; then
-        umount -R /mnt
-        reboot
-    fi
-}
-
-# Run main function
-main "$@"
-```
-
-### 2. Welcome Application (airootfs/usr/local/bin/welcome-app)
-```bash
-#!/usr/bin/env bash
-
-# Your Custom Linux Welcome Application
-
-# Check if GUI is available
-if [ -n "$DISPLAY" ]; then
-    # GUI version using yad (if available)
-    if command -v yad &> /dev/null; then
-        yad --title="Welcome to Your Custom Linux" \
-            --text="<big><b>Welcome to Your Custom Linux</b></big>\n\nChoose an option below:" \
-            --button="Install System:0" \
-            --button="Open Documentation:1" \
-            --button="Live Session:2" \
-            --width=400 \
-            --height=200
-        
-        case $? in
-            0) your-installer ;;
-            1) firefox https://wiki.yourwebsite.com ;;
-            2) ;;
-        esac
-    else
-        # Fallback terminal version
-        show_terminal_welcome
-    fi
+# Detect if running in VirtualBox
+if [ "$(systemd-detect-virt)" = "oracle" ]; then
+    echo "VirtualBox detected - using compatibility mode"
+    # Skip picom in VirtualBox
 else
-    # Terminal version
-    show_terminal_welcome
+    # Run picom on real hardware
+    picom -b &
 fi
 
-show_terminal_welcome() {
-    clear
-    cat << "EOF"
-    
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                                                              ║
-    ║           Welcome to Your Custom Linux Live Environment     ║
-    ║                                                              ║
-    ╠══════════════════════════════════════════════════════════════╣
-    ║                                                              ║
-    ║  1) Install Your Custom Linux                                ║
-    ║  2) Open Installation Guide                                  ║
-    ║  3) Configure Network                                        ║
-    ║  4) Open Terminal                                            ║
-    ║  5) Exit                                                     ║
-    ║                                                              ║
-    ╚══════════════════════════════════════════════════════════════╝
-    
-EOF
+# Essential applications that work in VirtualBox
+nm-applet &
+libinput-gestures-setup restart
+flameshot &
+blueman-applet &
+plank &
+dunst &
 
-    read -p "Choose an option [1-5]: " choice
-    
-    case $choice in
-        1) your-installer ;;
-        2) Installation_guide ;;
-        3) nmtui ;;
-        4) bash ;;
-        5) exit 0 ;;
-        *) echo "Invalid option"; show_terminal_welcome ;;
-    esac
-}
-```
-
-### 3. Mirror Selection Utility (airootfs/usr/local/bin/choose-mirror)
-```bash
-#!/usr/bin/env bash
-
-# Mirror selection utility
-
-MIRRORLIST="/etc/pacman.d/mirrorlist"
-
-log_info() {
-    echo -e "\033[0;34m[INFO]\033[0m $1"
-}
-
-log_success() {
-    echo -e "\033[0;32m[SUCCESS]\033[0m $1"
-}
-
-# Check for internet connectivity
-check_internet() {
-    if ping -c 1 archlinux.org &> /dev/null; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Update mirrors using reflector
-update_mirrors() {
-    log_info "Updating mirror list..."
-    
-    if ! check_internet; then
-        echo "No internet connection. Cannot update mirrors."
-        return 1
-    fi
-    
-    # Backup current mirrorlist
-    cp "$MIRRORLIST" "${MIRRORLIST}.backup"
-    
-    # Update with reflector
-    reflector --verbose \
-              --latest 20 \
-              --protocol https \
-              --sort rate \
-              --save "$MIRRORLIST"
-    
-    log_success "Mirror list updated successfully"
-}
-
-# Manual mirror selection
-manual_selection() {
-    echo "Available countries:"
-    reflector --list-countries
-    
-    read -p "Enter country code (e.g., US, DE, JP): " country
-    
-    log_info "Fetching mirrors for $country..."
-    
-    reflector --verbose \
-              --country "$country" \
-              --latest 10 \
-              --protocol https \
-              --sort rate \
-              --save "$MIRRORLIST"
-    
-    log_success "Mirrors updated for $country"
-}
-
-# Main menu
-main() {
-    echo "Mirror Selection Utility"
-    echo "======================="
-    echo "1) Auto-select fastest mirrors"
-    echo "2) Select mirrors by country"
-    echo "3) Show current mirrors"
-    echo "4) Exit"
-    
-    read -p "Choose option [1-4]: " choice
-    
-    case $choice in
-        1) update_mirrors ;;
-        2) manual_selection ;;
-        3) cat "$MIRRORLIST" ;;
-        4) exit 0 ;;
-        *) echo "Invalid option"; main ;;
-    esac
-}
-
-main "$@"
-```
-
----
-
-## Boot Configuration
-
-### 1. UEFI Boot Configuration (efiboot/loader/loader.conf)
-```ini
-timeout 15
-default 01-yourcustomlinux-x86_64-linux.conf
-beep on
-console-mode auto
-editor no
-```
-
-### 2. UEFI Boot Entry (efiboot/loader/entries/01-yourcustomlinux-x86_64-linux.conf)
-```ini
-title    Your Custom Linux install medium (x86_64, UEFI)
-sort-key 01
-linux    /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux
-initrd   /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-options  archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=1G
-```
-
-### 3. Accessibility Boot Entry (efiboot/loader/entries/02-yourcustomlinux-x86_64-speech-linux.conf)
-```ini
-title    Your Custom Linux install medium (x86_64, UEFI) with speech
-sort-key 02
-linux    /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux
-initrd   /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-options  archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% accessibility=on cow_spacesize=1G
-```
-
-### 4. GRUB Configuration (grub/grub.cfg)
-```bash
-# GRUB Configuration for Your Custom Linux
-
-# Load necessary modules
-insmod part_gpt
-insmod part_msdos
-insmod fat
-insmod iso9660
-insmod ntfs
-insmod ntfscomp
-insmod exfat
-insmod udf
-
-# Set default menu entry
-set default="0"
-set timeout="15"
-
-# Load configuration variables
-if [ -e "/EFI/boot/grubenv" ]; then
-    load_env
-fi
-
-# Main menu entry
-menuentry "Your Custom Linux Live (x86_64)" --class arch --class gnu-linux --class gnu --class os --id 'yourcustomlinux' {
-    set gfxpayload=keep
-    search --no-floppy --set=root --label %ARCHISO_LABEL%
-    linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=1G
-    initrd /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-}
-
-# Accessibility menu entry
-menuentry "Your Custom Linux Live (x86_64) with Speech" --class arch --class gnu-linux --class gnu --class os --id 'yourcustomlinux-accessibility' {
-    set gfxpayload=keep
-    search --no-floppy --set=root --label %ARCHISO_LABEL%
-    linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% accessibility=on cow_spacesize=1G
-    initrd /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-}
-
-# Memory test
-if [ "${grub_platform}" == "efi" ]; then
-    if [ "${grub_cpu}" == "x86_64" ]; then
-        menuentry "Memory Test (memtest86+)" --class memtest86 --class memtest --class gnu --class tool {
-            set gfxpayload=800x600,1024x768
-            search --no-floppy --set=root --label %ARCHISO_LABEL%
-            linux /%INSTALL_DIR%/boot/memtest86+/memtest.efi
-        }
-    fi
+# Skip problematic applications in VirtualBox
+if [ "$(systemd-detect-virt)" != "oracle" ]; then
+    eww daemon &
+    volctl &
+    mkfifo /tmp/vol-icon && ~/.config/qtile/scripts/vol_icon.sh &
 fi
 ```
 
-### 5. BIOS Boot Configuration (syslinux/syslinux.cfg)
-```ini
-DEFAULT select
-PROMPT 0
-TIMEOUT 150
-UI vesamenu.c32
+#### 2. VirtualBox-Safe Picom Configuration (`~/.config/picom.conf`)
 
-MENU TITLE Your Custom Linux Live
-MENU BACKGROUND splash.png
+**Features:**
+- Uses stable xrender backend
+- Disables transparency and effects
+- Prevents visual artifacts and black bars
 
-LABEL select
-MENU LABEL Boot Your Custom Linux (x86_64)
-LINUX /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux
-INITRD /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=1G
+```properties
+# VirtualBox-compatible picom configuration
+backend = "xrender";
+vsync = false;
 
-LABEL select-accessibility
-MENU LABEL Boot Your Custom Linux (x86_64) with Speech
-LINUX /%INSTALL_DIR%/boot/x86_64/vmlinuz-linux
-INITRD /%INSTALL_DIR%/boot/x86_64/initramfs-linux.img
-APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% accessibility=on cow_spacesize=1G
+# Disable transparency and shadows
+shadow = false;
+fading = false;
+inactive-opacity = 1.0;
+active-opacity = 1.0;
+frame-opacity = 1.0;
+inactive-opacity-override = false;
 
-LABEL memtest
-MENU LABEL Memory Test
-LINUX /%INSTALL_DIR%/boot/memtest86+/memtest.bin
+# Disable blur and effects
+blur-background = false;
+corner-radius = 0;
+
+# VirtualBox-friendly settings
+mark-wmwin-focused = true;
+mark-ovredir-focused = true;
+detect-rounded-corners = false;
+detect-client-opacity = false;
+detect-transient = false;
+detect-client-leader = false;
+use-damage = false;
+
+# Window type settings - disable all effects
+wintypes:
+{
+  tooltip = { fade = false; shadow = false; opacity = 1.0; focus = true; };
+  dock = { shadow = false; fade = false; opacity = 1.0; };
+  dnd = { shadow = false; fade = false; opacity = 1.0; };
+  popup_menu = { opacity = 1.0; fade = false; shadow = false; };
+  dropdown_menu = { opacity = 1.0; fade = false; shadow = false; };
+};
 ```
 
----
+#### 3. Qtile Bar with VirtualBox Detection (`~/.config/qtile/core/bar.py`)
 
-## Branding and Customization
+**Features:**
+- Detects VirtualBox environment
+- Forces solid backgrounds and full opacity
+- Prevents transparency-related rendering issues
 
-### 1. Visual Identity
+```python
+import subprocess
 
-**Boot Splash (syslinux/splash.png)**
-- Create a 640x480 PNG image
-- Use your brand colors and logo
-- Keep text minimal and readable
+def is_virtualbox():
+    try:
+        result = subprocess.run(['systemd-detect-virt'], capture_output=True, text=True)
+        return result.stdout.strip() == 'oracle'
+    except:
+        return False
 
-**Desktop Wallpapers (airootfs/usr/share/backgrounds/)**
+# Adjust settings for VirtualBox compatibility
+if is_virtualbox():
+    bg_color = color["bg"]
+    opacity = 1.0
+else:
+    bg_color = color["bg"] 
+    opacity = 0.8
+
+def create_bar(extra_bar=False):
+    return bar.Bar(
+        [
+            # ...bar widgets...
+        ],
+        30,
+        margin=[4, 6, 2, 6],
+        background=bg_color,
+        opacity=opacity if not is_virtualbox() else 1.0,
+    )
+```
+
+#### 4. VirtualBox Fix Script (`~/.config/qtile/scripts/vbox-fix.sh`)
+
+**Features:**
+- Manual fix utility for VirtualBox issues
+- Kills problematic processes
+- Restarts Qtile with proper settings
+
 ```bash
-# Organize wallpapers by category
-wallpapers/
-├── default.jpg          # Default wallpaper
-├── nature/             # Nature themed
-├── abstract/           # Abstract designs
-└── brand/              # Branded wallpapers
-```
-
-### 2. Application Branding
-
-**Desktop Entries (airootfs/usr/share/applications/)**
-```ini
-# your-installer.desktop
-[Desktop Entry]
-Name=Your Custom Linux Installer
-Comment=Install Your Custom Linux to your computer
-Exec=your-installer
-Icon=installer
-Terminal=false
-Type=Application
-Categories=System;
-```
-
-**Custom Icons (airootfs/usr/share/icons/)**
-```bash
-icons/
-├── hicolor/
-│   ├── 16x16/apps/
-│   ├── 32x32/apps/
-│   ├── 48x48/apps/
-│   └── scalable/apps/
-└── your-theme/
-    └── apps/
-```
-
-### 3. Theme Configuration
-
-**GTK Theme (airootfs/etc/skel/.config/gtk-3.0/settings.ini)**
-```ini
-[Settings]
-gtk-theme-name=Your-Custom-Theme
-gtk-icon-theme-name=Your-Custom-Icons
-gtk-font-name=Sans 10
-gtk-cursor-theme-name=Your-Custom-Cursors
-gtk-cursor-theme-size=24
-gtk-toolbar-style=GTK_TOOLBAR_BOTH
-gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
-gtk-button-images=1
-gtk-menu-images=1
-gtk-enable-event-sounds=1
-gtk-enable-input-feedback-sounds=1
-```
-
-**Qt Theme (airootfs/etc/skel/.config/qt5ct/qt5ct.conf)**
-```ini
-[Appearance]
-color_scheme_path=/usr/share/qt5ct/colors/your-custom.conf
-custom_palette=true
-icon_theme=Your-Custom-Icons
-standard_dialogs=default
-style=Fusion
-
-[Fonts]
-fixed=@Variant(\0\0\0@\0\0\0\x12\0M\0o\0n\0o\0s\0p\0\x61\0\x63\0\x65@$\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
-general=@Variant(\0\0\0@\0\0\0\x12\0S\0\x61\0n\0s@$\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
-```
-
----
-
-## Building the ISO
-
-### 1. Build Script (build.sh)
-```bash
-#!/usr/bin/env bash
-
-# Your Custom Linux ISO Build Script
-
-set -e
-
-# Configuration
-ISO_NAME="yourcustomlinux"
-BUILD_DIR="/tmp/archiso-build-$(date +%s)"
-OUTPUT_DIR="./out"
-WORK_DIR="$BUILD_DIR/work"
-PROFILE_DIR="$(pwd)"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-RESET='\033[0m'
-
-log_info() {
-    echo -e "${BLUE}[INFO]${RESET} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${RESET} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${RESET} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${RESET} $1"
-}
-
-# Pre-build checks
-pre_build_checks() {
-    log_info "Running pre-build checks..."
-    
-    # Check if running as root
-    if [ "$EUID" -ne 0 ]; then
-        log_error "This script must be run as root (use sudo)"
-        exit 1
-    fi
-    
-    # Check required tools
-    local required_tools=("mkarchiso" "pacman" "git")
-    for tool in "${required_tools[@]}"; do
-        if ! command -v "$tool" &> /dev/null; then
-            log_error "Required tool not found: $tool"
-            exit 1
-        fi
-    done
-    
-    # Check profile directory
-    if [ ! -f "$PROFILE_DIR/profiledef.sh" ]; then
-        log_error "profiledef.sh not found in current directory"
-        exit 1
-    fi
-    
-    log_success "Pre-build checks passed"
-}
-
-# Clean previous builds
-clean_build() {
-    log_info "Cleaning previous build artifacts..."
-    
-    if [ -d "$BUILD_DIR" ]; then
-        rm -rf "$BUILD_DIR"
-    fi
-    
-    mkdir -p "$BUILD_DIR"
-    mkdir -p "$OUTPUT_DIR"
-    
-    log_success "Build directory cleaned"
-}
-
-# Build ISO
-build_iso() {
-    log_info "Building ISO image..."
-    log_info "Profile: $PROFILE_DIR"
-    log_info "Work directory: $WORK_DIR"
-    log_info "Output directory: $OUTPUT_DIR"
-    
-    # Build with mkarchiso
-    mkarchiso -v -w "$WORK_DIR" -o "$OUTPUT_DIR" "$PROFILE_DIR"
-    
-    if [ $? -eq 0 ]; then
-        log_success "ISO build completed successfully"
-        
-        # Find the generated ISO
-        local iso_file=$(find "$OUTPUT_DIR" -name "*.iso" -type f | head -n 1)
-        if [ -n "$iso_file" ]; then
-            local iso_size=$(du -h "$iso_file" | cut -f1)
-            log_success "Generated ISO: $iso_file ($iso_size)"
-        fi
-    else
-        log_error "ISO build failed"
-        exit 1
-    fi
-}
-
-# Post-build tasks
-post_build() {
-    log_info "Running post-build tasks..."
-    
-    # Calculate checksums
-    cd "$OUTPUT_DIR"
-    for iso in *.iso; do
-        if [ -f "$iso" ]; then
-            log_info "Calculating checksums for $iso..."
-            sha256sum "$iso" > "${iso}.sha256"
-            md5sum "$iso" > "${iso}.md5"
-        fi
-    done
-    
-    log_success "Post-build tasks completed"
-}
-
-# Main function
-main() {
-    echo "Your Custom Linux ISO Builder"
-    echo "============================="
-    
-    pre_build_checks
-    clean_build
-    build_iso
-    post_build
-    
-    log_success "Build process completed!"
-    log_info "ISO files are available in: $OUTPUT_DIR"
-}
-
-# Handle script arguments
-case "${1:-}" in
-    "clean")
-        log_info "Cleaning build directories..."
-        rm -rf /tmp/archiso-build-* ./out
-        log_success "Clean completed"
-        ;;
-    "check")
-        pre_build_checks
-        log_success "All checks passed"
-        ;;
-    *)
-        main
-        ;;
-esac
-```
-
-### 2. Build Process
-```bash
-# Make build script executable
-chmod +x build.sh
-
-# Run build
-sudo ./build.sh
-
-# Clean build (if needed)
-sudo ./build.sh clean
-
-# Check prerequisites only
-sudo ./build.sh check
-```
-
-### 3. Testing the ISO
-
-**Virtual Machine Testing**
-```bash
-# Using QEMU
-qemu-system-x86_64 -enable-kvm -m 2048 -cdrom out/yourcustomlinux-*.iso
-
-# Using VirtualBox
-VBoxManage createvm --name "Test-YourCustomLinux" --register
-VBoxManage modifyvm "Test-YourCustomLinux" --memory 2048 --vram 128
-VBoxManage createhd --filename "Test-YourCustomLinux.vdi" --size 20480
-VBoxManage storagectl "Test-YourCustomLinux" --name "SATA" --add sata
-VBoxManage storageattach "Test-YourCustomLinux" --storagectl "SATA" --port 0 --device 0 --type hdd --medium "Test-YourCustomLinux.vdi"
-VBoxManage storageattach "Test-YourCustomLinux" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium out/yourcustomlinux-*.iso
-```
-
-**Physical Hardware Testing**
-```bash
-# Write to USB drive (replace /dev/sdX with your USB device)
-sudo dd if=out/yourcustomlinux-*.iso of=/dev/sdX bs=4M status=progress oflag=sync
-
-# Or use more user-friendly tools
-sudo cp out/yourcustomlinux-*.iso /dev/sdX
-sync
-```
-
----
-
-## Advanced Configurations
-
-### 1. Custom Kernel Parameters
-
-**Default Kernel Parameters (profiledef.sh)**
-```bash
-# Add custom kernel parameters
-airootfs_image_tool_options+=(
-    '-comp' 'zstd'  # Use Zstandard compression for better performance
-    '-Xcompression-level' '22'  # Maximum compression
-)
-
-# Custom boot parameters in boot configs
-# For example, in efiboot entry:
-# options archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% quiet splash
-```
-
-### 2. Network Configuration
-
-**Automatic Network Setup (airootfs/etc/systemd/network/20-ethernet.network)**
-```ini
-[Match]
-Name=en*
-Name=eth*
-
-[Network]
-DHCP=yes
-IPv6PrivacyExtensions=yes
-
-[DHCP]
-RouteMetric=10
-UseMTU=true
-```
-
-**Wireless Configuration (airootfs/etc/systemd/network/20-wireless.network)**
-```ini
-[Match]
-Name=wl*
-
-[Network]
-DHCP=yes
-IPv6PrivacyExtensions=yes
-
-[DHCP]
-RouteMetric=20
-UseMTU=true
-```
-
-### 3. Security Configurations
-
-**Firewall Setup (airootfs/etc/systemd/system/firewall-setup.service)**
-```ini
-[Unit]
-Description=Setup Basic Firewall Rules
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/setup-firewall
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Firewall Script (airootfs/usr/local/bin/setup-firewall)**
-```bash
-#!/usr/bin/env bash
-
-# Basic firewall setup
-iptables -F
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT ACCEPT
-
-# Allow loopback
-iptables -A INPUT -i lo -j ACCEPT
-
-# Allow established connections
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# Allow SSH (if needed)
-# iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-
-# Save rules
-iptables-save > /etc/iptables/iptables.rules
-```
-
-### 4. Automated Configuration
-
-**First Boot Setup (airootfs/etc/systemd/system/first-boot-setup.service)**
-```ini
-[Unit]
-Description=First Boot Configuration
-After=multi-user.target
-ConditionPathExists=!/var/lib/first-boot-done
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/first-boot-setup
-ExecStartPost=/usr/bin/touch /var/lib/first-boot-done
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**First Boot Script (airootfs/usr/local/bin/first-boot-setup)**
-```bash
-#!/usr/bin/env bash
-
-# First boot configuration script
-
-# Update system clock
-timedatectl set-ntp true
-
-# Update package databases
-pacman -Sy --noconfirm
-
-# Generate SSH host keys
-ssh-keygen -A
-
-# Set up locale if not already configured
-if [ ! -f /etc/locale.gen.backup ]; then
-    cp /etc/locale.gen /etc/locale.gen.backup
-    sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-    locale-gen
+#!/bin/bash
+# VirtualBox Qtile Fix Script
+
+echo "Fixing Qtile for VirtualBox compatibility..."
+
+# Kill compositor and problematic applications
+pkill picom
+pkill eww
+pkill volctl
+echo "Stopped problematic applications"
+
+# Restart Qtile
+qtile cmd-obj -o cmd -f restart
+echo "Restarted Qtile"
+
+# Provide terminal transparency fix instructions
+if command -v alacritty &> /dev/null; then
+    echo "To fix transparent terminal, edit ~/.config/alacritty/alacritty.yml"
+    echo "Set: window.opacity: 1.0"
 fi
 
-# Create default user if in live environment
-if [ "$(whoami)" = "root" ] && [ ! -d /home/liveuser ]; then
-    useradd -m -G wheel,audio,video,optical,storage -s /bin/bash liveuser
-    echo "liveuser:liveuser" | chpasswd
+echo "VirtualBox compatibility fixes applied!"
+```
+
+### Installation Integration
+
+The KyOS installer automatically detects VirtualBox during installation and applies appropriate configurations:
+
+```bash
+# In kyosinstall script
+if systemd-detect-virt | grep -q oracle; then
+    echo "VirtualBox detected - installing VirtualBox-optimized configs"
+    
+    # Install VirtualBox guest additions
+    arch_chroot "pacman -S --noconfirm virtualbox-guest-utils"
+    arch_chroot "systemctl enable vboxservice"
+    
+    # Apply VirtualBox-specific configurations
+    cp /usr/share/kyos/vbox-configs/* /mnt/home/$username/.config/
 fi
-
-# Start display manager
-systemctl enable sddm
-systemctl start sddm
 ```
 
-### 5. Package Hooks
+### Common VirtualBox Issues and Solutions
 
-**Custom Pacman Hook (airootfs/etc/pacman.d/hooks/update-desktop-database.hook)**
-```ini
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Operation = Remove
-Type = Path
-Target = usr/share/applications/*.desktop
+#### Issue: Black Bars or Visual Artifacts
+**Solution:** VirtualBox-optimized picom configuration automatically applied
 
-[Action]
-Description = Updating desktop file database...
-When = PostTransaction
-Exec = /usr/bin/update-desktop-database
+#### Issue: Transparent Terminal Text Invisible
+**Solution:** 
+1. Edit terminal configuration (e.g., `~/.config/alacritty/alacritty.yml`)
+2. Set `window.opacity: 1.0`
+3. Restart terminal application
+
+#### Issue: Desktop Effects Not Working
+**Solution:** Effects are automatically disabled in VirtualBox for stability
+
+#### Issue: Poor Performance
+**Solution:** 
+1. Ensure VirtualBox Guest Additions are installed
+2. Allocate sufficient video memory (128MB recommended)
+3. Enable 3D acceleration in VirtualBox settings
+
+### Manual VirtualBox Optimization
+
+For existing installations, copy these files to fix VirtualBox issues:
+
+```bash
+# Copy VirtualBox-optimized configurations
+cp /path/to/kyos-files/autostart.sh ~/.config/qtile/scripts/
+cp /path/to/kyos-files/picom.conf ~/.config/
+cp /path/to/kyos-files/bar.py ~/.config/qtile/core/
+cp /path/to/kyos-files/vbox-fix.sh ~/.config/qtile/scripts/
+
+# Make fix script executable
+chmod +x ~/.config/qtile/scripts/vbox-fix.sh
+
+# Run the fix script
+~/.config/qtile/scripts/vbox-fix.sh
 ```
 
-**Wallpaper Update Hook (airootfs/etc/pacman.d/hooks/update-wallpapers.hook)**
-```ini
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = your-wallpaper-package
+### Testing VirtualBox Compatibility
 
-[Action]
-Description = Updating wallpaper cache...
-When = PostTransaction
-Exec = /usr/local/bin/update-wallpaper-cache
-```
+**Recommended VirtualBox Settings:**
+- RAM: 4GB minimum, 8GB recommended
+- Video Memory: 128MB
+- 3D Acceleration: Enabled
+- 2D Video Acceleration: Enabled
+- Storage: 40GB minimum
+
+**Test Checklist:**
+- [ ] Desktop loads without black bars
+- [ ] Terminal text is visible
+- [ ] Window decorations render properly
+- [ ] Basic applications launch successfully
+- [ ] Network connectivity works
+- [ ] Audio functions properly
+- [ ] File manager operates correctly
 
 ---
+## KyOS Rebranding Process
 
-## Troubleshooting
+This section documents the complete rebranding process from DTOS to KyOS, including all file changes, script updates, and configuration modifications.
 
-### Common Build Issues
+### Overview of Changes
 
-#### 1. Package Not Found
-```bash
-# Error: package 'some-package' was not found
-# Solution: Check package name and repository availability
+**Complete Rebranding:**
+- All user-facing text changed from DTOS to KyOS
+- Boot loader messages updated to KyOS
+- Installation scripts renamed and updated
+- Welcome applications rebranded
+- Configuration paths updated
+- Default credentials changed to KyOS defaults
 
-# Verify package exists
-pacman -Ss package-name
+**Package Management:**
+- Removed all DTOS-specific packages
+- Added user-specified packages from packages.txt
+- Maintained compatibility with DTOS repositories where needed
+- Optimized package conflicts (pipewire-jack vs jack2)
 
-# Check if repository is enabled
-grep -A 5 "\[repository-name\]" pacman.conf
+**VirtualBox Compatibility:**
+- Added automatic VirtualBox detection
+- Implemented VirtualBox-specific configurations
+- Created compatibility fixes for common issues
+
+### Rebranding Checklist
+
+#### Core System Files
+- [x] `/etc/os-release` - Updated OS name and branding
+- [x] `/etc/motd` - Updated welcome message
+- [x] `/etc/hostname` - Changed default hostname to kyos-pc
+- [x] Boot loader configurations (GRUB, syslinux, systemd-boot)
+- [x] Installation scripts renamed (dtosinstall → kyosinstall)
+
+#### User Interface Elements
+- [x] Welcome application branding
+- [x] Installer prompts and messages
+- [x] Desktop environment themes
+- [x] Wallpapers and branding graphics
+- [x] Application launcher entries
+
+#### Configuration Paths
+- [x] Config directory references
+- [x] Script path updates
+- [x] Theme and background paths
+- [x] User profile templates
+
+#### Package Lists
+- [x] Removed DTOS packages from pkgs-base
+- [x] Removed DTOS packages from pkgs-qtile
+- [x] Added user-specified packages avoiding duplicates
+- [x] Excluded Wayland-specific packages
+- [x] Maintained essential system packages
+
+#### Scripts and Executables
+- [x] Renamed installation scripts
+- [x] Updated script internal references
+- [x] Changed default usernames and passwords
+- [x] Updated variable names and functions
+
+### File Mapping
+
+#### Renamed Files
+```
+Old Location                                    New Location
+/usr/local/bin/dtosinstall                 →   /usr/local/bin/kyosinstall
+/usr/local/bin/dtosinstall-auto            →   /usr/local/bin/kyosinstall-auto
+/usr/local/bin/dtosinstall-tui             →   /usr/local/bin/kyosinstall-tui
+/opt/dtos-welcome/                         →   /opt/kyos-welcome/
 ```
 
-#### 2. Permission Errors
-```bash
-# Error: Permission denied
-# Solution: Ensure correct permissions in profiledef.sh
-
-file_permissions=(
-    ["/path/to/file"]="owner:group:permissions"
-)
+#### Updated Content Files
+```
+File                          Change
+/etc/os-release              OS name and branding
+/etc/motd                    Welcome message
+/etc/hostname                Default hostname
+/grub/grub.cfg              Boot menu entries
+/syslinux/*.cfg             Boot menu entries
+/efiboot/loader/entries/*.conf  Boot entries
+airootfs/root/pkgs-*        Package lists
 ```
 
-#### 3. Boot Issues
-```bash
-# Error: Boot loop or kernel panic
-# Solution: Check kernel parameters and initramfs
+### Script Updates
 
-# Verify boot configuration
-cat efiboot/loader/entries/*.conf
-cat grub/grub.cfg
+#### Installation Scripts
+**kyosinstall** (formerly dtosinstall):
+- Updated all prompts and messages to KyOS
+- Changed default username to 'kyos'
+- Changed default password to 'kyos123'
+- Changed default hostname to 'kyos-pc'
+- Added VirtualBox detection and optimization
+- Improved error handling and package management
+- Enhanced chaotic-aur repository setup
 
-# Check for missing firmware
-pacman -Ql linux-firmware | grep -i "your-hardware"
+**kyosinstall-tui** (formerly dtosinstall-tui):
+- Updated TUI interface branding
+- Improved user input validation
+- Added support for custom username/password/hostname
+- Enhanced package installation error handling
+
+**kyosinstall-auto** (formerly dtosinstall-auto):
+- Automated installation with KyOS defaults
+- VirtualBox optimization integration
+- Improved post-installation configuration
+
+### Package Management Changes
+
+#### Removed Packages
+All DTOS-specific packages were removed:
+```
+dtos-*                 # All DTOS branded packages
+dtos-core-repo         # DTOS repository configuration
+dtos-welcome           # DTOS welcome application
 ```
 
-#### 4. Service Failures
-```bash
-# Error: Service failed to start
-# Solution: Check service dependencies and configuration
-
-# Debug systemd service
-systemctl status service-name
-journalctl -u service-name
-
-# Check service file syntax
-systemd-analyze verify /path/to/service.service
+#### Added Packages
+User-specified packages from packages.txt were added:
+```
+# Selected packages avoiding duplicates and Wayland conflicts
+# See packages.txt for complete list
 ```
 
-### Debug Mode Building
+#### Conflict Resolution
+**pipewire-jack vs jack2:**
+- Removed conflicting audio packages
+- Standardized on pipewire-jack
+- Added explicit package removal in installer
 
-**Enable Verbose Building**
+**AUR Package Handling:**
+- Improved chaotic-aur repository setup
+- Added fallback mirrors for reliability
+- Enhanced keyring management
+
+### VirtualBox Integration
+
+#### Automatic Detection
 ```bash
-# Build with maximum verbosity
-sudo mkarchiso -v -v -w /tmp/archiso-work -o ./out ./
-
-# Keep work directory for inspection
-sudo mkarchiso -v -w /tmp/archiso-work -o ./out ./ --keep-work
+# Detect VirtualBox environment
+if [ "$(systemd-detect-virt)" = "oracle" ]; then
+    # Apply VirtualBox-specific configurations
+fi
 ```
 
-**Inspect Build Process**
+#### Optimized Configurations
+- **Autostart Script**: Skips problematic applications in VirtualBox
+- **Picom Config**: Uses stable backend with disabled effects
+- **Qtile Bar**: Forces solid backgrounds and full opacity
+- **Fix Script**: Manual utility for troubleshooting
+
+### Testing and Validation
+
+#### Installation Testing
+- [x] Automated installation works correctly
+- [x] TUI installation accepts user input
+- [x] User credentials are set properly
+- [x] Hostname configuration works
+- [x] Package installation completes successfully
+
+#### VirtualBox Testing
+- [x] Desktop loads without visual artifacts
+- [x] Terminal text is visible
+- [x] Applications launch successfully
+- [x] Network connectivity functions
+- [x] Audio works properly
+
+#### Compatibility Testing
+- [x] Works on real hardware
+- [x] Functions in VirtualBox
+- [x] Compatible with different VM configurations
+- [x] Handles various disk configurations
+
+### Maintenance and Updates
+
+#### Ongoing Tasks
+- Monitor package conflicts
+- Update VirtualBox compatibility as needed
+- Maintain installer script functionality
+- Update documentation and guides
+
+#### Version Control
+- All changes tracked in git
+- Separate branches for major updates
+- Tagged releases for stable versions
+
+### Distribution Preparation
+
+#### ISO Building
 ```bash
-# Check work directory contents
-ls -la /tmp/archiso-work/
-
-# Examine airootfs
-ls -la /tmp/archiso-work/airootfs/
-
-# Check package installation logs
-less /tmp/archiso-work/pacstrap.log
+# Build KyOS ISO
+cd /path/to/kyos-iso/releng
+sudo mkarchiso -v -w /tmp/kyos-work -o /tmp/kyos-out .
 ```
 
-### Testing Strategies
-
-#### 1. Component Testing
-```bash
-# Test individual components
-sudo systemd-nspawn -D /tmp/archiso-work/airootfs/ /bin/bash
-
-# Test service files
-sudo systemd-analyze verify airootfs/etc/systemd/system/*.service
-
-# Test scripts
-sudo bash -n airootfs/usr/local/bin/your-script
-```
-
-#### 2. Live Environment Testing
-```bash
-# Boot with different parameters
-# Add to kernel command line:
-# systemd.log_level=debug systemd.log_target=console
-```
-
-#### 3. Installation Testing
-```bash
-# Test installation in VM with different configurations
-# - UEFI vs BIOS
-# - Different filesystems
-# - Various disk sizes
-# - Different hardware configurations (simulated)
-```
+#### Testing Checklist
+- [ ] ISO boots successfully
+- [ ] Live environment functions properly
+- [ ] Installation completes without errors
+- [ ] Installed system boots correctly
+- [ ] VirtualBox compatibility works
+- [ ] All KyOS branding appears correctly
 
 ---
-
-## Best Practices
-
-### 1. Project Organization
-
-**Version Control**
-```bash
-# Initialize git repository
-git init
-git add .
-git commit -m "Initial custom ISO setup"
-
-# Create tags for releases
-git tag -a v1.0.0 -m "Version 1.0.0 release"
-
-# Use branches for different variants
-git checkout -b minimal-variant
-git checkout -b gaming-variant
-```
-
-**Documentation**
-```bash
-# Create comprehensive documentation
-docs/
-├── README.md           # Quick start guide
-├── BUILDING.md         # Build instructions
-├── CONFIGURATION.md    # Configuration details
-├── TROUBLESHOOTING.md  # Common issues
-└── CHANGELOG.md        # Version history
-```
-
-### 2. Security Considerations
-
-**Package Verification**
-```bash
-# Always verify package signatures
-SigLevel = Required DatabaseOptional
-
-# Use trusted repositories only
-# Avoid third-party repositories without verification
-```
-
-**File Permissions**
-```bash
-# Set appropriate permissions in profiledef.sh
-file_permissions=(
-    ["/etc/shadow"]="0:0:400"        # Shadow file
-    ["/etc/gshadow"]="0:0:400"       # Group shadow
-    ["/root"]="0:0:750"              # Root home
-    ["/home/*"]="1000:1000:755"      # User homes
-)
-```
-
-**Service Security**
-```bash
-# Use systemd security features
-[Service]
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-```
-
-### 3. Performance Optimization
-
-**Compression Settings**
-```bash
-# Optimize for size vs speed trade-off
-airootfs_image_tool_options=(
-    '-comp' 'zstd'              # Fast compression/decompression
-    '-Xcompression-level' '15'   # Good balance
-)
-
-# For maximum compression (slower build)
-airootfs_image_tool_options=(
-    '-comp' 'xz'
-    '-Xbcj' 'x86'
-    '-Xdict-size' '100%'
-)
-```
-
-**Package Selection**
-```bash
-# Include only necessary packages in live environment
-# Move optional packages to post-install lists
-# Use package groups efficiently
-```
-
-### 4. Maintenance
-
-**Regular Updates**
-```bash
-# Update base packages regularly
-# Monitor security advisories
-# Test updates in isolated environment
-```
-
-**User Feedback**
-```bash
-# Implement feedback collection
-# Monitor installation success rates
-# Track common user issues
-```
-
-**Automated Testing**
-```bash
-# Set up CI/CD pipeline for testing
-# Automated VM testing
-# Regression testing for each build
-```
-
-### 5. Distribution Strategy
-
-**Release Management**
-```bash
-# Use semantic versioning
-# Provide checksums and signatures
-# Maintain multiple download mirrors
-```
-
-**Support Infrastructure**
-```bash
-# Set up documentation website
-# Create user support forums
-# Provide installation tutorials
-```
-
----
-
 ## Conclusion
 
-This comprehensive guide provides everything needed to create a professional custom Arch Linux ISO distribution. The modular approach allows for easy customization while maintaining compatibility with standard Arch tooling.
+This comprehensive guide provides everything needed to create KyOS - a professional custom Arch Linux ISO distribution with complete rebranding, VirtualBox optimization, and modern package management. The modular approach allows for easy customization while maintaining compatibility with standard Arch tooling.
 
 ### Key Takeaways
 
-1. **Structure**: Follow the archiso framework structure for compatibility
-2. **Packages**: Use a combination of official repos, Chaotic AUR, and custom repositories
-3. **Configuration**: Organize configurations logically in the airootfs overlay
-4. **Testing**: Thoroughly test in various environments before release
-5. **Maintenance**: Plan for ongoing updates and user support
+1. **Complete Rebranding**: Successfully transformed DTOS into KyOS with comprehensive branding updates
+2. **VirtualBox Compatibility**: Intelligent detection and optimization for virtualized environments
+3. **Package Management**: Advanced conflict resolution and AUR integration
+4. **Installation System**: Robust TUI and automated installers with user customization
+5. **Maintenance**: Ongoing update process and compatibility testing
+
+### KyOS Features
+
+- **Intelligent Environment Detection**: Automatic VirtualBox optimization
+- **User-Friendly Installation**: TUI installer with custom username/password/hostname support
+- **Optimized Package Selection**: Curated package lists avoiding conflicts
+- **Professional Branding**: Complete visual and textual rebranding
+- **Robust Error Handling**: Advanced installation error recovery
+- **Modern Desktop**: Qtile window manager optimized for both hardware and VMs
 
 ### Next Steps
 
-1. Set up your development environment
-2. Create your initial profile based on this guide
-3. Customize branding and package selection
-4. Build and test your first ISO
-5. Iterate based on testing feedback
-6. Set up distribution infrastructure
+1. **Development**: Set up KyOS development environment
+2. **Customization**: Further customize based on specific requirements
+3. **Testing**: Thorough testing in various environments
+4. **Distribution**: Set up distribution infrastructure for KyOS releases
+5. **Community**: Establish user support and feedback channels
+6. **Updates**: Plan regular updates and security patches
 
-Remember to always test thoroughly and consider your users' needs when making configuration decisions. A well-crafted custom ISO can provide an excellent user experience while maintaining the flexibility and power of Arch Linux.
+### Support and Resources
+
+- **Installation Issues**: Use the comprehensive troubleshooting guides
+- **VirtualBox Problems**: Apply the VirtualBox compatibility fixes
+- **Package Conflicts**: Follow the conflict resolution procedures
+- **Customization**: Reference the rebranding process documentation
+
+KyOS represents a modern, optimized Arch Linux distribution suitable for both newcomers and experienced users, with particular strength in virtualized environments.
+
+---
+
+*This guide documents the complete transformation from DTOS to KyOS, including all technical implementations, VirtualBox optimizations, and distribution processes. Last updated: June 2025*

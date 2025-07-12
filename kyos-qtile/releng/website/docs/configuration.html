@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Guide - KyOS Documentation</title>
+    <meta name="description" content="Complete guide to configuring KyOS - window manager, system settings, themes, and customization options.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html" class="active">Configuration</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                </ul>
+                
+                <h4>Getting Started</h4>
+                <ul class="docs-menu">
+                    <li><a href="quick-start.html">Quick Start</a></li>
+                    <li><a href="first-steps.html">First Steps</a></li>
+                    <li><a href="package-management.html">Package Management</a></li>
+                </ul>
+                
+                <h4>Desktop Environment</h4>
+                <ul class="docs-menu">
+                    <li><a href="qtile-basics.html">Qtile Basics</a></li>
+                    <li><a href="keybindings.html">Keybindings</a></li>
+                    <li><a href="customization.html">Customization</a></li>
+                    <li><a href="themes.html">Themes</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>KyOS Configuration Guide</h1>
+                <p class="docs-subtitle">
+                    Learn how to configure and customize KyOS to match your workflow and preferences.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>System Configuration</h2>
+                
+                <h3>1. Initial Setup</h3>
+                <p>After installation, KyOS comes pre-configured with sensible defaults. However, you may want to customize certain aspects:</p>
+                
+                <div class="code-block">
+                    <pre><code># Update system packages
+doas pacman -Syu
+
+# Install additional packages
+doas pacman -S &lt;package-name&gt;</code></pre>
+                </div>
+
+                <h3>2. User Configuration</h3>
+                <p>Your user configuration files are located in your home directory:</p>
+                <ul>
+                    <li><code>~/.config/qtile/config.py</code> - Qtile window manager configuration</li>
+                    <li><code>~/.bashrc</code> - Bash shell configuration</li>
+                    <li><code>~/.xinitrc</code> - X11 startup configuration</li>
+                    <li><code>~/.config/alacritty/alacritty.yml</code> - Terminal configuration</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Qtile Window Manager</h2>
+                
+                <h3>Configuration File</h3>
+                <p>The main Qtile configuration is in <code>~/.config/qtile/config.py</code>. This Python file defines:</p>
+                <ul>
+                    <li>Key bindings and shortcuts</li>
+                    <li>Layout settings</li>
+                    <li>Bar configuration and widgets</li>
+                    <li>Window rules and groups</li>
+                </ul>
+
+                <h3>Customizing Layouts</h3>
+                <div class="code-block">
+                    <pre><code># Edit your Qtile config
+nano ~/.config/qtile/config.py
+
+# Common layout modifications:
+layouts = [
+    layout.MonadTall(margin=10),
+    layout.Max(),
+    layout.Floating(),
+]</code></pre>
+                </div>
+
+                <h3>Adding Widgets</h3>
+                <p>Customize your top bar by editing the widgets section:</p>
+                <div class="code-block">
+                    <pre><code>widgets_list = [
+    widget.GroupBox(),
+    widget.WindowName(),
+    widget.Systray(),
+    widget.Clock(format='%Y-%m-%d %H:%M'),
+]</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Network Configuration</h2>
+                
+                <h3>NetworkManager</h3>
+                <p>KyOS uses NetworkManager for network management:</p>
+                <div class="code-block">
+                    <pre><code># Connect to WiFi
+nmcli device wifi connect "SSID" password "password"
+
+# List connections
+nmcli connection show
+
+# Enable/disable networking
+doas systemctl enable NetworkManager
+doas systemctl start NetworkManager</code></pre>
+                </div>
+
+                <h3>Static IP Configuration</h3>
+                <p>For static IP configuration, edit the NetworkManager connection:</p>
+                <div class="code-block">
+                    <pre><code># Edit connection
+doas nmcli connection edit "connection-name"
+
+# Set static IP
+set ipv4.method manual
+set ipv4.addresses 192.168.1.100/24
+set ipv4.gateway 192.168.1.1
+set ipv4.dns 8.8.8.8,8.8.4.4</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Audio Configuration</h2>
+                
+                <h3>PulseAudio</h3>
+                <p>KyOS uses PulseAudio for audio management:</p>
+                <div class="code-block">
+                    <pre><code># Control volume
+pactl set-sink-volume @DEFAULT_SINK@ +5%
+pactl set-sink-volume @DEFAULT_SINK@ -5%
+pactl set-sink-mute @DEFAULT_SINK@ toggle
+
+# List audio devices
+pactl list sinks
+pactl list sources</code></pre>
+                </div>
+
+                <h3>Audio Troubleshooting</h3>
+                <ul>
+                    <li>Restart PulseAudio: <code>systemctl --user restart pulseaudio</code></li>
+                    <li>Check audio group: <code>groups $USER</code></li>
+                    <li>Install additional codecs: <code>doas pacman -S pulseaudio-alsa alsa-utils</code></li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Display Configuration</h2>
+                
+                <h3>Single Monitor</h3>
+                <p>For single monitor setups, resolution is usually auto-detected. To manually set:</p>
+                <div class="code-block">
+                    <pre><code># List available modes
+xrandr
+
+# Set resolution
+xrandr --output HDMI-1 --mode 1920x1080</code></pre>
+                </div>
+
+                <h3>Multiple Monitors</h3>
+                <div class="code-block">
+                    <pre><code># Dual monitor setup
+xrandr --output HDMI-1 --mode 1920x1080 --pos 0x0 \
+       --output VGA-1 --mode 1920x1080 --pos 1920x0
+
+# Mirror displays
+xrandr --output HDMI-1 --same-as VGA-1</code></pre>
+                </div>
+
+                <h3>DPI Scaling</h3>
+                <p>For high-DPI displays, you may need to adjust scaling:</p>
+                <div class="code-block">
+                    <pre><code># Set DPI in ~/.Xresources
+echo "Xft.dpi: 144" >> ~/.Xresources
+xrdb ~/.Xresources</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Package Management</h2>
+                
+                <h3>Pacman Configuration</h3>
+                <p>Edit <code>/etc/pacman.conf</code> to customize package management:</p>
+                <div class="code-block">
+                    <pre><code># Enable multilib repository (32-bit packages)
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+
+# Enable color output
+Color
+
+# Enable parallel downloads
+ParallelDownloads = 5</code></pre>
+                </div>
+
+                <h3>AUR Helper</h3>
+                <p>Install yay for AUR package management:</p>
+                <div class="code-block">
+                    <pre><code># Install yay
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+# Use yay to install AUR packages
+yay -S package-name</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Security Configuration</h2>
+                
+                <h3>Doas Configuration</h3>
+                <p>KyOS uses doas instead of sudo. Configuration is in <code>/etc/doas.conf</code>:</p>
+                <div class="code-block">
+                    <pre><code># Allow wheel group members to execute commands
+permit :wheel
+
+# Allow specific user without password for certain commands
+permit nopass username as root cmd pacman</code></pre>
+                </div>
+
+                <h3>Firewall Setup</h3>
+                <div class="code-block">
+                    <pre><code># Install and enable UFW
+doas pacman -S ufw
+doas systemctl enable ufw
+doas systemctl start ufw
+
+# Basic firewall rules
+doas ufw enable
+doas ufw default deny incoming
+doas ufw default allow outgoing</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Performance Optimization</h2>
+                
+                <h3>System Services</h3>
+                <p>Optimize system performance by managing services:</p>
+                <div class="code-block">
+                    <pre><code># List running services
+systemctl list-units --type=service --state=running
+
+# Disable unnecessary services
+doas systemctl disable service-name
+doas systemctl mask service-name</code></pre>
+                </div>
+
+                <h3>SSD Optimization</h3>
+                <p>For SSD users, enable TRIM support:</p>
+                <div class="code-block">
+                    <pre><code># Enable fstrim timer
+doas systemctl enable fstrim.timer
+doas systemctl start fstrim.timer
+
+# Manual TRIM
+doas fstrim -av</code></pre>
+                </div>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="installation-guide.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    Installation Guide
+                </a>
+                <a href="faq.html" class="nav-next">
+                    FAQ
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+</body>
+</html>

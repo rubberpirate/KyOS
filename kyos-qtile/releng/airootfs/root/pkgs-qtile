@@ -38,7 +38,6 @@ file-roller
 firefox
 flameshot
 gedit
-gnome-mahjongg
 greenclip
 gsettings-qt
 i3lock-color
@@ -46,7 +45,6 @@ jgmenu
 kitty
 libinput-gestures
 localsend
-lxappearance
 mpd
 ncmpcpp
 nvchad-git
@@ -56,7 +54,6 @@ plank
 psutils
 python-pywal
 qt5ct
-ranger
 rofi
 sddm
 starship

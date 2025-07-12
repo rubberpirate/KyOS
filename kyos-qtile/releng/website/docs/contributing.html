@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributing - KyOS Documentation</title>
+    <meta name="description" content="Learn how to contribute to the KyOS project - from bug reports to code contributions and documentation.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="../index.html#home" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#installer" class="nav-link">Installer</a>
+                <a href="../index.html#desktop" class="nav-link">Desktop</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="../index.html#docs" class="nav-link">Docs</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <h3>Documentation</h3>
+                    <nav class="docs-nav">
+                        <a href="installation-guide.html" class="docs-nav-link">Installation Guide</a>
+                        <a href="quick-start.html" class="docs-nav-link">Quick Start</a>
+                        <a href="dual-boot-setup.html" class="docs-nav-link">Dual Boot Setup</a>
+                        <a href="system-requirements.html" class="docs-nav-link">System Requirements</a>
+                        <a href="qtile-basics.html" class="docs-nav-link">Qtile Basics</a>
+                        <a href="customization.html" class="docs-nav-link">Customization</a>
+                        <a href="package-management.html" class="docs-nav-link">Package Management</a>
+                        <a href="security-tools.html" class="docs-nav-link">Security Tools</a>
+                        <a href="troubleshooting.html" class="docs-nav-link">Troubleshooting</a>
+                        <a href="contributing.html" class="docs-nav-link active">Contributing</a>
+                    </nav>
+                </aside>
+                
+                <main class="docs-main">
+                    <div class="docs-header">
+                        <h1>Contributing to KyOS</h1>
+                        <p class="docs-subtitle">Help make KyOS better for everyone</p>
+                    </div>
+
+                    <div class="docs-content-body">
+                        <section class="docs-section">
+                            <h2>Welcome Contributors!</h2>
+                            <p>
+                                KyOS is a community-driven project, and we welcome contributions from developers,
+                                designers, documentation writers, and users of all skill levels. Every contribution
+                                helps make KyOS better for the entire community.
+                            </p>
+                            
+                            <div class="alert alert-info">
+                                <i data-feather="info"></i>
+                                <div>
+                                    <strong>New to Open Source?</strong> Don't worry! We have beginner-friendly issues
+                                    and are happy to help you get started with your first contribution.
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Ways to Contribute</h2>
+                            
+                            <div class="contribution-types">
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="code"></i>
+                                    </div>
+                                    <h3>Code Contributions</h3>
+                                    <p>Improve the installer, system scripts, and core functionality</p>
+                                </div>
+                                
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="bug"></i>
+                                    </div>
+                                    <h3>Bug Reports</h3>
+                                    <p>Help identify and report issues to make KyOS more stable</p>
+                                </div>
+                                
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="book"></i>
+                                    </div>
+                                    <h3>Documentation</h3>
+                                    <p>Write guides, improve existing docs, and help users</p>
+                                </div>
+                                
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="palette"></i>
+                                    </div>
+                                    <h3>Design & Themes</h3>
+                                    <p>Create themes, wallpapers, and improve visual design</p>
+                                </div>
+                                
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="package"></i>
+                                    </div>
+                                    <h3>Package Maintenance</h3>
+                                    <p>Help maintain packages and build scripts</p>
+                                </div>
+                                
+                                <div class="contrib-card">
+                                    <div class="contrib-icon">
+                                        <i data-feather="users"></i>
+                                    </div>
+                                    <h3>Community Support</h3>
+                                    <p>Help other users in forums and chat channels</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Getting Started</h2>
+                            
+                            <h3>1. Set Up Development Environment</h3>
+                            <div class="code-block">
+                                <pre><code># Clone the repository
+git clone https://github.com/rubberpirate/kyos.git
+cd kyos
+
+# Set up development dependencies
+sudo pacman -S git base-devel archiso
+
+# Install AUR helper (if not already installed)
+sudo pacman -S --needed base-devel git
+git clone https://aur.archlinux.org/yay.git
+cd yay && makepkg -si</code></pre>
+                            </div>
+
+                            <h3>2. Explore the Codebase</h3>
+                            <ul>
+                                <li><code>releng/</code> - ISO building configuration</li>
+                                <li><code>releng/airootfs/</code> - Root filesystem customizations</li>
+                                <li><code>releng/airootfs/usr/local/bin/</code> - Custom scripts and installer</li>
+                                <li><code>website/</code> - Project website</li>
+                                <li><code>docs/</code> - Documentation source</li>
+                            </ul>
+
+                            <h3>3. Build a Test ISO</h3>
+                            <div class="code-block">
+                                <pre><code># Navigate to releng directory
+cd releng
+
+# Build the ISO
+sudo mkarchiso -v .
+
+# The ISO will be created in the out/ directory</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Contribution Guidelines</h2>
+                            
+                            <h3>Code Style</h3>
+                            <ul>
+                                <li>Follow existing code style and conventions</li>
+                                <li>Use meaningful variable and function names</li>
+                                <li>Comment complex logic and functions</li>
+                                <li>Keep functions focused and concise</li>
+                                <li>Use proper indentation (4 spaces for Python, 2 for shell scripts)</li>
+                            </ul>
+
+                            <h3>Commit Messages</h3>
+                            <div class="code-block">
+                                <pre><code># Good commit message format
+type(scope): description
+
+# Examples:
+feat(installer): add dual boot detection
+fix(qtile): resolve bar positioning issue
+docs(contributing): update setup instructions
+style(website): improve mobile responsiveness</code></pre>
+                            </div>
+
+                            <h3>Pull Request Process</h3>
+                            <ol>
+                                <li>Fork the repository to your GitHub account</li>
+                                <li>Create a feature branch from main</li>
+                                <li>Make your changes with clear commit messages</li>
+                                <li>Test your changes thoroughly</li>
+                                <li>Update documentation if needed</li>
+                                <li>Submit a pull request with detailed description</li>
+                            </ol>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Reporting Bugs</h2>
+                            
+                            <h3>Before Reporting</h3>
+                            <ul>
+                                <li>Search existing issues to avoid duplicates</li>
+                                <li>Try to reproduce the bug consistently</li>
+                                <li>Test with a fresh KyOS installation if possible</li>
+                                <li>Gather relevant system information</li>
+                            </ul>
+
+                            <h3>Bug Report Template</h3>
+                            <div class="code-block">
+                                <pre><code>**Bug Description**
+A clear description of what the bug is.
+
+**Steps to Reproduce**
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+**Expected Behavior**
+What you expected to happen.
+
+**Actual Behavior**
+What actually happened.
+
+**System Information**
+- KyOS Version: [e.g. 2024.01]
+- Hardware: [CPU, RAM, GPU]
+- Installation type: [Full disk, dual boot, VM]
+
+**Additional Context**
+Any other context about the problem.</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Development Areas</h2>
+                            
+                            <h3>Installer Improvements</h3>
+                            <ul>
+                                <li>Better hardware detection</li>
+                                <li>More partition schemes</li>
+                                <li>Installation progress indicators</li>
+                                <li>Error handling and recovery</li>
+                                <li>Accessibility features</li>
+                            </ul>
+
+                            <h3>Qtile Configuration</h3>
+                            <ul>
+                                <li>New widgets and layouts</li>
+                                <li>Theme system improvements</li>
+                                <li>Configuration GUI tools</li>
+                                <li>Multi-monitor support</li>
+                                <li>Wayland compatibility</li>
+                            </ul>
+
+                            <h3>System Integration</h3>
+                            <ul>
+                                <li>Hardware-specific optimizations</li>
+                                <li>Power management improvements</li>
+                                <li>Boot time optimizations</li>
+                                <li>Security enhancements</li>
+                                <li>Package management tools</li>
+                            </ul>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Documentation Contributions</h2>
+                            
+                            <h3>Types of Documentation Needed</h3>
+                            <ul>
+                                <li>Installation guides for specific hardware</li>
+                                <li>Troubleshooting solutions</li>
+                                <li>Customization tutorials</li>
+                                <li>Video tutorials and screencasts</li>
+                                <li>Translations to other languages</li>
+                            </ul>
+
+                            <h3>Documentation Standards</h3>
+                            <ul>
+                                <li>Use clear, concise language</li>
+                                <li>Include relevant screenshots</li>
+                                <li>Test all commands and procedures</li>
+                                <li>Follow the existing documentation structure</li>
+                                <li>Use proper markdown formatting</li>
+                            </ul>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Community Guidelines</h2>
+                            
+                            <h3>Code of Conduct</h3>
+                            <ul>
+                                <li>Be respectful and inclusive</li>
+                                <li>Welcome newcomers and help them learn</li>
+                                <li>Focus on constructive feedback</li>
+                                <li>Respect different opinions and approaches</li>
+                                <li>No harassment, discrimination, or toxic behavior</li>
+                            </ul>
+
+                            <h3>Communication Channels</h3>
+                            <ul>
+                                <li><strong><a href="https://github.com/rubberpirate/kyos/issues" target="_blank">GitHub Issues</a>:</strong> Bug reports and feature requests</li>
+                                <li><strong><a href="https://discord.gg/archlinux" target="_blank">Discord</a>:</strong> Real-time community chat</li>
+                                <li><strong><a href="https://www.reddit.com/r/archlinux/" target="_blank">Reddit</a>:</strong> Community discussions and support</li>
+                                <li><strong><a href="https://wiki.archlinux.org/title/Matrix" target="_blank">Matrix</a>:</strong> Developer communications</li>
+                            </ul>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Recognition</h2>
+                            
+                            <p>
+                                We believe in recognizing the efforts of our contributors. All contributors
+                                are acknowledged in our:
+                            </p>
+                            
+                            <ul>
+                                <li>Repository CONTRIBUTORS file</li>
+                                <li>Release notes and changelogs</li>
+                                <li>Project website credits</li>
+                                <li>Social media shout-outs</li>
+                                <li>Annual contributor highlights</li>
+                            </ul>
+
+                            <div class="alert alert-success">
+                                <i data-feather="heart"></i>
+                                <div>
+                                    <strong>Thank You!</strong> Every contribution, no matter how small,
+                                    makes a difference and is greatly appreciated by the entire KyOS community.
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="docs-footer">
+                            <div class="docs-nav-buttons">
+                                <a href="troubleshooting.html" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i>
+                                    Troubleshooting
+                                </a>
+                                <a href="../index.html" class="btn btn-primary">
+                                    Back to Home
+                                    <i data-feather="arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution 
+                        designed for developers and enthusiasts.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 KyOS. Built with ❤️ for the Linux community.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keybindings Reference | KyOS Dragon Arch</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                <span>KyOS</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../index.html#features">Features</a></li>
+                <li><a href="../index.html#download">Download</a></li>
+                <li><a href="../index.html#docs" class="active">Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="sidebar-content">
+                <h3>Documentation</h3>
+                <ul class="sidebar-menu">
+                    <li><a href="complete-guide.html">Complete Guide</a></li>
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="qtile-mastery.html">Qtile Mastery</a></li>
+                    <li><a href="keybindings-reference.html" class="active">Keybindings Reference</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    <li class="sidebar-divider"></li>
+                    <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://qtile.org/manual/" target="_blank">Qtile Documentation <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://github.com/rubberpirate/kyos" target="_blank">GitHub Repository <i class="fas fa-external-link-alt"></i></a></li>
+                </ul>
+                
+                <div class="sidebar-toc">
+                    <h4>Quick Navigation</h4>
+                    <ul>
+                        <li><a href="#essential">Essential Keys</a></li>
+                        <li><a href="#window-management">Window Management</a></li>
+                        <li><a href="#applications">Applications</a></li>
+                        <li><a href="#workspaces">Workspaces</a></li>
+                        <li><a href="#layouts">Layout Control</a></li>
+                        <li><a href="#system">System Control</a></li>
+                        <li><a href="#media">Media Keys</a></li>
+                        <li><a href="#advanced">Advanced</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="container">
+                <header class="docs-header">
+                    <h1>Keybindings Reference</h1>
+                    <p class="docs-subtitle">Complete keyboard shortcuts for KyOS Dragon Arch</p>
+                    
+                    <div class="keybinding-legend">
+                        <div class="legend-item">
+                            <kbd>Super</kbd> = Windows/Cmd key (Primary modifier)
+                        </div>
+                        <div class="legend-item">
+                            <kbd>Alt</kbd> = Alt key (Secondary modifier)
+                        </div>
+                        <div class="legend-item">
+                            <kbd>Ctrl</kbd> = Control key
+                        </div>
+                        <div class="legend-item">
+                            <kbd>Shift</kbd> = Shift key
+                        </div>
+                    </div>
+                </header>
+
+                <div class="docs-body">
+                    <section class="doc-section" id="essential">
+                        <h2>Essential Keybindings</h2>
+                        <p>These are the most important shortcuts you'll use daily. Master these first!</p>
+                        
+                        <div class="keybinding-table">
+                            <div class="keybinding-row header">
+                                <div class="key-col">Keybinding</div>
+                                <div class="action-col">Action</div>
+                                <div class="desc-col">Description</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + Return</kbd></div>
+                                <div class="action-col">Launch Terminal</div>
+                                <div class="desc-col">Opens a new terminal window</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + d</kbd></div>
+                                <div class="action-col">App Launcher</div>
+                                <div class="desc-col">Opens application launcher (rofi/dmenu)</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + j</kbd></div>
+                                <div class="action-col">Focus Down</div>
+                                <div class="desc-col">Move focus to window below</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + k</kbd></div>
+                                <div class="action-col">Focus Up</div>
+                                <div class="desc-col">Move focus to window above</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + h</kbd></div>
+                                <div class="action-col">Shrink Window</div>
+                                <div class="desc-col">Make focused window smaller</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + l</kbd></div>
+                                <div class="action-col">Grow Window</div>
+                                <div class="desc-col">Make focused window larger</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + Shift + q</kbd></div>
+                                <div class="action-col">Close Window</div>
+                                <div class="desc-col">Close the currently focused window</div>
+                            </div>
+                            
+                            <div class="keybinding-row">
+                                <div class="key-col"><kbd>Super + Ctrl + r</kbd></div>
+                                <div class="action-col">Restart Qtile</div>
+                                <div class="desc-col">Restart window manager (preserves windows)</div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Memory Aid:</strong> Think of <kbd>j/k</kbd> as down/up (vim-style), <kbd>h/l</kbd> as left/right or shrink/grow.
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="window-management">
+                        <h2>Window Management</h2>
+                        <p>Advanced window manipulation for power users.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Window Focus and Movement</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + j</kbd></div>
+                                    <div class="action-col">Focus Down</div>
+                                    <div class="desc-col">Move focus to next window down in stack</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + k</kbd></div>
+                                    <div class="action-col">Focus Up</div>
+                                    <div class="desc-col">Move focus to next window up in stack</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + j</kbd></div>
+                                    <div class="action-col">Move Window Down</div>
+                                    <div class="desc-col">Move focused window down in stack</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + k</kbd></div>
+                                    <div class="action-col">Move Window Up</div>
+                                    <div class="desc-col">Move focused window up in stack</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + period</kbd></div>
+                                    <div class="action-col">Focus Next Screen</div>
+                                    <div class="desc-col">Move focus to next monitor</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + comma</kbd></div>
+                                    <div class="action-col">Focus Previous Screen</div>
+                                    <div class="desc-col">Move focus to previous monitor</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + period</kbd></div>
+                                    <div class="action-col">Move Window to Next Screen</div>
+                                    <div class="desc-col">Move window to next monitor</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + comma</kbd></div>
+                                    <div class="action-col">Move Window to Previous Screen</div>
+                                    <div class="desc-col">Move window to previous monitor</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Window Sizing and States</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + h</kbd></div>
+                                    <div class="action-col">Shrink Window</div>
+                                    <div class="desc-col">Decrease window size (layout dependent)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + l</kbd></div>
+                                    <div class="action-col">Grow Window</div>
+                                    <div class="desc-col">Increase window size (layout dependent)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + n</kbd></div>
+                                    <div class="action-col">Reset Size</div>
+                                    <div class="desc-col">Reset window to default size</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + f</kbd></div>
+                                    <div class="action-col">Toggle Fullscreen</div>
+                                    <div class="desc-col">Make window fullscreen or restore</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Space</kbd></div>
+                                    <div class="action-col">Toggle Floating</div>
+                                    <div class="desc-col">Switch between tiled and floating mode</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + f</kbd></div>
+                                    <div class="action-col">Bring Floating to Front</div>
+                                    <div class="desc-col">Bring all floating windows to front</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Mouse + Keyboard Combinations</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Left Click</kbd></div>
+                                    <div class="action-col">Drag Window</div>
+                                    <div class="desc-col">Drag floating windows</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Right Click</kbd></div>
+                                    <div class="action-col">Resize Window</div>
+                                    <div class="desc-col">Resize floating windows</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Middle Click</kbd></div>
+                                    <div class="action-col">Toggle Float</div>
+                                    <div class="desc-col">Toggle floating state with mouse</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="applications">
+                        <h2>Application Shortcuts</h2>
+                        <p>Quick access to commonly used applications.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Core Applications</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Return</kbd></div>
+                                    <div class="action-col">Terminal</div>
+                                    <div class="desc-col">Launch terminal emulator</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + w</kbd></div>
+                                    <div class="action-col">Web Browser</div>
+                                    <div class="desc-col">Launch Firefox</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + e</kbd></div>
+                                    <div class="action-col">File Manager</div>
+                                    <div class="desc-col">Launch file manager</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + c</kbd></div>
+                                    <div class="action-col">Code Editor</div>
+                                    <div class="desc-col">Launch VS Code</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + d</kbd></div>
+                                    <div class="action-col">App Launcher</div>
+                                    <div class="desc-col">Open application launcher (rofi)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + d</kbd></div>
+                                    <div class="action-col">Run Command</div>
+                                    <div class="desc-col">Run arbitrary command dialog</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>System Applications</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + x</kbd></div>
+                                    <div class="action-col">System Monitor</div>
+                                    <div class="desc-col">Launch task manager/system monitor</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + s</kbd></div>
+                                    <div class="action-col">Screenshot Tool</div>
+                                    <div class="desc-col">Take screenshot with selection</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Print</kbd></div>
+                                    <div class="action-col">Full Screenshot</div>
+                                    <div class="desc-col">Take full screen screenshot</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + v</kbd></div>
+                                    <div class="action-col">Clipboard Manager</div>
+                                    <div class="desc-col">Open clipboard history</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + p</kbd></div>
+                                    <div class="action-col">Display Settings</div>
+                                    <div class="desc-col">Monitor/display configuration</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Development Tools</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Return</kbd></div>
+                                    <div class="action-col">Floating Terminal</div>
+                                    <div class="desc-col">Launch terminal in floating mode</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + c</kbd></div>
+                                    <div class="action-col">Alternative Editor</div>
+                                    <div class="desc-col">Launch secondary code editor</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + g</kbd></div>
+                                    <div class="action-col">Git GUI</div>
+                                    <div class="desc-col">Launch Git GUI application</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + w</kbd></div>
+                                    <div class="action-col">Private Browser</div>
+                                    <div class="desc-col">Launch browser in private mode</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="workspaces">
+                        <h2>Workspace Navigation</h2>
+                        <p>Efficiently manage multiple workspaces (groups) for different tasks.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Basic Workspace Control</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + [1-9]</kbd></div>
+                                    <div class="action-col">Switch to Workspace</div>
+                                    <div class="desc-col">Switch to workspace number 1-9</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + [1-9]</kbd></div>
+                                    <div class="action-col">Move Window to Workspace</div>
+                                    <div class="desc-col">Move focused window to workspace 1-9</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Right</kbd></div>
+                                    <div class="action-col">Next Workspace</div>
+                                    <div class="desc-col">Switch to next workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Left</kbd></div>
+                                    <div class="action-col">Previous Workspace</div>
+                                    <div class="desc-col">Switch to previous workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Right</kbd></div>
+                                    <div class="action-col">Move Window Right</div>
+                                    <div class="desc-col">Move window to next workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Left</kbd></div>
+                                    <div class="action-col">Move Window Left</div>
+                                    <div class="desc-col">Move window to previous workspace</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Advanced Workspace Management</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + [1-9]</kbd></div>
+                                    <div class="action-col">Follow Window</div>
+                                    <div class="desc-col">Move window and follow to workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + grave</kbd></div>
+                                    <div class="action-col">Scratchpad Toggle</div>
+                                    <div class="desc-col">Toggle scratchpad workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + grave</kbd></div>
+                                    <div class="action-col">Move to Scratchpad</div>
+                                    <div class="desc-col">Move window to scratchpad</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Alt + Tab</kbd></div>
+                                    <div class="action-col">Next Window</div>
+                                    <div class="desc-col">Cycle through windows in current workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Alt + Shift + Tab</kbd></div>
+                                    <div class="action-col">Previous Window</div>
+                                    <div class="desc-col">Reverse cycle through windows</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="workspace-strategy">
+                            <h3>Recommended Workspace Organization</h3>
+                            <div class="workspace-grid">
+                                <div class="workspace-item">
+                                    <div class="workspace-number">1</div>
+                                    <div class="workspace-name">Terminal</div>
+                                    <div class="workspace-desc">Command line, scripts, system administration</div>
+                                </div>
+                                
+                                <div class="workspace-item">
+                                    <div class="workspace-number">2</div>
+                                    <div class="workspace-name">Development</div>
+                                    <div class="workspace-desc">Code editors, IDEs, development tools</div>
+                                </div>
+                                
+                                <div class="workspace-item">
+                                    <div class="workspace-number">3</div>
+                                    <div class="workspace-name">Web</div>
+                                    <div class="workspace-desc">Web browsers, online research</div>
+                                </div>
+                                
+                                <div class="workspace-item">
+                                    <div class="workspace-number">4</div>
+                                    <div class="workspace-name">Communication</div>
+                                    <div class="workspace-desc">Email, chat, video calls</div>
+                                </div>
+                                
+                                <div class="workspace-item">
+                                    <div class="workspace-number">5</div>
+                                    <div class="workspace-name">Media</div>
+                                    <div class="workspace-desc">Music, videos, image editing</div>
+                                </div>
+                                
+                                <div class="workspace-item">
+                                    <div class="workspace-number">6-9</div>
+                                    <div class="workspace-name">Projects</div>
+                                    <div class="workspace-desc">Specific projects or temporary workspaces</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="layouts">
+                        <h2>Layout Management</h2>
+                        <p>Control how windows are arranged and organized.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Layout Navigation</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Tab</kbd></div>
+                                    <div class="action-col">Next Layout</div>
+                                    <div class="desc-col">Switch to next window layout</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Tab</kbd></div>
+                                    <div class="action-col">Previous Layout</div>
+                                    <div class="desc-col">Switch to previous window layout</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Space</kbd></div>
+                                    <div class="action-col">Next Layout</div>
+                                    <div class="desc-col">Alternative next layout binding</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Space</kbd></div>
+                                    <div class="action-col">Toggle Floating</div>
+                                    <div class="desc-col">Switch between tiled and floating</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Layout-Specific Controls</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + i</kbd></div>
+                                    <div class="action-col">Increase Master</div>
+                                    <div class="desc-col">Add window to master area (MonadTall)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + o</kbd></div>
+                                    <div class="action-col">Decrease Master</div>
+                                    <div class="desc-col">Remove window from master area</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + h</kbd></div>
+                                    <div class="action-col">Shuffle Left</div>
+                                    <div class="desc-col">Move window left in layout</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + l</kbd></div>
+                                    <div class="action-col">Shuffle Right</div>
+                                    <div class="desc-col">Move window right in layout</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + m</kbd></div>
+                                    <div class="action-col">Toggle Master</div>
+                                    <div class="desc-col">Move focused window to/from master</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layout-reference">
+                            <h3>Available Layouts</h3>
+                            <div class="layout-list">
+                                <div class="layout-desc">
+                                    <strong>MonadTall:</strong> One master window on left, stack on right
+                                </div>
+                                <div class="layout-desc">
+                                    <strong>MonadWide:</strong> Master window on top, stack on bottom
+                                </div>
+                                <div class="layout-desc">
+                                    <strong>Columns:</strong> Dynamic columns that grow/shrink
+                                </div>
+                                <div class="layout-desc">
+                                    <strong>Max:</strong> One maximized window at a time
+                                </div>
+                                <div class="layout-desc">
+                                    <strong>Floating:</strong> Windows can be freely positioned
+                                </div>
+                                <div class="layout-desc">
+                                    <strong>Matrix:</strong> Grid-based window arrangement
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="system">
+                        <h2>System Control</h2>
+                        <p>System-wide shortcuts for common tasks.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Session Management</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + r</kbd></div>
+                                    <div class="action-col">Restart Qtile</div>
+                                    <div class="desc-col">Restart window manager (keep windows)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + q</kbd></div>
+                                    <div class="action-col">Quit Qtile</div>
+                                    <div class="desc-col">Exit window manager (logout)</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Ctrl + Alt + l</kbd></div>
+                                    <div class="action-col">Lock Screen</div>
+                                    <div class="desc-col">Lock the desktop session</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + Escape</kbd></div>
+                                    <div class="action-col">Power Menu</div>
+                                    <div class="desc-col">Shutdown/restart/logout options</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>System Information</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Pause</kbd></div>
+                                    <div class="action-col">System Info</div>
+                                    <div class="desc-col">Display system information</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + F1</kbd></div>
+                                    <div class="action-col">Help/Shortcuts</div>
+                                    <div class="desc-col">Show keybinding help</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + F12</kbd></div>
+                                    <div class="action-col">Dropdown Terminal</div>
+                                    <div class="desc-col">Toggle dropdown terminal</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Quick Settings</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Equal</kbd></div>
+                                    <div class="action-col">Increase Gaps</div>
+                                    <div class="desc-col">Increase window gaps</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Minus</kbd></div>
+                                    <div class="action-col">Decrease Gaps</div>
+                                    <div class="desc-col">Decrease window gaps</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + 0</kbd></div>
+                                    <div class="action-col">Reset Gaps</div>
+                                    <div class="desc-col">Reset gaps to default</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + b</kbd></div>
+                                    <div class="action-col">Toggle Bar</div>
+                                    <div class="desc-col">Show/hide status bar</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="media">
+                        <h2>Media Controls</h2>
+                        <p>Audio, brightness, and media player controls.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Audio Control</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioRaiseVolume</kbd></div>
+                                    <div class="action-col">Volume Up</div>
+                                    <div class="desc-col">Increase system volume</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioLowerVolume</kbd></div>
+                                    <div class="action-col">Volume Down</div>
+                                    <div class="desc-col">Decrease system volume</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioMute</kbd></div>
+                                    <div class="action-col">Mute Toggle</div>
+                                    <div class="desc-col">Toggle audio mute</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Shift + XF86AudioRaiseVolume</kbd></div>
+                                    <div class="action-col">Mic Volume Up</div>
+                                    <div class="desc-col">Increase microphone volume</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Shift + XF86AudioLowerVolume</kbd></div>
+                                    <div class="action-col">Mic Volume Down</div>
+                                    <div class="desc-col">Decrease microphone volume</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Shift + XF86AudioMute</kbd></div>
+                                    <div class="action-col">Mic Mute Toggle</div>
+                                    <div class="desc-col">Toggle microphone mute</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Media Player Controls</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioPlay</kbd></div>
+                                    <div class="action-col">Play/Pause</div>
+                                    <div class="desc-col">Toggle media playback</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioNext</kbd></div>
+                                    <div class="action-col">Next Track</div>
+                                    <div class="desc-col">Skip to next media track</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioPrev</kbd></div>
+                                    <div class="action-col">Previous Track</div>
+                                    <div class="desc-col">Go to previous media track</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86AudioStop</kbd></div>
+                                    <div class="action-col">Stop</div>
+                                    <div class="desc-col">Stop media playback</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Brightness Control</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86MonBrightnessUp</kbd></div>
+                                    <div class="action-col">Brightness Up</div>
+                                    <div class="desc-col">Increase screen brightness</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>XF86MonBrightnessDown</kbd></div>
+                                    <div class="action-col">Brightness Down</div>
+                                    <div class="desc-col">Decrease screen brightness</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + F5</kbd></div>
+                                    <div class="action-col">Brightness Down</div>
+                                    <div class="desc-col">Alternative brightness decrease</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + F6</kbd></div>
+                                    <div class="action-col">Brightness Up</div>
+                                    <div class="desc-col">Alternative brightness increase</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="doc-section" id="advanced">
+                        <h2>Advanced Shortcuts</h2>
+                        <p>Power user shortcuts for advanced functionality.</p>
+                        
+                        <div class="keybinding-section">
+                            <h3>Development & Debug</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Alt + r</kbd></div>
+                                    <div class="action-col">Reload Config</div>
+                                    <div class="desc-col">Reload Qtile config without restart</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + x</kbd></div>
+                                    <div class="action-col">Qtile Shell</div>
+                                    <div class="desc-col">Open Qtile interactive shell</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + r</kbd></div>
+                                    <div class="action-col">Run Python</div>
+                                    <div class="desc-col">Execute Python command in Qtile</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + F11</kbd></div>
+                                    <div class="action-col">Debug Mode</div>
+                                    <div class="desc-col">Toggle debug information display</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Security & Privacy</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Ctrl + Alt + Delete</kbd></div>
+                                    <div class="action-col">Security Menu</div>
+                                    <div class="desc-col">System security options</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Shift + p</kbd></div>
+                                    <div class="action-col">Private Mode</div>
+                                    <div class="desc-col">Launch applications in private mode</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Ctrl + l</kbd></div>
+                                    <div class="action-col">Force Lock</div>
+                                    <div class="desc-col">Immediately lock screen</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="keybinding-section">
+                            <h3>Custom Functions</h3>
+                            <div class="keybinding-table">
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Insert</kbd></div>
+                                    <div class="action-col">Clipboard Manager</div>
+                                    <div class="desc-col">Advanced clipboard management</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + Home</kbd></div>
+                                    <div class="action-col">Go Home</div>
+                                    <div class="desc-col">Switch to workspace 1</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + End</kbd></div>
+                                    <div class="action-col">Go Last</div>
+                                    <div class="desc-col">Switch to last workspace</div>
+                                </div>
+                                
+                                <div class="keybinding-row">
+                                    <div class="key-col"><kbd>Super + BackSpace</kbd></div>
+                                    <div class="action-col">Kill Window</div>
+                                    <div class="desc-col">Force close unresponsive window</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Custom Keybindings:</strong> You can modify or add your own keybindings by editing <code>~/.config/qtile/config.py</code>. Always backup your config before making changes!
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="customization">Customizing Keybindings</h2>
+                        
+                        <p>Learn how to create your own keyboard shortcuts and modify existing ones.</p>
+
+                        <div class="code-block">
+                            <h4>Adding Custom Keybindings</h4>
+                            <pre><code># In ~/.config/qtile/config.py, add to the keys list:
+
+# Application launchers
+Key([mod], "b", lazy.spawn("firefox"), desc="Launch Firefox"),
+Key([mod], "m", lazy.spawn("thunderbird"), desc="Launch Email"),
+Key([mod], "g", lazy.spawn("gimp"), desc="Launch GIMP"),
+
+# Custom window management
+Key([mod, "shift"], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen"),
+Key([mod], "bracketleft", lazy.screen.prev_group(), desc="Previous workspace"),
+Key([mod], "bracketright", lazy.screen.next_group(), desc="Next workspace"),
+
+# Volume control with custom increments
+Key([], "XF86AudioRaiseVolume", lazy.spawn("amixer set Master 3%+"), desc="Volume up"),
+Key([], "XF86AudioLowerVolume", lazy.spawn("amixer set Master 3%-"), desc="Volume down"),
+
+# Screenshot shortcuts
+Key([mod], "s", lazy.spawn("scrot -s"), desc="Screenshot selection"),
+Key([mod, "shift"], "s", lazy.spawn("scrot"), desc="Screenshot full"),</code></pre>
+                        </div>
+
+                        <div class="code-block">
+                            <h4>Key Modifier Combinations</h4>
+                            <pre><code># Available modifiers:
+mod = "mod4"        # Super/Windows key
+"mod1"              # Alt key
+"control"           # Ctrl key
+"shift"             # Shift key
+
+# Multiple modifier examples:
+Key([mod, "shift"], "Return", lazy.spawn("alacritty --class floating"))
+Key([mod, "control"], "space", lazy.widget["keyboardlayout"].next_keyboard())
+Key(["mod1", "control"], "t", lazy.spawn("gnome-terminal"))</code></pre>
+                        </div>
+
+                        <div class="alert alert-tip">
+                            <i class="fas fa-keyboard"></i>
+                            <strong>Testing Changes:</strong> After modifying your config, restart Qtile with <kbd>Super + Ctrl + r</kbd> to apply changes. Test new keybindings in a safe environment first.
+                        </div>
+                    </section>
+
+                    <div class="doc-navigation">
+                        <a href="qtile-mastery.html" class="nav-link prev">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Previous: Qtile Mastery</span>
+                        </a>
+                        <a href="troubleshooting.html" class="nav-link next">
+                            <span>Next: Troubleshooting</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                        <span>KyOS</span>
+                    </div>
+                    <p>The Dragon Arch - Powerful, Secure, Beautiful</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/rubberpirate/kyos/releases/latest" target="_blank">Download</a></li>
+                        <li><a href="complete-guide.html">Documentation</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos" target="_blank">Source Code</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki</a></li>
+                        <li><a href="https://qtile.org/" target="_blank">Qtile Docs</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/issues" target="_blank">Bug Reports</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Support Forum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KyOS Dragon Arch. Open source under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

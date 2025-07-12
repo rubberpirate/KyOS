@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Qtile
+Comment=Qtile Window Manager (X11)
+Exec=qtile start
+Icon=qtile
+Type=Application
+DesktopNames=qtile
+Keywords=wm;tiling;x11

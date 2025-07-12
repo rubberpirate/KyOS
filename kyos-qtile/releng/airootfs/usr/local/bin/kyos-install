@@ -1,0 +1,1263 @@
+#!/bin/bash
+
+# KyOS Installation System - The official installer for KyOS (Dragon Arch).
+# This script provides a professional TUI experience for installing KyOS with
+# full support for BlackArch tools, NVIDIA drivers, and VirtualBox optimization.
+# Built with 'gum' for an elegant Text User Interface (TUI).
+
+version="2.0.0"
+
+# --- Script Initialization and Setup ---
+
+# Check if the script is run as root.
+if [ "$EUID" -ne 0 ]; then
+  echo "You must be root to perform this operation."
+  exit 1
+fi
+
+# UI colors for 'gum' commands.
+main_color="#00ff00" # Green for KyOS theme
+warning_color="#ff0000" # Red for warnings
+info_color="#00ffff" # Cyan for info
+
+export BORDER_FOREGROUND="$main_color"
+export GUM_CONFIRM_SELECTED_BACKGROUND="$main_color"
+export GUM_CHOOSE_CURSOR_FOREGROUND="$main_color"
+export GUM_CHOOSE_SELECTED_FOREGROUND="$main_color"
+export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
+export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
+export FOREGROUND="#ffffff" # White for general foreground text
+
+# Enable shell options
+shopt -s expand_aliases
+
+# Initialize default values for configuration variables.
+timezone="America/New_York"
+x11keymap="us"
+locale="en_US.UTF-8"
+username="kyos"
+password=""
+root_password=""
+hostname="kyos"
+disk_dev=""
+is_uefi="false"
+encrypt_check="false"
+create_swap="true"
+swap_size="2GiB"
+partitions=() # Array to store partition settings
+partitions_setup="" # String for JSON output
+enable_ipv6="false"
+enable_multilib="true"
+blackarch_support="false"
+nvidia_support="false"
+enable_aur="true"
+install_mode="auto" # auto, interactive
+
+# Partitioning configuration
+partitioning_mode="full_disk" # full_disk, dual_boot, manual
+partition_mode="full_disk" # Used by installation backend
+has_unallocated_space="false"
+available_space_gb="0"
+kyos_space_gb="50"
+dual_boot_space_gb="50"
+manual_efi_partition=""
+manual_root_partition=""
+manual_swap_partition=""
+
+# --- Logging Configuration ---
+
+# Create log directory and setup logging
+LOG_DIR="/var/log/kyos-install"
+LOG_FILE="$LOG_DIR/kyos-install-$(date +%Y%m%d-%H%M%S).log"
+ERROR_LOG="$LOG_DIR/kyos-install-errors-$(date +%Y%m%d-%H%M%S).log"
+
+# Create log directory if it doesn't exist
+mkdir -p "$LOG_DIR" 2>/dev/null || {
+    # If /var/log is not writable, use /tmp
+    LOG_DIR="/tmp/kyos-install"
+    LOG_FILE="$LOG_DIR/kyos-install-$(date +%Y%m%d-%H%M%S).log"
+    ERROR_LOG="$LOG_DIR/kyos-install-errors-$(date +%Y%m%d-%H%M%S).log"
+    mkdir -p "$LOG_DIR"
+}
+
+# Function to log messages with timestamp
+log_message() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $message" | tee -a "$LOG_FILE"
+}
+
+# Function to log errors
+log_error() {
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [ERROR] $message" | tee -a "$LOG_FILE" | tee -a "$ERROR_LOG"
+}
+
+# Function to log command execution
+log_command() {
+    local cmd="$*"
+    log_message "COMMAND" "Executing: $cmd"
+    
+    # Execute command and capture both stdout and stderr
+    {
+        eval "$cmd" 2>&1
+        local exit_code=$?
+        if [ $exit_code -ne 0 ]; then
+            log_error "Command failed with exit code $exit_code: $cmd"
+        else
+            log_message "SUCCESS" "Command completed successfully: $cmd"
+        fi
+        return $exit_code
+    } | tee -a "$LOG_FILE"
+}
+
+# Function to create final installation report
+create_install_report() {
+    local report_file="$LOG_DIR/kyos-install-report-$(date +%Y%m%d-%H%M%S).txt"
+    
+    cat > "$report_file" << EOF
+================================================================================
+                          KyOS Installation Report
+================================================================================
+Installation Date: $(date)
+Installation Mode: $install_mode
+KyOS Version: $version
+
+SYSTEM CONFIGURATION:
+- Hostname: $hostname
+- Username: $username
+- Timezone: $timezone
+- Locale: $locale
+- Keyboard Layout: $x11keymap
+
+DISK CONFIGURATION:
+- Target Device: $disk_dev
+- UEFI Mode: $is_uefi
+- Encryption: $encrypt_check
+- Swap: $create_swap ($swap_size)
+
+ADDITIONAL OPTIONS:
+- BlackArch Support: $blackarch_support
+- NVIDIA Support: $nvidia_support
+- IPv6 Enabled: $enable_ipv6
+- Multilib Enabled: $enable_multilib
+- AUR Helper: $enable_aur
+
+LOG FILES:
+- Main Log: $LOG_FILE
+- Error Log: $ERROR_LOG
+- This Report: $report_file
+
+INSTALLATION STATUS:
+$(if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+    echo "⚠ COMPLETED WITH ERRORS - Please check error log for details"
+    echo ""
+    echo "ERRORS ENCOUNTERED:"
+    tail -20 "$ERROR_LOG" | sed 's/^/  /'
+else
+    echo "✓ COMPLETED SUCCESSFULLY"
+fi)
+
+================================================================================
+End of Report
+================================================================================
+EOF
+
+    # Display report location to user
+    log_message "INFO" "Installation report saved to: $report_file"
+    
+    # Copy logs to installed system if possible
+    if [ -d "/mnt/var/log" ]; then
+        mkdir -p "/mnt/var/log/kyos-install" 2>/dev/null
+        cp "$LOG_FILE" "$ERROR_LOG" "$report_file" "/mnt/var/log/kyos-install/" 2>/dev/null && \
+            log_message "INFO" "Logs copied to installed system: /var/log/kyos-install/"
+    fi
+    
+    echo "$report_file"
+}
+
+# Set up error handling and logging
+set -E
+trap 'log_error "Script failed at line $LINENO: $BASH_COMMAND"' ERR
+
+# Initialize logging
+log_message "INFO" "KyOS Installation System v$version starting"
+log_message "INFO" "Log file: $LOG_FILE"
+log_message "INFO" "Error log: $ERROR_LOG"
+log_message "INFO" "PID: $$, User: $(whoami), PWD: $(pwd)"
+
+# --- Helper Functions for TUI Consistency and Error Handling ---
+
+# Function to display a consistent gum style box.
+gum_box() {
+    gum style --border normal --margin "1" --padding "1 2" "$@"
+}
+
+# Function to handle user cancellation (Ctrl+C or Esc) from gum commands.
+check_gum_exit() {
+    if [ $? -ne 0 ]; then
+        gum_box "$(gum style --foreground "$warning_color" "Operation cancelled by user. Exiting.")"
+        Exit
+    fi
+}
+
+# --- Core Configuration Functions ---
+
+Welcome() {
+    clear
+    local kyos_banner
+    kyos_banner=$(cat << 'EOF'
+ ██╗  ██╗██╗   ██╗ ██████╗ ███████╗
+ ██║ ██╔╝╚██╗ ██╔╝██╔═══██╗██╔════╝
+ █████╔╝  ╚████╔╝ ██║   ██║███████╗
+ ██╔═██╗   ╚██╔╝  ██║   ██║╚════██║
+ ██║  ██╗   ██║   ╚██████╔╝███████║
+ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚══════╝
+        Dragon Arch
+EOF
+)
+
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "$(gum style --foreground "$main_color" "$kyos_banner")" "Ready to install KyOS (Dragon Arch)?" "$(gum style --foreground "$main_color" "KyOS Installation System version: $version")")"
+    local CONTINUE=$?
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        Exit
+    fi
+}
+
+InstallModeSelect() {
+    clear
+    gum_box "Select installation mode"
+    install_mode=$(gum choose --limit 1 "Automated (recommended)" "Interactive")
+    check_gum_exit
+    
+    if [[ "$install_mode" == "Automated (recommended)" ]]; then
+        install_mode="auto"
+        gum_box "$(gum style --foreground "$info_color" "Automated mode selected")" "Will use sensible defaults for quick installation" "You can still review settings before installation"
+    else
+        install_mode="interactive"
+        gum_box "$(gum style --foreground "$info_color" "Interactive mode selected")" "You will configure each setting manually"
+    fi
+}
+
+Timezone() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default timezone
+    fi
+    
+    clear
+    gum_box "Select a timezone"
+    timezone=$(timedatectl list-timezones | gum filter --placeholder "e.g., America/New_York")
+    check_gum_exit
+}
+
+X11Keymap() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default keymap
+    fi
+    
+    clear
+    gum_box "Select a keyboard layout"
+    x11keymap=$(localectl list-x11-keymap-layouts | grep -v '^custom$' | gum filter --placeholder "select a keyboard layout")
+    check_gum_exit
+    # Set the X11 keymap temporarily if X is running
+    setxkbmap "$x11keymap" 2> /dev/null || true
+}
+
+Locale() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default locale
+    fi
+    
+    clear
+    gum_box "Select a locale"
+    locale=$(localectl list-locales | gum filter --placeholder "e.g., en_US.UTF-8")
+    check_gum_exit
+}
+
+Username() {
+    clear
+    gum_box "Please enter your username"
+    username=$(gum input --placeholder "kyos")
+    check_gum_exit
+    # Remove spaces from the input string
+    username="${username// /}"
+    # Set a default if input is empty
+    if [ -z "$username" ]; then
+        username="kyos"
+    fi
+    log_message "CONFIG" "Username set to: $username"
+}
+
+Password() {
+    local matches="false"
+    local passwrong="false"
+    while [[ "$matches" == "false" ]]; do
+        clear
+        if [[ "$passwrong" == "true" ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please try again")"
+        else
+            gum_box "Enter your password" "$(gum style --foreground "$info_color" "Minimum 4 characters recommended")"
+        fi
+        password=$(gum input --password --placeholder "Enter a secure password")
+        check_gum_exit
+        
+        # Basic password validation
+        if [[ ${#password} -lt 4 ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Password too short!")" "Please use at least 4 characters"
+            continue
+        fi
+        
+        clear
+        gum_box "Verify your password"
+        password_verif=$(gum input --password --placeholder "Type your password again")
+        check_gum_exit
+
+        if [[ "$password" == "$password_verif" ]]; then
+            matches="true"
+        else
+            passwrong="true"
+        fi
+    done
+
+    # Set a default if input is empty (shouldn't happen due to validation)
+    if [ -z "$password" ]; then
+        password="kyos"
+    fi
+}
+
+RootPassword() {
+    if [[ "$install_mode" == "auto" ]]; then
+        root_password="$password" # Use same password as user
+        return
+    fi
+    
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Use same password for root?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        root_password="$password"
+    else
+        local root_matches="false"
+        local root_passwrong="false"
+        while [[ "$root_matches" == "false" ]]; do
+            clear
+            if [[ "$root_passwrong" == "true" ]]; then
+                gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please try again")"
+            else
+                gum_box "Enter root password"
+            fi
+            root_password=$(gum input --password --placeholder "Enter root password")
+            check_gum_exit
+            clear
+            gum_box "Verify root password"
+            root_password_verif=$(gum input --password --placeholder "Type root password again")
+            check_gum_exit
+
+            if [[ "$root_password" == "$root_password_verif" ]]; then
+                root_matches="true"
+            else
+                root_passwrong="true"
+            fi
+        done
+
+        if [ -z "$root_password" ]; then
+            root_password="kyos"
+        fi
+    fi
+}
+
+Hostname() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default hostname
+    fi
+    
+    clear
+    gum_box "Please enter a hostname"
+    hostname=$(gum input --placeholder "kyos")
+    check_gum_exit
+    # Remove spaces from the input string
+    hostname="${hostname// /}"
+    # Set a default if input is empty
+    if [ -z "$hostname" ]; then
+        hostname="kyos"
+    fi
+}
+
+UEFICheck() {
+    # Determine if the system is UEFI or BIOS
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+}
+
+LUKSCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        encrypt_check="false" # No encryption in auto mode for simplicity
+        return
+    fi
+    
+    encrypt_check="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Do you want to encrypt the disk?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        encrypt_check="true"
+        gum_box "$(gum style --foreground "$warning_color" "Disk encryption will be enabled")" "You will need to enter a passphrase during boot"
+    fi
+}
+
+SwapCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use default swap settings
+    fi
+    
+    create_swap="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Create a swap partition?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        create_swap="true"
+        gum_box "Select swap partition size"
+        swap_size=$(gum choose --limit 1 "1GiB" "2GiB" "4GiB" "8GiB")
+        check_gum_exit
+    fi
+}
+
+DiskSelection() {
+    clear
+    gum_box "Select disk for installation" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the entire disk')"
+    
+    # Create a formatted list of disks with size and model info
+    local disk_list=""
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            disk_list+="$line"$'\n'
+        fi
+    done < <(lsblk -pdo name,size,model | grep -E '^/dev/(sd|nvme|vd|hd)' | grep -v zram | grep -v loop | grep -v sr)
+    
+    if [[ -z "$disk_list" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No suitable disks found!")" "Please ensure you have a disk connected"
+        Exit
+    fi
+    
+    disk_dev=$(echo "$disk_list" | gum choose --limit 1)
+    check_gum_exit
+    
+    # Extract just the device name (first column)
+    disk_dev=$(echo "$disk_dev" | awk '{print $1}')
+    
+    gum_box "Selected disk: $disk_dev" "$(gum style --foreground "$warning_color" "All data will be erased!")"
+}
+
+BlackArchCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        blackarch_support="false" # Default to false in auto mode
+        log_message "CONFIG" "BlackArch support disabled (auto mode)"
+        return
+    fi
+    
+    clear
+    blackarch_support="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Install BlackArch penetration testing tools?' 'This will add the BlackArch repository and install essential security tools')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        blackarch_support="true"
+        log_message "CONFIG" "BlackArch support enabled - penetration testing tools will be installed"
+        gum_box "$(gum style --foreground "$info_color" "BlackArch support will be installed")" "Essential penetration testing tools will be available"
+    else
+        log_message "CONFIG" "BlackArch support disabled by user choice"
+    fi
+}
+
+NvidiaCheck() {
+    if [[ "$install_mode" == "auto" ]]; then
+        # Auto-detect NVIDIA GPU
+        if lspci | grep -i nvidia >/dev/null 2>&1; then
+            nvidia_support="true"
+            gum_box "$(gum style --foreground "$info_color" "NVIDIA GPU detected")" "NVIDIA drivers will be installed automatically"
+        else
+            nvidia_support="false"
+        fi
+        return
+    fi
+    
+    clear
+    nvidia_support="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Do you have an NVIDIA graphics card?' 'This will install NVIDIA drivers, DKMS utilities, and envycontrol')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then
+        nvidia_support="true"
+        gum_box "$(gum style --foreground "$info_color" "NVIDIA support will be installed")" "Drivers, utilities, and envycontrol will be configured"
+    fi
+}
+
+PartitioningModeSelection() {
+    if [[ "$install_mode" == "auto" ]]; then
+        partitioning_mode="full_disk" # Default to full disk for auto mode
+        return
+    fi
+    
+    clear
+    gum_box "Select partitioning method" "Choose how you want to partition your disk for KyOS installation"
+    
+    local partitioning_options=(
+        "Full Disk Installation (Erase entire disk)"
+        "Dual Boot (Use unallocated space)"
+        "Manual Partitioning (Advanced)"
+    )
+    
+    local selected_method=$(gum choose --limit 1 "${partitioning_options[@]}")
+    check_gum_exit
+    
+    case "$selected_method" in
+        "Full Disk Installation (Erase entire disk)")
+            partitioning_mode="full_disk"
+            gum_box "$(gum style --foreground "$warning_color" "Full Disk Installation Selected")" "This will erase the entire selected disk" "All existing data will be lost"
+            ;;
+        "Dual Boot (Use unallocated space)")
+            partitioning_mode="dual_boot"
+            gum_box "$(gum style --foreground "$info_color" "Dual Boot Installation Selected")" "KyOS will be installed alongside existing OS" "Make sure you have sufficient unallocated space (minimum 30GB)"
+            ;;
+        "Manual Partitioning (Advanced)")
+            partitioning_mode="manual"
+            gum_box "$(gum style --foreground "$info_color" "Manual Partitioning Selected")" "You will manually configure partitions" "Recommended for experienced users only"
+            ;;
+    esac
+}
+
+Partitioning() {
+    PartitioningModeSelection
+    if [[ "$partitioning_mode" == "full_disk" ]]; then
+        DiskSelection
+    elif [[ "$partitioning_mode" == "dual_boot" ]]; then
+        DualBootSetup
+    elif [[ "$partitioning_mode" == "manual" ]]; then
+        ManualPartitioning
+    fi
+    UEFICheck
+    SwapCheck
+    LUKSCheck
+}
+
+MiscSettings() {
+    if [[ "$install_mode" == "auto" ]]; then
+        return # Use defaults
+    fi
+    
+    clear
+    gum_box "Miscellaneous settings" "Use space to enable/disable"
+    
+    local selected_settings=$(gum choose --no-limit --height 20 "Enable IPv6" "Enable multilib repository" "Enable AUR support")
+    check_gum_exit
+
+    enable_ipv6="false"
+    enable_multilib="true"
+    enable_aur="true"
+    
+    if [[ "$selected_settings" == *"Enable IPv6"* ]]; then
+        enable_ipv6="true"
+    fi
+    if [[ "$selected_settings" == *"Enable multilib repository"* ]]; then
+        enable_multilib="true"
+    fi
+    if [[ "$selected_settings" == *"Enable AUR support"* ]]; then
+        enable_aur="true"
+    fi
+}
+
+Summary() {
+    clear
+    
+    local summary_text=(
+        "Installation Summary - Please Review:" ""
+        "$(gum style --foreground "$main_color" "System Configuration:")"
+        "  Timezone: $timezone"
+        "  Keyboard Layout: $x11keymap"
+        "  Locale: $locale"
+        ""
+        "$(gum style --foreground "$main_color" "User Configuration:")"
+        "  Username: $username"
+        "  Password: ${password:+********}"
+        "  Root Password: ${root_password:+********}"
+        "  Hostname: $hostname"
+        ""
+        "$(gum style --foreground "$main_color" "Disk Configuration:")"
+        "  Target Disk: $disk_dev"
+        "  Partitioning Mode: $partitioning_mode"
+        "  UEFI Mode: $is_uefi"
+        "  Encryption: $encrypt_check"
+        "  Swap Partition: $create_swap"
+    )
+
+    # Add partitioning-specific details
+    if [[ "$partitioning_mode" == "dual_boot" ]]; then
+        summary_text+=("  KyOS Space: ${dual_boot_space_gb}GB")
+    elif [[ "$partitioning_mode" == "manual" ]]; then
+        if [[ -n "$manual_efi_partition" ]]; then
+            summary_text+=("  EFI Partition: $manual_efi_partition")
+        fi
+        summary_text+=("  Root Partition: $manual_root_partition")
+        if [[ -n "$manual_swap_partition" ]]; then
+            summary_text+=("  Swap Partition: $manual_swap_partition")
+        fi
+    fi
+
+    if [[ "$create_swap" == "true" ]]; then
+        summary_text+=("  Swap Size: $swap_size")
+    fi
+
+    summary_text+=(
+        ""
+        "$(gum style --foreground "$main_color" "Additional Settings:")"
+        "  IPv6: $enable_ipv6"
+        "  Multilib: $enable_multilib"
+        "  AUR Support: $enable_aur"
+        "  BlackArch Tools: $blackarch_support"
+        "  NVIDIA Support: $nvidia_support"
+        ""
+    )
+
+    # Add appropriate warning based on partitioning mode
+    if [[ "$partitioning_mode" == "full_disk" ]]; then
+        summary_text+=("$(gum style --foreground "$warning_color" "WARNING: This will erase all data on $disk_dev")")
+    elif [[ "$partitioning_mode" == "dual_boot" ]]; then
+        summary_text+=("$(gum style --foreground "$warning_color" "WARNING: This will use ${dual_boot_space_gb}GB from unallocated space")")
+    elif [[ "$partitioning_mode" == "manual" ]]; then
+        summary_text+=("$(gum style --foreground "$warning_color" "WARNING: Selected partitions will be formatted")")
+    fi
+
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "${summary_text[@]}")"
+    local CONTINUE=$?
+    check_gum_exit
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        Change
+    fi
+}
+
+Change() {
+    clear
+    gum_box "What would you like to change?"
+    
+    local change_options=(
+        "Timezone" "Keyboard Layout" "Locale"
+        "Username" "Password" "Root Password" "Hostname"
+        "Partitioning Mode" "Disk Selection" "Encryption" "Swap Settings"
+        "BlackArch Tools" "NVIDIA Support"
+        "Miscellaneous" "Back to Summary" "Exit"
+    )
+
+    local selected_function=$(gum choose --limit 1 --height 20 "${change_options[@]}")
+    check_gum_exit
+
+    case "$selected_function" in
+        "Timezone") Timezone ;;
+        "Keyboard Layout") X11Keymap ;;
+        "Locale") Locale ;;
+        "Username") Username ;;
+        "Password") Password ;;
+        "Root Password") RootPassword ;;
+        "Hostname") Hostname ;;
+        "Partitioning Mode") Partitioning ;;
+        "Disk Selection") 
+            if [[ "$partitioning_mode" == "full_disk" ]]; then
+                DiskSelection
+            elif [[ "$partitioning_mode" == "dual_boot" ]]; then
+                DualBootSetup
+            elif [[ "$partitioning_mode" == "manual" ]]; then
+                ManualPartitioning
+            fi
+            ;;
+        "Encryption") LUKSCheck ;;
+        "Swap Settings") SwapCheck ;;
+        "BlackArch Tools") BlackArchCheck ;;
+        "NVIDIA Support") NvidiaCheck ;;
+        "Miscellaneous") MiscSettings ;;
+        "Back to Summary") Summary ;;
+        "Exit") Exit ;;
+    esac
+    
+    Summary # Return to summary after making changes
+}
+
+Install() {
+    clear
+    log_message "INFO" "Starting installation process"
+    log_message "CONFIG" "Installation configuration: hostname=$hostname, username=$username, disk=$disk_dev, encryption=$encrypt_check, swap=$create_swap"
+    
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Begin KyOS installation?" "$(gum style --foreground "$warning_color" 'This will start the installation process')")"
+    local CONTINUE=$?
+    check_gum_exit
+
+    if [[ $CONTINUE -ne 0 ]]; then
+        log_message "INFO" "Installation cancelled by user"
+        Exit
+    else
+        log_message "INFO" "User confirmed installation, proceeding..."
+        gum_box "Starting KyOS installation..." "Please wait while the system is installed"
+        
+        # Create a temporary configuration file for the installer
+        log_message "INFO" "Creating temporary configuration file"
+        cat > /tmp/kyos-tui-config << EOF
+# KyOS TUI Configuration
+TIMEZONE="$timezone"
+KEYMAP="$x11keymap"
+LOCALE="$locale"
+USERNAME="$username"
+PASSWORD="$password"
+ROOT_PASSWORD="$root_password"
+HOSTNAME="$hostname"
+DISK="$disk_dev"
+ENCRYPT="$encrypt_check"
+SWAP="$create_swap"
+SWAP_SIZE="$swap_size"
+IPV6="$enable_ipv6"
+MULTILIB="$enable_multilib"
+AUR="$enable_aur"
+BLACKARCH="$blackarch_support"
+NVIDIA="$nvidia_support"
+EOF
+
+        # Prepare arguments for the automated installer
+        local install_args=""
+        
+        # Add encryption flag if disabled
+        if [[ "$encrypt_check" == "false" ]]; then
+            install_args="--no-encryption"
+            log_message "CONFIG" "Encryption disabled"
+        else
+            log_message "CONFIG" "Encryption enabled"
+        fi
+        
+        # Add specific disk if provided
+        if [[ -n "$disk_dev" ]]; then
+            install_args="$install_args --disk=$disk_dev"
+            log_message "CONFIG" "Target disk: $disk_dev"
+        fi
+        
+        # Add TUI config flag
+        install_args="$install_args --config=/tmp/kyos-tui-config"
+        
+        # Call the automated installer with TUI-provided settings
+        log_message "INFO" "Launching backend installer with args: $install_args"
+        
+        # Capture installer output and errors
+        {
+            /usr/local/bin/kyos-install-backend $install_args 2>&1
+            local exit_code=$?
+            
+            log_message "INFO" "Backend installer completed with exit code: $exit_code"
+            
+            # Cleanup temp config
+            rm -f /tmp/kyos-tui-config
+            log_message "INFO" "Cleaned up temporary configuration file"
+
+            if [ $exit_code -ne 0 ]; then
+                log_error "Installation failed with exit code $exit_code"
+                gum_box "$(gum style --foreground "$warning_color" "Installation failed!")" "Check the log files for details:" "Main Log: $LOG_FILE" "Error Log: $ERROR_LOG"
+                gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Do you want to retry the installation?")"
+                local retry_confirm=$?
+                
+                if [[ $retry_confirm -eq 0 ]]; then
+                    log_message "INFO" "User chose to retry installation"
+                    Install # Retry installation
+                else
+                    log_message "INFO" "User chose not to retry installation"
+                    Exit
+                fi
+            else
+                log_message "SUCCESS" "KyOS installation completed successfully!"
+                gum_box "$(gum style --foreground "$main_color" "KyOS installation completed successfully!")" "You can now reboot into your new KyOS system" "Remove the installation media before rebooting" "" "Installation logs available at:" "Main Log: $LOG_FILE"
+                
+                gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Reboot now?")"
+                local reboot_confirm=$?
+                
+                if [[ $reboot_confirm -eq 0 ]]; then
+                    log_message "INFO" "User chose to reboot immediately"
+                    reboot
+                else
+                    log_message "INFO" "User chose not to reboot immediately"
+                fi
+            fi
+            
+            return $exit_code
+        } | tee -a "$LOG_FILE"
+    fi
+}
+
+Exit() {
+    log_message "INFO" "Installation process ending"
+    
+    # Create final installation report
+    local report_file=$(create_install_report)
+    
+    # Display completion message with log information
+    if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+        gum_box "$(gum style --foreground "$warning_color" "Installation completed with errors!")" \
+                "Please check the logs for details:" \
+                "Main Log: $LOG_FILE" \
+                "Error Log: $ERROR_LOG" \
+                "Report: $report_file" \
+                "" \
+                "$(gum style --foreground "$info_color" "Thank you for trying KyOS!")"
+    else
+        gum_box "$(gum style --foreground "$main_color" "Installation completed successfully!")" \
+                "Installation logs saved to:" \
+                "Main Log: $LOG_FILE" \
+                "Report: $report_file" \
+                "" \
+                "$(gum style --foreground "$main_color" "Thank you for installing KyOS!")" \
+                "Have a great day!"
+    fi
+    
+    log_message "INFO" "KyOS Installation System exiting"
+    exit 0
+}
+
+# --- Dual Boot Setup Functions ---
+
+DualBootSetup() {
+    clear
+    gum_box "Dual Boot Setup" "Select disk with unallocated space for KyOS installation"
+    
+    # Create a formatted list of disks with partition information
+    local disk_list=""
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            disk_list+="$line"$'\n'
+        fi
+    done < <(lsblk -pdo name,size,model | grep -E '^/dev/(sd|nvme|vd|hd)' | grep -v zram | grep -v loop | grep -v sr)
+    
+    if [[ -z "$disk_list" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No suitable disks found!")" "Please ensure you have a disk connected"
+        Exit
+    fi
+    
+    disk_dev=$(echo "$disk_list" | gum choose --limit 1)
+    check_gum_exit
+    
+    # Extract just the device name (first column)
+    disk_dev=$(echo "$disk_dev" | awk '{print $1}')
+    
+    gum_box "Selected disk: $disk_dev" "Now checking for unallocated space and existing partitions..."
+    
+    # Show current partition layout
+    ShowPartitionLayout
+    
+    # Check for unallocated space
+    CheckUnallocatedSpace
+    
+    if [[ "$has_unallocated_space" != "true" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "Insufficient unallocated space!")" "You need at least 30GB of unallocated space for KyOS" "Please use a partition manager to free up space first"
+        gum confirm --selected.foreground="#2B2B2B" "Do you want to proceed with manual partitioning instead?"
+        local manual_confirm=$?
+        check_gum_exit
+        
+        if [[ $manual_confirm -eq 0 ]]; then
+            partitioning_mode="manual"
+            ManualPartitioning
+            return
+        else
+            PartitioningModeSelection
+            return
+        fi
+    fi
+    
+    # Configure dual boot installation
+    SelectUnallocatedSpace
+}
+
+ShowPartitionLayout() {
+    clear
+    gum_box "Current Partition Layout for $disk_dev"
+    
+    # Show detailed partition information
+    echo "Current partitions:"
+    lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT "$disk_dev" 2>/dev/null || {
+        echo "Error: Could not read partition table"
+        return 1
+    }
+    
+    echo ""
+    echo "Detailed partition information:"
+    parted -s "$disk_dev" print 2>/dev/null || {
+        echo "Error: Could not read detailed partition information"
+        echo "This might indicate a corrupted partition table."
+    }
+    
+    echo ""
+    gum confirm --selected.foreground="#2B2B2B" "Press Enter to continue..."
+    check_gum_exit
+}
+
+CheckUnallocatedSpace() {
+    print_info "Analyzing disk space..."
+    
+    # Get disk size in bytes
+    local disk_size_bytes=$(lsblk -bno SIZE "$disk_dev" | head -n1)
+    local disk_size_gb=$((disk_size_bytes / 1024 / 1024 / 1024))
+    
+    # Calculate used space by summing all partitions
+    local used_space_bytes=0
+    local partition_info=$(lsblk -bno SIZE "$disk_dev" | tail -n +2)
+    
+    if [[ -n "$partition_info" ]]; then
+        while read -r partition_size; do
+            if [[ -n "$partition_size" && "$partition_size" -gt 0 ]]; then
+                used_space_bytes=$((used_space_bytes + partition_size))
+            fi
+        done <<< "$partition_info"
+    fi
+    
+    local used_space_gb=$((used_space_bytes / 1024 / 1024 / 1024))
+    local free_space_gb=$((disk_size_gb - used_space_gb))
+    
+    # Also check with parted for more accurate unallocated space detection
+    local parted_free_space=""
+    if command -v parted >/dev/null 2>&1; then
+        parted_free_space=$(parted -s "$disk_dev" print free 2>/dev/null | grep "Free Space" | tail -n1 | awk '{print $3}' | sed 's/[^0-9.]//g' 2>/dev/null || echo "0")
+        if [[ -n "$parted_free_space" && "$parted_free_space" != "0" ]]; then
+            # Convert to GB if needed (parted might show MB, GB, etc.)
+            if [[ "$parted_free_space" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+                local parted_space_gb=$(echo "$parted_free_space" | cut -d'.' -f1)
+                if [[ "$parted_space_gb" -gt "$free_space_gb" ]]; then
+                    free_space_gb="$parted_space_gb"
+                fi
+            fi
+        fi
+    fi
+    
+    gum_box "Disk Space Analysis" "Disk: $disk_dev" "Total Size: ${disk_size_gb}GB" "Used Space: ${used_space_gb}GB" "Available Space: ${free_space_gb}GB"
+    
+    # Check if we have enough space (minimum 30GB)
+    if [[ "$free_space_gb" -ge 30 ]]; then
+        has_unallocated_space="true"
+        available_space_gb="$free_space_gb"
+        gum_box "$(gum style --foreground "$main_color" "Sufficient space available!")" "Found ${free_space_gb}GB of unallocated space" "KyOS requires minimum 30GB"
+    else
+        has_unallocated_space="false"
+        gum_box "$(gum style --foreground "$warning_color" "Insufficient space!")" "Found only ${free_space_gb}GB unallocated" "KyOS requires minimum 30GB for installation"
+    fi
+}
+
+SelectUnallocatedSpace() {
+    clear
+    gum_box "Configure KyOS Installation Space" "Available unallocated space: ${available_space_gb}GB"
+    
+    # Ask how much space to use for KyOS
+    local max_space=$((available_space_gb - 1)) # Leave 1GB as buffer
+    local default_space=50
+    
+    if [[ "$max_space" -lt "$default_space" ]]; then
+        default_space="$max_space"
+    fi
+    
+    local kyos_space_input=$(gum input --placeholder "$default_space" --prompt "Enter space for KyOS (GB, max ${max_space}GB): ")
+    check_gum_exit
+    
+    # Validate input
+    if [[ -z "$kyos_space_input" ]]; then
+        kyos_space_gb="$default_space"
+    elif [[ "$kyos_space_input" =~ ^[0-9]+$ ]] && [[ "$kyos_space_input" -ge 30 ]] && [[ "$kyos_space_input" -le "$max_space" ]]; then
+        kyos_space_gb="$kyos_space_input"
+    else
+        gum_box "$(gum style --foreground "$warning_color" "Invalid input!")" "Please enter a number between 30 and $max_space"
+        SelectUnallocatedSpace
+        return
+    fi
+    
+    gum_box "KyOS Installation Configuration" "Disk: $disk_dev" "Space for KyOS: ${kyos_space_gb}GB" "Installation will preserve existing OS"
+    
+    gum confirm --selected.foreground="#2B2B2B" "Proceed with dual boot configuration?"
+    local confirm_status=$?
+    check_gum_exit
+    
+    if [[ $confirm_status -ne 0 ]]; then
+        DualBootSetup
+        return
+    fi
+    
+    # Set partition mode for later use in installation
+    partition_mode="dual_boot"
+    dual_boot_space_gb="$kyos_space_gb"
+}
+
+# --- Manual Partitioning Functions ---
+
+ManualPartitioning() {
+    clear
+    gum_box "Manual Partitioning Setup" "$(gum style --foreground "$warning_color" "Advanced users only!")" "You will need to create partitions manually"
+    
+    # Show available disks
+    local disk_list=""
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            disk_list+="$line"$'\n'
+        fi
+    done < <(lsblk -pdo name,size,model | grep -E '^/dev/(sd|nvme|vd|hd)' | grep -v zram | grep -v loop | grep -v sr)
+    
+    if [[ -z "$disk_list" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No suitable disks found!")" "Please ensure you have a disk connected"
+        Exit
+    fi
+    
+    disk_dev=$(echo "$disk_list" | gum choose --limit 1)
+    check_gum_exit
+    
+    # Extract just the device name (first column)
+    disk_dev=$(echo "$disk_dev" | awk '{print $1}')
+    
+    gum_box "Selected disk: $disk_dev" "Current partition layout will be displayed"
+    
+    # Show current partition layout
+    ShowPartitionLayout
+    
+    # Launch partition manager
+    LaunchPartitionManager
+    
+    # After partitioning, detect and configure partitions
+    DetectManualPartitions
+}
+
+LaunchPartitionManager() {
+    clear
+    gum_box "Launch Partition Manager" "Choose a partition manager to configure your disk"
+    
+    local partition_managers=()
+    
+    # Check available partition managers
+    if command -v cfdisk >/dev/null 2>&1; then
+        partition_managers+=("cfdisk (Recommended - Simple TUI)")
+    fi
+    
+    if command -v fdisk >/dev/null 2>&1; then
+        partition_managers+=("fdisk (Traditional command-line)")
+    fi
+    
+    if command -v parted >/dev/null 2>&1; then
+        partition_managers+=("parted (GNU Parted)")
+    fi
+    
+    if command -v cgdisk >/dev/null 2>&1; then
+        partition_managers+=("cgdisk (GPT-focused TUI)")
+    fi
+    
+    partition_managers+=("Skip partitioning (partitions already configured)")
+    
+    local selected_manager=$(gum choose --limit 1 "${partition_managers[@]}")
+    check_gum_exit
+    
+    case "$selected_manager" in
+        "cfdisk (Recommended - Simple TUI)")
+            gum_box "Launching cfdisk" "Create the following partitions:" "1. EFI System Partition (512MB, type EFI System)" "2. Root partition (remaining space, type Linux filesystem)" "3. Optional: Swap partition"
+            echo "Press any key to launch cfdisk..."
+            read -n 1
+            cfdisk "$disk_dev"
+            ;;
+        "fdisk (Traditional command-line)")
+            gum_box "Launching fdisk" "Create the required partitions using fdisk commands" "Remember to create EFI and root partitions"
+            echo "Press any key to launch fdisk..."
+            read -n 1
+            fdisk "$disk_dev"
+            ;;
+        "parted (GNU Parted)")
+            gum_box "Launching parted" "Use parted commands to create partitions" "Remember to create EFI and root partitions"
+            echo "Press any key to launch parted..."
+            read -n 1
+            parted "$disk_dev"
+            ;;
+        "cgdisk (GPT-focused TUI)")
+            gum_box "Launching cgdisk" "Create GPT partitions using cgdisk" "Remember to create EFI and root partitions"
+            echo "Press any key to launch cgdisk..."
+            read -n 1
+            cgdisk "$disk_dev"
+            ;;
+        "Skip partitioning (partitions already configured)")
+            gum_box "Skipping partitioning" "Assuming partitions are already configured"
+            ;;
+    esac
+    
+    # Force partition table sync
+    partprobe "$disk_dev" 2>/dev/null || true
+    udevadm settle
+    sleep 2
+}
+
+DetectManualPartitions() {
+    clear
+    gum_box "Partition Detection" "Scanning for available partitions on $disk_dev"
+    
+    # Show updated partition layout
+    echo "Current partitions after manual configuration:"
+    lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT "$disk_dev" 2>/dev/null
+    echo ""
+    
+    # Get list of partitions
+    local available_partitions=$(lsblk -pno NAME "$disk_dev" | grep -E "${disk_dev}[0-9]+" | sort)
+    
+    if [[ -z "$available_partitions" ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No partitions found!")" "Please create partitions first"
+        LaunchPartitionManager
+        return
+    fi
+    
+    # Select EFI/Boot partition
+    SelectEFIPartition "$available_partitions"
+    
+    # Select Root partition  
+    SelectRootPartition "$available_partitions"
+    
+    # Optional: Select Swap partition
+    SelectSwapPartition "$available_partitions"
+    
+    # Confirm manual partition configuration
+    ConfirmManualPartitions
+}
+
+SelectEFIPartition() {
+    local partitions="$1"
+    
+    gum_box "Select EFI/Boot Partition" "Choose the partition for EFI/Boot (typically 512MB-1GB)"
+    
+    # Add option for no EFI partition (BIOS systems)
+    local efi_options=("No EFI partition (BIOS/Legacy boot)")
+    efi_options+=($(echo "$partitions"))
+    
+    manual_efi_partition=$(gum choose --limit 1 "${efi_options[@]}")
+    check_gum_exit
+    
+    if [[ "$manual_efi_partition" == "No EFI partition (BIOS/Legacy boot)" ]]; then
+        manual_efi_partition=""
+        is_uefi="false"
+        gum_box "BIOS/Legacy boot selected" "No EFI partition will be used"
+    else
+        is_uefi="true"
+        gum_box "EFI Partition: $manual_efi_partition" "This partition will be formatted as FAT32"
+    fi
+}
+
+SelectRootPartition() {
+    local partitions="$1"
+    
+    gum_box "Select Root Partition" "Choose the partition for KyOS root filesystem (minimum 20GB)"
+    
+    # Filter out already selected EFI partition
+    local root_options=()
+    while read -r partition; do
+        if [[ "$partition" != "$manual_efi_partition" ]]; then
+            root_options+=("$partition")
+        fi
+    done <<< "$partitions"
+    
+    if [[ ${#root_options[@]} -eq 0 ]]; then
+        gum_box "$(gum style --foreground "$warning_color" "No available partitions for root!")" "Please create more partitions"
+        LaunchPartitionManager
+        return
+    fi
+    
+    manual_root_partition=$(gum choose --limit 1 "${root_options[@]}")
+    check_gum_exit
+    
+    gum_box "Root Partition: $manual_root_partition" "This partition will be formatted as ext4"
+}
+
+SelectSwapPartition() {
+    local partitions="$1"
+    
+    gum_box "Select Swap Partition (Optional)" "Choose a partition for swap or skip"
+    
+    # Filter out already selected partitions and add skip option
+    local swap_options=("No swap partition (use swap file instead)")
+    while read -r partition; do
+        if [[ "$partition" != "$manual_efi_partition" && "$partition" != "$manual_root_partition" ]]; then
+            swap_options+=("$partition")
+        fi
+    done <<< "$partitions"
+    
+    manual_swap_partition=$(gum choose --limit 1 "${swap_options[@]}")
+    check_gum_exit
+    
+    if [[ "$manual_swap_partition" == "No swap partition (use swap file instead)" ]]; then
+        manual_swap_partition=""
+        create_swap="false"
+        gum_box "No swap partition" "A swap file will be created instead"
+    else
+        create_swap="true"
+        gum_box "Swap Partition: $manual_swap_partition" "This partition will be formatted as swap"
+    fi
+}
+
+ConfirmManualPartitions() {
+    clear
+    
+    local partition_summary=(
+        "Manual Partition Configuration Summary:" ""
+        "$(gum style --foreground "$main_color" "Disk:")" "  $disk_dev"
+        ""
+        "$(gum style --foreground "$main_color" "Partitions:")"
+    )
+    
+    if [[ -n "$manual_efi_partition" ]]; then
+        partition_summary+=("  EFI/Boot: $manual_efi_partition (FAT32)")
+    else
+        partition_summary+=("  Boot: BIOS/Legacy mode")
+    fi
+    
+    partition_summary+=("  Root: $manual_root_partition (ext4)")
+    
+    if [[ -n "$manual_swap_partition" ]]; then
+        partition_summary+=("  Swap: $manual_swap_partition")
+    else
+        partition_summary+=("  Swap: Will use swap file")
+    fi
+    
+    partition_summary+=(
+        ""
+        "$(gum style --foreground "$warning_color" "WARNING: Selected partitions will be formatted and all data lost!")"
+    )
+    
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "${partition_summary[@]}")"
+    local confirm_status=$?
+    check_gum_exit
+    
+    if [[ $confirm_status -ne 0 ]]; then
+        DetectManualPartitions
+        return
+    fi
+    
+    # Set variables for installation
+    partition_mode="manual"
+}
+
+# --- Main Script Execution Flow ---
+
+# Trap to ensure cleanup on script exit
+trap 'exit 0' EXIT INT TERM
+
+# Main execution flow
+Welcome
+InstallModeSelect
+Timezone
+X11Keymap
+Locale
+Username
+Password
+RootPassword
+Hostname
+BlackArchCheck
+NvidiaCheck
+Partitioning
+MiscSettings
+Summary
+Install

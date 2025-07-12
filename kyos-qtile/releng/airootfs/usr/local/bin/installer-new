@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# KyOS Installation System Launcher
+# Launches the unified KyOS installer with professional TUI interface
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+    echo "ERROR: Do not run this script as root directly."
+    echo "The script will ask for sudo privileges when needed."
+    exit 1
+fi
+
+echo "========================================="
+echo "     KyOS Installation System"
+echo "========================================="
+echo "Professional installer for KyOS with:"
+echo "- Interactive TUI interface"
+echo "- BlackArch penetration testing tools"
+echo "- NVIDIA driver support"
+echo "- VirtualBox optimization"
+echo "- Automated and manual modes"
+echo "========================================="
+echo
+
+echo "Starting KyOS Installation System..."
+echo "NOTE: This requires root privileges. You will be prompted for your password."
+
+exec sudo /usr/local/bin/kyos-install

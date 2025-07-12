@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting - KyOS Documentation</title>
+    <meta name="description" content="Troubleshooting guide for common KyOS installation and configuration issues.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html" class="active">Troubleshooting</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Troubleshooting Guide</h1>
+                <p class="docs-subtitle">
+                    Solutions for common KyOS installation and configuration issues.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>Installation Issues</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>🚫 Boot Issues</h3>
+                    
+                    <h4>Problem: System won't boot from USB</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Check BIOS/UEFI settings:</strong>
+                                <ul>
+                                    <li>Enable USB boot in BIOS</li>
+                                    <li>Disable Secure Boot temporarily</li>
+                                    <li>Disable Fast Boot</li>
+                                    <li>Set USB drive as first boot priority</li>
+                                </ul>
+                            </li>
+                            <li><strong>Verify USB creation:</strong>
+                                <div class="code-block">
+                                    <pre><code># Re-create USB with dd (Linux/macOS)
+dd if=kyos.iso of=/dev/sdX bs=4M status=progress sync
+
+# Or use Rufus (Windows) with GPT partition scheme</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Try different USB port:</strong> Use USB 2.0 port instead of 3.0</li>
+                            <li><strong>Check ISO integrity:</strong>
+                                <div class="code-block">
+                                    <pre><code>sha256sum kyos.iso
+# Compare with provided checksum</code></pre>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>🔧 Installation Failures</h3>
+                    
+                    <h4>Problem: Installation hangs or fails</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Check internet connection:</strong>
+                                <div class="code-block">
+                                    <pre><code># Test connectivity
+ping -c 3 archlinux.org
+
+# If no connection, try:
+dhcpcd  # For ethernet
+wifi-menu  # For WiFi</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Check disk space:</strong> Ensure target partition has 20+ GB free</li>
+                            <li><strong>Verify system requirements:</strong> Check RAM, CPU compatibility</li>
+                            <li><strong>Try safe mode:</strong> Boot with <code>nomodeset</code> kernel parameter</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>💽 Partitioning Problems</h3>
+                    
+                    <h4>Problem: Disk not detected or partitioning fails</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Check disk detection:</strong>
+                                <div class="code-block">
+                                    <pre><code># List all disks
+lsblk
+fdisk -l
+
+# Check for errors
+dmesg | grep -i error</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Enable AHCI mode:</strong> In BIOS, set SATA mode to AHCI (not IDE)</li>
+                            <li><strong>Disable Intel RST:</strong> Turn off Intel Rapid Storage Technology</li>
+                            <li><strong>Manual partitioning:</strong> Use manual mode if automatic fails</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Network Issues</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>📶 WiFi Not Working</h3>
+                    
+                    <h4>Problem: WiFi adapter not detected</h4>
+                    <div class="solution">
+                        <h5>Diagnosis:</h5>
+                        <div class="code-block">
+                            <pre><code># Check WiFi hardware
+lspci | grep -i network
+lsusb | grep -i wireless
+
+# Check driver status
+lsmod | grep -i wifi
+dmesg | grep -i firmware</code></pre>
+                        </div>
+                        
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Install firmware:</strong>
+                                <div class="code-block">
+                                    <pre><code># Install common WiFi firmware
+doas pacman -S linux-firmware
+
+# For Broadcom cards
+doas pacman -S broadcom-wl-dkms</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Start NetworkManager:</strong>
+                                <div class="code-block">
+                                    <pre><code>doas systemctl enable --now NetworkManager
+nmcli device wifi list
+nmcli device wifi connect "SSID" password "password"</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Check hardware switch:</strong> Ensure WiFi is enabled in BIOS/hardware</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>🌐 Ethernet Issues</h3>
+                    
+                    <h4>Problem: Wired connection not working</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Check link status:</strong>
+                                <div class="code-block">
+                                    <pre><code># Check network interfaces
+ip link show
+ethtool eth0  # Check link status</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Restart networking:</strong>
+                                <div class="code-block">
+                                    <pre><code>doas systemctl restart NetworkManager
+doas dhcpcd eth0  # Manual DHCP</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Check cable and hardware:</strong> Try different cable/port</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Audio Problems</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>🔇 No Sound</h3>
+                    
+                    <h4>Problem: Audio not working after installation</h4>
+                    <div class="solution">
+                        <h5>Diagnosis:</h5>
+                        <div class="code-block">
+                            <pre><code># Check audio devices
+aplay -l
+pactl list sinks
+pactl list sources</code></pre>
+                        </div>
+                        
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Unmute audio:</strong>
+                                <div class="code-block">
+                                    <pre><code># Unmute master volume
+pactl set-sink-mute @DEFAULT_SINK@ false
+pactl set-sink-volume @DEFAULT_SINK@ 50%
+
+# Use alsamixer for detailed control
+alsamixer</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Install audio packages:</strong>
+                                <div class="code-block">
+                                    <pre><code>doas pacman -S pulseaudio-alsa alsa-utils
+pulseaudio --kill
+pulseaudio --start</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Add user to audio group:</strong>
+                                <div class="code-block">
+                                    <pre><code>doas usermod -a -G audio $USER
+# Logout and login again</code></pre>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>🎧 Bluetooth Audio</h3>
+                    
+                    <h4>Problem: Bluetooth headphones not working</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Install Bluetooth packages:</strong>
+                                <div class="code-block">
+                                    <pre><code>doas pacman -S bluez bluez-utils pulseaudio-bluetooth
+doas systemctl enable --now bluetooth</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Pair device:</strong>
+                                <div class="code-block">
+                                    <pre><code>bluetoothctl
+scan on
+pair XX:XX:XX:XX:XX:XX
+connect XX:XX:XX:XX:XX:XX</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Set audio profile:</strong> Use <code>pavucontrol</code> to set A2DP profile</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Display Issues</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>🖥️ Graphics Problems</h3>
+                    
+                    <h4>Problem: Poor graphics performance or artifacts</h4>
+                    <div class="solution">
+                        <h5>For NVIDIA users:</h5>
+                        <div class="code-block">
+                            <pre><code># Install NVIDIA drivers
+doas pacman -S nvidia nvidia-utils
+
+# For older cards
+doas pacman -S nvidia-390xx nvidia-390xx-utils</code></pre>
+                        </div>
+                        
+                        <h5>For AMD users:</h5>
+                        <div class="code-block">
+                            <pre><code># Install AMD drivers (usually pre-installed)
+doas pacman -S xf86-video-amdgpu mesa vulkan-radeon</code></pre>
+                        </div>
+                        
+                        <h5>For Intel users:</h5>
+                        <div class="code-block">
+                            <pre><code># Intel graphics (usually works out-of-box)
+doas pacman -S xf86-video-intel mesa vulkan-intel</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>📺 Resolution Issues</h3>
+                    
+                    <h4>Problem: Wrong resolution or multiple monitors not working</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Set resolution manually:</strong>
+                                <div class="code-block">
+                                    <pre><code># List available modes
+xrandr
+
+# Set resolution
+xrandr --output HDMI-1 --mode 1920x1080 --rate 60
+
+# Make permanent
+echo "xrandr --output HDMI-1 --mode 1920x1080" >> ~/.xinitrc</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Multiple monitors:</strong>
+                                <div class="code-block">
+                                    <pre><code># Dual monitor setup
+xrandr --output HDMI-1 --primary --mode 1920x1080 --pos 0x0 \
+       --output VGA-1 --mode 1920x1080 --pos 1920x0</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Use arandr:</strong> Install <code>arandr</code> for GUI configuration</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Desktop Environment Issues</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>🪟 Qtile Problems</h3>
+                    
+                    <h4>Problem: Qtile not starting or crashing</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Check configuration syntax:</strong>
+                                <div class="code-block">
+                                    <pre><code># Test Qtile config
+python ~/.config/qtile/config.py
+
+# Check Qtile logs
+cat ~/.local/share/qtile/qtile.log</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Reset to default config:</strong>
+                                <div class="code-block">
+                                    <pre><code># Backup current config
+mv ~/.config/qtile ~/.config/qtile.backup
+
+# Qtile will create default config on next start</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Restart Qtile:</strong> Press <kbd>Super + Ctrl + r</kbd></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshoot-item">
+                    <h3>⌨️ Keyboard/Mouse Issues</h3>
+                    
+                    <h4>Problem: Keyboard layout wrong or mouse not working</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Set keyboard layout:</strong>
+                                <div class="code-block">
+                                    <pre><code># Temporary change
+setxkbmap us  # or de, fr, etc.
+
+# Permanent change
+echo "setxkbmap us" >> ~/.xinitrc</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Configure in Qtile:</strong>
+                                <div class="code-block">
+                                    <pre><code># Add to ~/.config/qtile/config.py
+@hook.subscribe.startup_once
+def autostart():
+    subprocess.call(['setxkbmap', 'us'])</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Mouse issues:</strong> Install <code>xf86-input-libinput</code></li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Package Management Issues</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>📦 Package Installation Failures</h3>
+                    
+                    <h4>Problem: Cannot install packages</h4>
+                    <div class="solution">
+                        <h5>Solutions:</h5>
+                        <ol>
+                            <li><strong>Update package database:</strong>
+                                <div class="code-block">
+                                    <pre><code># Update package lists
+doas pacman -Sy
+
+# Full system update
+doas pacman -Syu</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Clear package cache:</strong>
+                                <div class="code-block">
+                                    <pre><code># Clear all cached packages
+doas pacman -Scc
+
+# Remove orphaned packages
+doas pacman -Rns $(pacman -Qtdq)</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Fix corrupted database:</strong>
+                                <div class="code-block">
+                                    <pre><code># Remove lock file (if pacman crashed)
+doas rm /var/lib/pacman/db.lck
+
+# Refresh keys
+doas pacman-key --refresh-keys</code></pre>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>System Recovery</h2>
+                
+                <div class="troubleshoot-item">
+                    <h3>🆘 Emergency Recovery</h3>
+                    
+                    <h4>Problem: System won't boot</h4>
+                    <div class="solution">
+                        <h5>Boot from USB and chroot:</h5>
+                        <div class="code-block">
+                            <pre><code># Mount your system
+mount /dev/sdaX /mnt  # Replace X with your root partition
+mount /dev/sdaY /mnt/boot  # If separate boot partition
+
+# Chroot into system
+arch-chroot /mnt
+
+# Now you can fix issues, reinstall packages, etc.</code></pre>
+                        </div>
+                        
+                        <h5>Common fixes:</h5>
+                        <ol>
+                            <li><strong>Reinstall bootloader:</strong>
+                                <div class="code-block">
+                                    <pre><code>grub-install /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Fix fstab:</strong> Check <code>/etc/fstab</code> for correct UUIDs</li>
+                            <li><strong>Reinstall kernel:</strong>
+                                <div class="code-block">
+                                    <pre><code>pacman -S linux linux-headers</code></pre>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Getting Help</h2>
+                
+                <h3>Log Files</h3>
+                <p>Important log files for troubleshooting:</p>
+                <ul>
+                    <li><code>/var/log/pacman.log</code> - Package management log</li>
+                    <li><code>~/.local/share/qtile/qtile.log</code> - Qtile window manager log</li>
+                    <li><code>journalctl -xe</code> - System journal (recent entries)</li>
+                    <li><code>dmesg</code> - Kernel messages</li>
+                    <li><code>~/.xsession-errors</code> - X session errors</li>
+                </ul>
+
+                <h3>Diagnostic Commands</h3>
+                <div class="code-block">
+                    <pre><code># System information
+uname -a
+lsb_release -a
+
+# Hardware information
+lshw -short
+lspci
+lsusb
+
+# Process information
+top
+ps aux
+
+# Disk usage
+df -h
+lsblk
+
+# Memory usage
+free -h</code></pre>
+                </div>
+
+                <h3>Community Support</h3>
+                <ul>
+                    <li><strong>GitHub Issues:</strong> Report bugs and request features</li>
+                    <li><strong>Discord:</strong> Real-time community support</li>
+                    <li><strong>Reddit:</strong> r/kyos community discussions</li>
+                    <li><strong>Arch Wiki:</strong> Extensive documentation for Arch-based systems</li>
+                </ul>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="system-requirements.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    System Requirements
+                </a>
+                <a href="quick-start.html" class="nav-next">
+                    Quick Start
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+
+    <style>
+        .troubleshoot-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .troubleshoot-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .troubleshoot-item h4 {
+            color: var(--error-color);
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .solution {
+            background: var(--background-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .solution h5 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .solution ol, .solution ul {
+            margin: 0.5rem 0 0.5rem 1.5rem;
+        }
+
+        .solution li {
+            margin-bottom: 0.5rem;
+        }
+
+        kbd {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+    </style>
+</body>
+</html>

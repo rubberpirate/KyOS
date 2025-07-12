@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide - KyOS Documentation</title>
+    <meta name="description" content="Get started with KyOS quickly - installation, first steps, and essential commands.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                </ul>
+                
+                <h4>Getting Started</h4>
+                <ul class="docs-menu">
+                    <li><a href="quick-start.html" class="active">Quick Start</a></li>
+                    <li><a href="first-steps.html">First Steps</a></li>
+                    <li><a href="package-management.html">Package Management</a></li>
+                </ul>
+                
+                <h4>Desktop Environment</h4>
+                <ul class="docs-menu">
+                    <li><a href="qtile-basics.html">Qtile Basics</a></li>
+                    <li><a href="keybindings.html">Keybindings</a></li>
+                    <li><a href="customization.html">Customization</a></li>
+                    <li><a href="themes.html">Themes</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Quick Start Guide</h1>
+                <p class="docs-subtitle">
+                    Get up and running with KyOS in minutes. This guide covers installation, first boot, and essential tasks.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>⚡ 5-Minute Installation</h2>
+                
+                <div class="quick-steps">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Download & Create USB</h3>
+                            <ul>
+                                <li>Download KyOS ISO from the official website</li>
+                                <li>Create bootable USB with Rufus (Windows) or dd (Linux/macOS)</li>
+                                <li>Boot from USB (press F12/F2 during startup)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Run Installer</h3>
+                            <ul>
+                                <li>Open terminal and run: <code>kyosinstall</code></li>
+                                <li>Choose installation type (Full Disk recommended for beginners)</li>
+                                <li>Follow the on-screen prompts</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>First Boot</h3>
+                            <ul>
+                                <li>Remove USB and reboot</li>
+                                <li>Login with your created user account</li>
+                                <li>Enjoy your new KyOS desktop!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>🎯 Essential First Tasks</h2>
+                
+                <h3>1. Update Your System</h3>
+                <p>Always start by updating your system:</p>
+                <div class="code-block">
+                    <pre><code># Update package database and install updates
+doas pacman -Syu
+
+# This may take a few minutes depending on updates available</code></pre>
+                </div>
+
+                <h3>2. Connect to WiFi (if needed)</h3>
+                <div class="code-block">
+                    <pre><code># List available networks
+nmcli device wifi list
+
+# Connect to your network
+nmcli device wifi connect "YourNetworkName" password "YourPassword"
+
+# Check connection
+ping -c 3 google.com</code></pre>
+                </div>
+
+                <h3>3. Install Essential Software</h3>
+                <div class="code-block">
+                    <pre><code># Web browser (Firefox is pre-installed, but you can add others)
+doas pacman -S chromium
+
+# Text editor with GUI
+doas pacman -S gedit
+
+# File manager
+doas pacman -S thunar
+
+# Media player
+doas pacman -S vlc
+
+# Office suite
+doas pacman -S libreoffice-fresh</code></pre>
+                </div>
+
+                <h3>4. Set Up AUR Helper (for additional software)</h3>
+                <div class="code-block">
+                    <pre><code># Install yay AUR helper
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+# Now you can install AUR packages
+yay -S visual-studio-code-bin
+yay -S spotify
+yay -S discord</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>🖥️ Desktop Basics</h2>
+                
+                <h3>Essential Keyboard Shortcuts</h3>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item">
+                        <kbd>Super + Enter</kbd>
+                        <span>Open Terminal</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + r</kbd>
+                        <span>Application Launcher</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + q</kbd>
+                        <span>Close Window</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + Tab</kbd>
+                        <span>Switch Windows</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + [1-9]</kbd>
+                        <span>Switch Workspace</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + Shift + [1-9]</kbd>
+                        <span>Move Window to Workspace</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + f</kbd>
+                        <span>Fullscreen Window</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Super + Shift + r</kbd>
+                        <span>Restart Qtile</span>
+                    </div>
+                </div>
+
+                <h3>Window Management</h3>
+                <ul>
+                    <li><strong>Tiling:</strong> Windows automatically tile to fill space</li>
+                    <li><strong>Floating:</strong> Press <kbd>Super + t</kbd> to toggle floating mode</li>
+                    <li><strong>Resizing:</strong> Use <kbd>Super + h/j/k/l</kbd> to resize windows</li>
+                    <li><strong>Moving:</strong> <kbd>Super + Shift + h/j/k/l</kbd> to move windows</li>
+                </ul>
+
+                <h3>Workspaces</h3>
+                <p>KyOS comes with 9 workspaces by default:</p>
+                <ul>
+                    <li><strong>Workspace 1:</strong> General applications</li>
+                    <li><strong>Workspace 2:</strong> Web browsing</li>
+                    <li><strong>Workspace 3:</strong> Development</li>
+                    <li><strong>Workspace 4:</strong> Files and documents</li>
+                    <li><strong>Workspaces 5-9:</strong> Available for your use</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>🛠️ Common Tasks</h2>
+                
+                <h3>Installing Software</h3>
+                <div class="task-tabs">
+                    <div class="tab-content">
+                        <h4>Official Repositories</h4>
+                        <div class="code-block">
+                            <pre><code># Search for software
+pacman -Ss firefox
+
+# Install software
+doas pacman -S firefox
+
+# Remove software
+doas pacman -R firefox
+
+# Search installed packages
+pacman -Q | grep firefox</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <h4>AUR (User Repository)</h4>
+                        <div class="code-block">
+                            <pre><code># Search AUR packages
+yay -Ss spotify
+
+# Install from AUR
+yay -S spotify
+
+# Update AUR packages
+yay -Sua</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>File Management</h3>
+                <div class="code-block">
+                    <pre><code># Open file manager
+thunar
+
+# Or use terminal commands
+ls -la          # List files
+cd ~/Documents  # Change directory
+mkdir newfolder # Create directory
+cp file1 file2  # Copy file
+mv file1 file2  # Move/rename file
+rm file1        # Delete file</code></pre>
+                </div>
+
+                <h3>System Information</h3>
+                <div class="code-block">
+                    <pre><code># System information
+neofetch
+
+# Disk usage
+df -h
+
+# Memory usage
+free -h
+
+# Running processes
+top
+
+# Hardware information
+lscpu
+lspci
+lsusb</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>🎨 Customization Quick Start</h2>
+                
+                <h3>Change Wallpaper</h3>
+                <div class="code-block">
+                    <pre><code># Using nitrogen (pre-installed)
+nitrogen
+
+# Or using feh
+feh --bg-scale /path/to/wallpaper.jpg
+
+# Make it permanent by adding to autostart</code></pre>
+                </div>
+
+                <h3>Customize Terminal</h3>
+                <p>Edit Alacritty terminal configuration:</p>
+                <div class="code-block">
+                    <pre><code># Edit terminal config
+nano ~/.config/alacritty/alacritty.yml
+
+# Change font, colors, transparency, etc.
+# Restart terminal to see changes</code></pre>
+                </div>
+
+                <h3>Qtile Configuration</h3>
+                <p>The main Qtile config is in Python:</p>
+                <div class="code-block">
+                    <pre><code># Edit Qtile configuration
+nano ~/.config/qtile/config.py
+
+# After making changes, restart Qtile
+# Press Super + Ctrl + r</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>🚀 Pro Tips</h2>
+                
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <h3>💡 Tip 1: Command Line Efficiency</h3>
+                        <p>Learn these commands to become more efficient:</p>
+                        <ul>
+                            <li><code>history</code> - View command history</li>
+                            <li><code>Ctrl + r</code> - Search command history</li>
+                            <li><code>!!</code> - Repeat last command</li>
+                            <li><code>doas !!</code> - Run last command with admin privileges</li>
+                        </ul>
+                    </div>
+
+                    <div class="tip-card">
+                        <h3>🔧 Tip 2: Package Management</h3>
+                        <p>Useful pacman commands:</p>
+                        <ul>
+                            <li><code>pacman -Qdt</code> - Find orphaned packages</li>
+                            <li><code>pacman -Qs package</code> - Search installed packages</li>
+                            <li><code>pacman -Qi package</code> - Show package info</li>
+                            <li><code>pactree package</code> - Show package dependencies</li>
+                        </ul>
+                    </div>
+
+                    <div class="tip-card">
+                        <h3>⚡ Tip 3: Performance</h3>
+                        <p>Optimize your system:</p>
+                        <ul>
+                            <li>Enable SSD TRIM: <code>doas systemctl enable fstrim.timer</code></li>
+                            <li>Use fastest mirrors: <code>doas reflector --save /etc/pacman.d/mirrorlist</code></li>
+                            <li>Clean package cache: <code>doas pacman -Sc</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="tip-card">
+                        <h3>🛡️ Tip 4: Security</h3>
+                        <p>Keep your system secure:</p>
+                        <ul>
+                            <li>Update regularly: <code>doas pacman -Syu</code></li>
+                            <li>Enable firewall: <code>doas ufw enable</code></li>
+                            <li>Use strong passwords</li>
+                            <li>Don't run unknown scripts as root</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>📚 Next Steps</h2>
+                
+                <div class="next-steps">
+                    <div class="next-step">
+                        <h3>🎓 Learn More</h3>
+                        <ul>
+                            <li><a href="qtile-basics.html">Master Qtile window manager</a></li>
+                            <li><a href="customization.html">Customize your desktop</a></li>
+                            <li><a href="package-management.html">Advanced package management</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="next-step">
+                        <h3>💼 For Developers</h3>
+                        <ul>
+                            <li><a href="development-setup.html">Set up development environment</a></li>
+                            <li>Install development tools: <code>doas pacman -S base-devel git</code></li>
+                            <li>Configure SSH keys for GitHub</li>
+                        </ul>
+                    </div>
+
+                    <div class="next-step">
+                        <h3>🎮 For Gamers</h3>
+                        <ul>
+                            <li>Install Steam: <code>doas pacman -S steam</code></li>
+                            <li>Enable multilib repository in <code>/etc/pacman.conf</code></li>
+                            <li>Install Lutris for non-Steam games</li>
+                        </ul>
+                    </div>
+
+                    <div class="next-step">
+                        <h3>🆘 Need Help?</h3>
+                        <ul>
+                            <li><a href="faq.html">Check the FAQ</a></li>
+                            <li><a href="troubleshooting.html">Troubleshooting guide</a></li>
+                            <li>Join the KyOS community</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="troubleshooting.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    Troubleshooting
+                </a>
+                <a href="first-steps.html" class="nav-next">
+                    First Steps
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+
+    <style>
+        .quick-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .step-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .shortcut-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shortcut-item kbd {
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tip-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .tip-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .next-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .next-step {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .next-step h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .tab-content {
+            margin: 1rem 0;
+        }
+
+        .tab-content h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</body>
+</html>

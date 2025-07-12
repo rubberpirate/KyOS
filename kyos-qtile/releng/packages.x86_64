@@ -85,6 +85,7 @@ openvpn
 partclone
 parted
 partimage
+pciutils
 pcsclite
 ppp
 pptpclient
@@ -168,6 +169,9 @@ python-cairocffi
 # Terminal and Basic Tools
 alacritty
 xterm
+
+# Compression tools
+zstd
 
 # Audio (minimal for live environment)
 alsa-utils

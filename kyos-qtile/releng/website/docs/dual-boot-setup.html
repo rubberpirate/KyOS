@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Boot Setup - KyOS Documentation</title>
+    <meta name="description" content="Complete guide to setting up KyOS in a dual boot configuration with Windows or other Linux distributions.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="../index.html#home" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#installer" class="nav-link">Installer</a>
+                <a href="../index.html#desktop" class="nav-link">Desktop</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="../index.html#docs" class="nav-link">Docs</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <h3>Documentation</h3>
+                    <nav class="docs-nav">
+                        <a href="installation-guide.html" class="docs-nav-link">Installation Guide</a>
+                        <a href="quick-start.html" class="docs-nav-link">Quick Start</a>
+                        <a href="dual-boot-setup.html" class="docs-nav-link active">Dual Boot Setup</a>
+                        <a href="system-requirements.html" class="docs-nav-link">System Requirements</a>
+                        <a href="qtile-basics.html" class="docs-nav-link">Qtile Basics</a>
+                        <a href="customization.html" class="docs-nav-link">Customization</a>
+                        <a href="troubleshooting.html" class="docs-nav-link">Troubleshooting</a>
+                        <a href="contributing.html" class="docs-nav-link">Contributing</a>
+                    </nav>
+                </aside>
+                
+                <main class="docs-main">
+                    <div class="docs-header">
+                        <h1>Dual Boot Setup Guide</h1>
+                        <p class="docs-subtitle">Learn how to install KyOS alongside Windows or other Linux distributions</p>
+                    </div>
+
+                    <div class="docs-content-body">
+                        <section class="docs-section">
+                            <h2>Overview</h2>
+                            <p>
+                                KyOS supports dual boot installations, allowing you to keep your existing operating system
+                                while enjoying the power of KyOS. This guide covers setup with Windows and other Linux distributions.
+                            </p>
+                            
+                            <div class="alert alert-warning">
+                                <i data-feather="alert-triangle"></i>
+                                <div>
+                                    <strong>Important:</strong> Always backup your important data before proceeding with dual boot setup.
+                                    Partitioning operations can be risky if not done correctly.
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Prerequisites</h2>
+                            <ul>
+                                <li>At least 20 GB of free disk space</li>
+                                <li>Disabled Secure Boot (for Windows systems)</li>
+                                <li>Windows Fast Startup disabled (for Windows systems)</li>
+                                <li>KyOS ISO file burned to USB drive</li>
+                                <li>Backup of important data</li>
+                            </ul>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Dual Boot with Windows</h2>
+                            
+                            <h3>Step 1: Prepare Windows</h3>
+                            <ol>
+                                <li>Disable Secure Boot in UEFI settings</li>
+                                <li>Disable Fast Startup in Windows Power Options</li>
+                                <li>Shrink Windows partition to make space for KyOS</li>
+                                <li>Create a backup of important files</li>
+                            </ol>
+
+                            <h3>Step 2: Boot KyOS Installer</h3>
+                            <ol>
+                                <li>Boot from KyOS USB drive</li>
+                                <li>Select "Dual Boot (Unallocated Space)" from the installer menu</li>
+                                <li>The installer will automatically detect available space</li>
+                            </ol>
+
+                            <h3>Step 3: Partition Configuration</h3>
+                            <p>The KyOS installer will automatically:</p>
+                            <ul>
+                                <li>Detect existing Windows installation</li>
+                                <li>Create appropriate partitions in free space</li>
+                                <li>Configure GRUB bootloader for dual boot</li>
+                                <li>Preserve Windows boot entries</li>
+                            </ul>
+
+                            <div class="code-block">
+                                <h4>Typical Partition Layout:</h4>
+                                <pre><code>/dev/sda1 - Windows EFI System Partition (100-500MB)
+/dev/sda2 - Windows Reserved Partition (16-128MB)  
+/dev/sda3 - Windows System Partition (varies)
+/dev/sda4 - KyOS Root Partition (20GB+)
+/dev/sda5 - KyOS Swap Partition (2-8GB)</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Dual Boot with Linux</h2>
+                            
+                            <h3>Preparing Existing Linux System</h3>
+                            <ol>
+                                <li>Use GParted or similar to shrink existing partitions</li>
+                                <li>Ensure at least 20GB of unallocated space</li>
+                                <li>Note the current bootloader configuration</li>
+                            </ol>
+
+                            <h3>Installation Process</h3>
+                            <ol>
+                                <li>Boot KyOS installer</li>
+                                <li>Choose "Manual Partitioning" for more control</li>
+                                <li>Create new partitions in unallocated space</li>
+                                <li>Configure mount points appropriately</li>
+                                <li>Install GRUB to detect existing Linux installations</li>
+                            </ol>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Post-Installation</h2>
+                            
+                            <h3>Bootloader Configuration</h3>
+                            <p>After installation, you'll see a GRUB menu with options to boot:</p>
+                            <ul>
+                                <li>KyOS (default)</li>
+                                <li>KyOS (advanced options)</li>
+                                <li>Windows Boot Manager (if applicable)</li>
+                                <li>Other detected operating systems</li>
+                            </ul>
+
+                            <h3>Changing Default Boot Option</h3>
+                            <div class="code-block">
+                                <pre><code># Edit GRUB configuration
+sudo nano /etc/default/grub
+
+# Change GRUB_DEFAULT to desired option number (0-based)
+GRUB_DEFAULT=0
+
+# Update GRUB
+sudo grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Troubleshooting</h2>
+                            
+                            <h3>Windows Not Detected</h3>
+                            <p>If Windows doesn't appear in GRUB menu:</p>
+                            <div class="code-block">
+                                <pre><code># Install os-prober
+sudo pacman -S os-prober
+
+# Enable os-prober in GRUB config
+echo 'GRUB_DISABLE_OS_PROBER=false' | sudo tee -a /etc/default/grub
+
+# Update GRUB
+sudo grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
+                            </div>
+
+                            <h3>Boot Order Issues</h3>
+                            <ul>
+                                <li>Check UEFI boot order in BIOS settings</li>
+                                <li>Ensure GRUB is set as primary bootloader</li>
+                                <li>Use <code>efibootmgr</code> to manage UEFI boot entries</li>
+                            </ul>
+
+                            <h3>Time Synchronization</h3>
+                            <p>Fix time differences between Windows and Linux:</p>
+                            <div class="code-block">
+                                <pre><code># Set hardware clock to UTC
+sudo timedatectl set-local-rtc 0</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Tips and Best Practices</h2>
+                            <ul>
+                                <li>Always backup important data before dual boot setup</li>
+                                <li>Keep Windows and KyOS on separate drives when possible</li>
+                                <li>Use the same time standard (UTC) for both systems</li>
+                                <li>Regularly update both operating systems</li>
+                                <li>Keep separate home directories to avoid conflicts</li>
+                                <li>Consider using timeshift for system snapshots</li>
+                            </ul>
+                        </section>
+
+                        <div class="docs-footer">
+                            <div class="docs-nav-buttons">
+                                <a href="installation-guide.html" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i>
+                                    Installation Guide
+                                </a>
+                                <a href="system-requirements.html" class="btn btn-primary">
+                                    System Requirements
+                                    <i data-feather="arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution 
+                        designed for developers and enthusiasts.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 KyOS. Built with ❤️ for the Linux community.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

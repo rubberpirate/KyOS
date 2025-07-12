@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Requirements - KyOS Documentation</title>
+    <meta name="description" content="System requirements and hardware compatibility information for KyOS installation.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="system-requirements.html" class="active">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>System Requirements</h1>
+                <p class="docs-subtitle">
+                    Hardware and system requirements for installing and running KyOS.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>Minimum Requirements</h2>
+                
+                <div class="requirements-grid">
+                    <div class="requirement-card">
+                        <div class="requirement-icon">
+                            <i data-feather="cpu"></i>
+                        </div>
+                        <h3>Processor</h3>
+                        <p><strong>Minimum:</strong> 64-bit (x86_64) processor</p>
+                        <p><strong>Recommended:</strong> Multi-core processor (2+ cores)</p>
+                        <ul>
+                            <li>Intel Pentium 4 or newer</li>
+                            <li>AMD Athlon 64 or newer</li>
+                            <li>Any modern 64-bit CPU</li>
+                        </ul>
+                    </div>
+
+                    <div class="requirement-card">
+                        <div class="requirement-icon">
+                            <i data-feather="database"></i>
+                        </div>
+                        <h3>Memory (RAM)</h3>
+                        <p><strong>Minimum:</strong> 2 GB RAM</p>
+                        <p><strong>Recommended:</strong> 4+ GB RAM</p>
+                        <ul>
+                            <li>2 GB for basic usage</li>
+                            <li>4 GB for development work</li>
+                            <li>8+ GB for heavy multitasking</li>
+                        </ul>
+                    </div>
+
+                    <div class="requirement-card">
+                        <div class="requirement-icon">
+                            <i data-feather="hard-drive"></i>
+                        </div>
+                        <h3>Storage</h3>
+                        <p><strong>Minimum:</strong> 20 GB free space</p>
+                        <p><strong>Recommended:</strong> 50+ GB SSD</p>
+                        <ul>
+                            <li>20 GB for basic installation</li>
+                            <li>50+ GB for development environment</li>
+                            <li>SSD highly recommended for performance</li>
+                        </ul>
+                    </div>
+
+                    <div class="requirement-card">
+                        <div class="requirement-icon">
+                            <i data-feather="monitor"></i>
+                        </div>
+                        <h3>Display</h3>
+                        <p><strong>Minimum:</strong> 1024x768 resolution</p>
+                        <p><strong>Recommended:</strong> 1920x1080 or higher</p>
+                        <ul>
+                            <li>Any modern display adapter</li>
+                            <li>HDMI/DisplayPort/VGA support</li>
+                            <li>Multiple monitor support</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Hardware Compatibility</h2>
+                
+                <h3>Graphics Cards</h3>
+                <div class="compatibility-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Manufacturer</th>
+                                <th>Support Level</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Intel HD Graphics</td>
+                                <td><span class="status-excellent">Excellent</span></td>
+                                <td>Built-in driver support, no additional setup required</td>
+                            </tr>
+                            <tr>
+                                <td>AMD Radeon (recent)</td>
+                                <td><span class="status-excellent">Excellent</span></td>
+                                <td>Open-source AMDGPU driver included</td>
+                            </tr>
+                            <tr>
+                                <td>NVIDIA (recent)</td>
+                                <td><span class="status-good">Good</span></td>
+                                <td>Requires proprietary driver installation</td>
+                            </tr>
+                            <tr>
+                                <td>Legacy hardware</td>
+                                <td><span class="status-fair">Fair</span></td>
+                                <td>May require additional configuration</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Network Adapters</h3>
+                <ul>
+                    <li><strong>Ethernet:</strong> Most wired network adapters supported out-of-the-box</li>
+                    <li><strong>WiFi:</strong> Common WiFi chipsets supported (Intel, Realtek, Atheros)</li>
+                    <li><strong>Bluetooth:</strong> Standard Bluetooth adapters compatible</li>
+                    <li><strong>Broadcom:</strong> May require additional driver installation</li>
+                </ul>
+
+                <h3>Audio Hardware</h3>
+                <ul>
+                    <li><strong>Built-in audio:</strong> HDA (High Definition Audio) compatible</li>
+                    <li><strong>USB audio:</strong> USB audio devices supported</li>
+                    <li><strong>Bluetooth audio:</strong> A2DP profile supported</li>
+                    <li><strong>Professional audio:</strong> JACK support available</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Boot Requirements</h2>
+                
+                <h3>BIOS/UEFI</h3>
+                <ul>
+                    <li><strong>UEFI:</strong> Fully supported with Secure Boot (recommended)</li>
+                    <li><strong>Legacy BIOS:</strong> Supported for older systems</li>
+                    <li><strong>Secure Boot:</strong> Can be enabled or disabled as needed</li>
+                    <li><strong>Fast Boot:</strong> Should be disabled for installation</li>
+                </ul>
+
+                <h3>Boot Media</h3>
+                <ul>
+                    <li><strong>USB Drive:</strong> 4+ GB USB 2.0/3.0 drive (recommended)</li>
+                    <li><strong>DVD:</strong> Standard DVD-R/RW disc</li>
+                    <li><strong>Network Boot:</strong> PXE boot supported (advanced)</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Recommended Configurations</h2>
+                
+                <div class="config-cards">
+                    <div class="config-card">
+                        <h3>Basic Desktop</h3>
+                        <div class="config-specs">
+                            <div class="spec-item">
+                                <i data-feather="cpu"></i>
+                                <span>Dual-core 64-bit processor</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="database"></i>
+                                <span>4 GB RAM</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="hard-drive"></i>
+                                <span>50 GB SSD</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="monitor"></i>
+                                <span>1920x1080 display</span>
+                            </div>
+                        </div>
+                        <p>Perfect for everyday computing, web browsing, and light development work.</p>
+                    </div>
+
+                    <div class="config-card">
+                        <h3>Development Workstation</h3>
+                        <div class="config-specs">
+                            <div class="spec-item">
+                                <i data-feather="cpu"></i>
+                                <span>Quad-core+ processor</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="database"></i>
+                                <span>8+ GB RAM</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="hard-drive"></i>
+                                <span>256+ GB NVMe SSD</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="monitor"></i>
+                                <span>Multiple displays</span>
+                            </div>
+                        </div>
+                        <p>Ideal for software development, compilation, and running multiple applications.</p>
+                    </div>
+
+                    <div class="config-card">
+                        <h3>Gaming Setup</h3>
+                        <div class="config-specs">
+                            <div class="spec-item">
+                                <i data-feather="cpu"></i>
+                                <span>High-performance CPU</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="database"></i>
+                                <span>16+ GB RAM</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="hard-drive"></i>
+                                <span>500+ GB NVMe SSD</span>
+                            </div>
+                            <div class="spec-item">
+                                <i data-feather="monitor"></i>
+                                <span>Dedicated GPU</span>
+                            </div>
+                        </div>
+                        <p>For gaming and graphics-intensive applications with Steam and Lutris support.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Virtual Machine Requirements</h2>
+                
+                <h3>VMware</h3>
+                <ul>
+                    <li><strong>Version:</strong> VMware Workstation 15+ or vSphere 6.7+</li>
+                    <li><strong>RAM:</strong> 4+ GB allocated</li>
+                    <li><strong>Disk:</strong> 30+ GB allocated</li>
+                    <li><strong>CPU:</strong> 2+ cores allocated</li>
+                    <li><strong>3D Graphics:</strong> Enable for better performance</li>
+                </ul>
+
+                <h3>VirtualBox</h3>
+                <ul>
+                    <li><strong>Version:</strong> VirtualBox 6.0+</li>
+                    <li><strong>RAM:</strong> 4+ GB allocated</li>
+                    <li><strong>Disk:</strong> 30+ GB VDI</li>
+                    <li><strong>CPU:</strong> 2+ cores allocated</li>
+                    <li><strong>Guest Additions:</strong> Install for better integration</li>
+                </ul>
+
+                <h3>QEMU/KVM</h3>
+                <ul>
+                    <li><strong>Version:</strong> QEMU 4.0+</li>
+                    <li><strong>RAM:</strong> 4+ GB allocated</li>
+                    <li><strong>Disk:</strong> qcow2 format recommended</li>
+                    <li><strong>CPU:</strong> host-passthrough for performance</li>
+                    <li><strong>Graphics:</strong> virtio-gpu or QXL</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Performance Considerations</h2>
+                
+                <h3>Storage Performance</h3>
+                <div class="performance-comparison">
+                    <div class="perf-item">
+                        <h4>NVMe SSD</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill" style="width: 100%;"></div>
+                        </div>
+                        <p>Best performance, recommended for all use cases</p>
+                    </div>
+                    <div class="perf-item">
+                        <h4>SATA SSD</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill" style="width: 75%;"></div>
+                        </div>
+                        <p>Excellent performance, good value for money</p>
+                    </div>
+                    <div class="perf-item">
+                        <h4>7200 RPM HDD</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill" style="width: 30%;"></div>
+                        </div>
+                        <p>Adequate for basic usage, slower boot times</p>
+                    </div>
+                    <div class="perf-item">
+                        <h4>5400 RPM HDD</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill" style="width: 20%;"></div>
+                        </div>
+                        <p>Minimum acceptable, not recommended</p>
+                    </div>
+                </div>
+
+                <h3>Memory Guidelines</h3>
+                <ul>
+                    <li><strong>2 GB:</strong> Basic desktop usage, minimal applications</li>
+                    <li><strong>4 GB:</strong> Comfortable desktop experience, light development</li>
+                    <li><strong>8 GB:</strong> Heavy multitasking, development environment</li>
+                    <li><strong>16+ GB:</strong> Professional development, virtualization, gaming</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Compatibility Testing</h2>
+                
+                <h3>Hardware Detection</h3>
+                <p>Before installation, you can test hardware compatibility by booting the KyOS live environment:</p>
+                <div class="code-block">
+                    <pre><code># Check CPU information
+lscpu
+
+# Check memory
+free -h
+
+# Check graphics card
+lspci | grep -i vga
+
+# Check network adapters
+lspci | grep -i network
+ip link show
+
+# Check audio devices
+lspci | grep -i audio
+aplay -l</code></pre>
+                </div>
+
+                <h3>Known Issues</h3>
+                <div class="warning-box">
+                    <h4>⚠️ Hardware-Specific Notes</h4>
+                    <ul>
+                        <li><strong>NVIDIA Optimus:</strong> May require additional configuration</li>
+                        <li><strong>Broadcom WiFi:</strong> Requires proprietary driver installation</li>
+                        <li><strong>Realtek WiFi (newer):</strong> May need kernel parameter adjustments</li>
+                        <li><strong>Apple Hardware:</strong> Some MacBook models require special boot parameters</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="faq.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    FAQ
+                </a>
+                <a href="troubleshooting.html" class="nav-next">
+                    Troubleshooting
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+
+    <style>
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .requirement-card, .config-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .requirement-icon {
+            background: var(--primary-color);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .compatibility-table table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .compatibility-table th,
+        .compatibility-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-excellent {
+            color: #00ff00;
+            font-weight: 600;
+        }
+
+        .status-good {
+            color: #ffff00;
+            font-weight: 600;
+        }
+
+        .status-fair {
+            color: #ff8800;
+            font-weight: 600;
+        }
+
+        .config-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .config-specs {
+            margin: 1rem 0;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .spec-item i {
+            color: var(--primary-color);
+        }
+
+        .performance-comparison {
+            margin: 1rem 0;
+        }
+
+        .perf-item {
+            margin: 1rem 0;
+        }
+
+        .perf-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--surface-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .perf-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transition: width 0.3s ease;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box h4 {
+            margin-top: 0;
+        }
+    </style>
+</body>
+</html>

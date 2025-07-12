@@ -1,693 +1,245 @@
-#!/usr/bin/env bash
-#
-# Script name: kyosinstall
-# Description: A lightweight kickass Arch Linux installer.
-# Dependencies: 
-# GitLab: https://www.gitlab.com/kyos/kyosinstall/
-# License: https://www.gitlab.com/kyos/kyosinstall/
-# Contributors: Derek Taylor
+#!/bin/bash
 
-# Set with the flags "-e", "-u","-o pipefail" cause the script to fail
-# if certain things happen, which is a good thing.  Otherwise, we can
-# get hidden bugs that are hard to discover.
-set -euo pipefail
+# KyOS Installation Launcher - Dragon Arch
+# This script provides a user-friendly entry point to the KyOS installer.
+# It handles privilege escalation automatically and provides mode selection.
 
-# Disable bash job control and history to avoid console issues
-set +m
-set +H
+version="2.0.0"
 
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
 
-
-# Universal menu function that works in all environments
-universal_menu() {
-    local prompt="$1"
-    local default="$2"
-    shift 2
-    local options=("$@")
-    
-    echo
-    echo "=== $prompt ==="
-    echo
-    
-    # Always show numbered options for clarity
-    for i in "${!options[@]}"; do
-        if [[ "${options[i]}" == "$default" ]]; then
-            echo "$((i+1))) ${options[i]} (default)"
-        else
-            echo "$((i+1))) ${options[i]}"
-        fi
-    done
-    echo
-    
-    while true; do
-        echo -n "Enter choice (1-${#options[@]}) or press Enter for default [$default]: "
-        
-        local input=""
-        # Simplified input reading - avoid all complex terminal operations
-        read -r input || input=""
-        
-        # Trim whitespace
-        input=$(echo "$input" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # If empty, use default
-        if [[ -z "$input" ]]; then
-            choice="$default"
-            echo "Selected: $default"
-            break
-        fi
-        
-        # Check if it's a valid number
-        if [[ "$input" =~ ^[0-9]+$ ]]; then
-            if [[ "$input" -ge 1 && "$input" -le "${#options[@]}" ]]; then
-                choice="${options[$((input-1))]}"
-                echo "Selected: $choice"
-                break
-            fi
-        fi
-        
-        # Check if it's a direct match (case insensitive)
-        local found=false
-        for option in "${options[@]}"; do
-            if [[ "${option,,}" == "${input,,}" ]]; then
-                choice="$option"
-                echo "Selected: $choice"
-                found=true
-                break
-            fi
-        done
-        
-        if [[ "$found" == true ]]; then
-            break
-        fi
-        
-        echo "Invalid selection. Please enter a number between 1 and ${#options[@]} or the exact option name."
-    done
+# Function to print colored output
+print_info() {
+    echo -e "${CYAN}[INFO]${NC} $1"
 }
 
-# Let's clear the tty when starting script
-clear
-
-# Add debug info for troubleshooting
-echo "Debug: Terminal type: $TERM"
-echo "Debug: Running in: $(tty 2>/dev/null || echo 'unknown tty')"
-echo "Debug: Process tree: $(pstree -p $$ 2>/dev/null | head -1 || echo 'pstree unavailable')"
-echo
-
-# Check firmware type but don't exit
-if [ -d "/sys/firmware/efi/" ]; then
-    firmware_type="UEFI"
-    echo "UEFI firmware detected - installation will use UEFI mode"
-else
-    firmware_type="BIOS"
-    echo "Legacy BIOS firmware detected - installation will use BIOS mode"
-fi
-echo
-
-BOLD='\e[1m'
-GREEN='\e[92m'
-RED='\e[91m'
-YELLOW='\e[93m'
-RESET='\e[0m'
-
-print_info () {
-    echo -ne "${BOLD}${YELLOW}$1${RESET}\n"
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-print_choice () {
-    echo -ne "${BOLD}${GREEN}>> $1${RESET}\n\n"
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-invalid_input () {
-    print_info "\n${RED}WARNING! Invalid input!"
-    print_info "Please enter a valid option."
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
-
-
-# num_input () {
-#     while true; do
-#         print_info "$1"
-#         read -r -e -p "$2" num
-#         if [[ $num =~ ^-?[0-9]+$ ]]; then
-#             break
-#         else
-#             invalid_input
-#         fi
-#     done
-# }
-
-txt_input () {
-    local prompt="$1"
-    local input_prompt="$2"
-    local default="${3:-}"
-    
-    while true; do
-        print_info "$prompt"
-        if [[ -n "$default" ]]; then
-            echo -n "$input_prompt [$default]: "
-        else
-            echo -n "$input_prompt: "
-        fi
-        
-        # Simplified input reading
-        local result=""
-        read -r result || result=""
-        
-        # Trim whitespace
-        result=$(echo "$result" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # Use default if empty and default exists
-        if [[ -z "$result" && -n "$default" ]]; then
-            txt="$default"
-            echo "Using default: $default"
-            break
-        elif [[ -n "$result" ]]; then
-            txt="$result"
-            break
-        else
-            echo "This field is required. Please enter a value."
-        fi
-    done
+print_banner() {
+    echo -e "${GREEN}"
+    cat << "EOF"
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            Dragon Arch Installer                            ║
+║                         KyOS Installation System                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+EOF
+    echo -e "${NC}"
 }
 
-passwd_input () {
-    local prompt="$1"
-    local input_prompt="$2"
-    
-    while true; do
-        print_info "$prompt"
-        echo -n "$input_prompt: "
-        
-        # Try to read password without echo, fall back to visible input
-        local result=""
-        
-        # Simple approach: try to use stty if available, otherwise show warning
-        if command -v stty >/dev/null 2>&1; then
-            # Try to disable echo
-            if stty -echo 2>/dev/null; then
-                read -r result || result=""
-                stty echo 2>/dev/null
-                echo  # New line after hidden input
-            else
-                echo "(Password will be visible)"
-                read -r result || result=""
-            fi
-        else
-            echo "(Password will be visible - stty not available)"
-            read -r result || result=""
-        fi
-        
-        # Trim whitespace
-        result=$(echo "$result" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        if [[ -n "$result" ]]; then
-            txt="$result"
-            break
-        else
-            echo "Password cannot be empty. Please enter a password."
-        fi
-    done
-}
-
-
-
-
-vm_check () {
-    hypervisor=$(systemd-detect-virt)
-    case $hypervisor in
-        kvm )       pacstrap /mnt qemu-guest-agent &>/dev/null
-                    systemctl enable qemu-guest-agent --root=/mnt &>/dev/null
-                    ;;
-        vmware  )   pacstrap /mnt open-vm-tools &>/dev/null
-                    systemctl enable vmtoolsd --root=/mnt &>/dev/null
-                    systemctl enable vmware-vmblock-fuse --root=/mnt &>/dev/null
-                    ;;
-        oracle )    pacstrap /mnt virtualbox-guest-utils &>/dev/null
-                    systemctl enable vboxservice --root=/mnt &>/dev/null
-                    ;;
-        microsoft ) pacstrap /mnt hyperv &>/dev/null
-                    systemctl enable hv_fcopy_daemon --root=/mnt &>/dev/null
-                    systemctl enable hv_kvp_daemon --root=/mnt &>/dev/null
-                    systemctl enable hv_vss_daemon --root=/mnt &>/dev/null
-                    ;;
-    esac
-}
-
-echo -e "${BOLD}${GREEN}\
-     _ _            _           _        _ _ 
-    | | |          (_)         | |      | | |
-  __| | |_ ___  ___ _ _ __  ___| |_ __ _| | |
- / _\` | __/ _ \/ __| | '_ \/ __| __/ _\` | | |
-| (_| | || (_) \__ \ | | | \__ \ || (_| | | |
- \__,_|\__\___/|___/_|_| |_|___/\__\__,_|_|_|
-${RESET}" 
-echo -e "${BOLD}       The installation script for KyOS${RESET}\n"
-
-print_info "Listing the available disks:"
-lsblk -e 7
-mapfile -t my_array < <(lsblk -dpno NAME | grep -P "/dev/sd|nvme|vd")
-
-if [[ ${#my_array[@]} -eq 0 ]]; then
-    echo "ERROR: No suitable disks found!"
-    exit 1
-fi
-
-universal_menu "Select the disk for installation" "${my_array[0]}" "${my_array[@]}"
-disk="$choice"
-print_choice "disk: $disk"
-
-universal_menu "Select the file system type" "btrfs" "btrfs" "ext4"
-fs_type="$choice"
-print_choice "fs_type: $fs_type"
-
-## ENCRYPTION YES OR NO - NOT IMPLEMENTED - ENCRYPTION IS AUTOMATICALLY SETUP
-universal_menu "Enable disk encryption" "yes" "yes" "no"
-encryption="$choice"
-print_choice "encryption: $encryption" 
-
-## SWAP TYPE - NOT IMPLEMENTED - ZRAM IS AUTOMATICALLY SETUP
-# my_array=("zram [recommended]" "file" "partition" "none")
-# menu "Choose type of swap to use:" "Please select the number for desired swap type: "
-# swap_type=${choice// [recommended\]/}
-# print_choice "swap_type: $swap_type" 
-
-## SWAP SIZE - NOT IMPLEMENTED - USEFUL IF I OFFER SWAP CHOICES AT SOME POINT
-# num_input "What size swap should be used?" "Please enter number (in gigabytes) for swap size: "
-# swap_size="$num"
-# print_choice "swap_size: ${swap_size}G" 
-
-universal_menu "Select a kernel to install" "linux" "linux" "linux-lts" "linux-zen"
-kernel="$choice"
-print_choice "kernel: $kernel" 
-
-## CHOOSE BOOTLOADER - NOT IMPLEMENTED - GRUB IS AUTOMATICALLY INSTALLED
-# my_array=("grub [recommended]" "refind" "systemd-boot")
-# menu "Choose a bootloader to install:" "Please select the number for desired bootloader: "
-# bootloader=${choice// [recommended\]/}
-# print_choice "bootloader: $bootloader" 
-
-# Locale selection with common options
-universal_menu "Select your locale" "en_US.UTF-8" \
-    "en_US.UTF-8" "en_GB.UTF-8" "de_DE.UTF-8" "fr_FR.UTF-8" \
-    "es_ES.UTF-8" "it_IT.UTF-8" "pt_PT.UTF-8" "ru_RU.UTF-8" \
-    "ja_JP.UTF-8" "zh_CN.UTF-8" "ko_KR.UTF-8" "ar_SA.UTF-8"
-locale="$choice"
-print_choice "locale: $locale"
-
-# Keyboard layout selection
-universal_menu "Select your keyboard layout" "us" \
-    "us" "uk" "de" "fr" "es" "it" "pt" "ru" "jp" "cn" "kr" "ar"
-keymap="$choice"
-print_choice "keymap: $keymap"
-# Disable loadkeys completely to avoid console issues in graphical terminals
-echo "Note: Keymap will be applied during system installation"
-
-# Timezone selection with common options
-universal_menu "Select your timezone" "America/New_York" \
-    "America/New_York" "America/Los_Angeles" "America/Chicago" "America/Denver" \
-    "Europe/London" "Europe/Paris" "Europe/Berlin" "Europe/Rome" \
-    "Europe/Madrid" "Europe/Moscow" "Asia/Tokyo" "Asia/Shanghai" \
-    "Asia/Seoul" "Asia/Dubai" "Australia/Sydney" "Australia/Melbourne"
-timezone="$choice"
-print_choice "timezone: $timezone"
-
-txt_input "Set the hostname for this computer" "Please enter hostname" "kyos-pc"
-hostname="$txt"
-print_choice "hostname: $hostname" 
-
-if [[ "$encryption" = "yes" ]]; then
-    while true; do
-        passwd_input "LUKS disk encryption:" "Please enter a password for LUKS disk encryption: "
-        lukspass1="$txt"
-        passwd_input "" "Retype the password for LUKS disk encryption: "
-        lukspass2="$txt"
-        if [[ "$lukspass1" != "$lukspass2" ]]; then
-            echo -e "\nPasswords do not match! Please try again."
-        else
-            print_choice "\nLUKS password successfully set."
-    	lukspass="$lukspass1"
-            break
-        fi
-    done
-fi
-
-while true; do
-    passwd_input "Root password:" "Please enter a root password: "
-    rootpass1="$txt"
-    passwd_input "" "Retype the root password: "
-    rootpass2="$txt"
-    if [[ "$rootpass1" != "$rootpass2" ]]; then
-        echo -e "\nPasswords do not match! Please try again."
+# Function to check if running as root
+check_root() {
+    if [ "$EUID" -eq 0 ]; then
+        return 0
     else
-        print_choice "\nRoot password successfully set."
-	rootpass="$rootpass1"
-        break
+        return 1
     fi
-done
+}
 
-txt_input "Create your user" "Please enter desired username" "kyos"
-username="$txt"
-print_choice "username: $username" 
-
-while true; do
-    passwd_input "User password" "Please enter a password for $username"
-    userpass1="$txt"
-    passwd_input "Confirm password" "Retype the password for $username"
-    userpass2="$txt"
-    if [[ "$userpass1" != "$userpass2" ]]; then
-        echo -e "\nPasswords do not match! Please try again."
-    else
-        print_choice "\nPassword successfully set for $username."
-	userpass="$userpass1"
-        break
-    fi
-done
-
-universal_menu "Install KyOS qtile desktop" "yes" "yes" "no"
-kyos_desktop="$choice"
-print_choice "kyos_desktop: $kyos_desktop"
-
-print_info "---------------------------------"
-print_info "SUMMARY OF CONFIGURATION CHOICES:"
-print_info "---------------------------------"
-echo -e "disk:\t\t${BOLD}${GREEN}$disk${RESET}"
-echo -e "fs_type:\t${BOLD}${GREEN}$fs_type${RESET}"
-echo -e "encryption:\t${BOLD}${GREEN}$encryption${RESET}"
-# echo -e "swap_type:\t${BOLD}${GREEN}$swap_type${RESET}" 
-# echo -e "swap_size:\t${BOLD}${GREEN}${swap_size}G${RESET}" 
-echo -e "kernel:\t\t${BOLD}${GREEN}$kernel${RESET}"
-# echo -e "bootloader:\t${BOLD}${GREEN}$bootloader${RESET}"
-echo -e "locale:\t\t${BOLD}${GREEN}$locale${RESET}"
-echo -e "keymap:\t\t${BOLD}${GREEN}$keymap${RESET}"
-echo -e "timezone:\t${BOLD}${GREEN}$timezone${RESET}"
-echo -e "hostname:\t${BOLD}${GREEN}$hostname${RESET}"
-echo -e "lukspass:\t${BOLD}${GREEN}✓${RESET}"
-echo -e "rootpass:\t${BOLD}${GREEN}✓${RESET}"
-echo -e "username:\t${BOLD}${GREEN}$username${RESET}"
-echo -e "userpass:\t${BOLD}${GREEN}✓${RESET}"
-echo -e "kyos_desktop:\t${BOLD}${GREEN}$kyos_desktop${RESET}\n"
-
-print_info "${RED}WARNING! Please review the above configuration.${RESET}"
-
-universal_menu "Based on this configuration, would you like to install KyOS" "yes" "yes" "no"
-install_kyos="$choice"
-print_choice "You chose \"$install_kyos\" to installing KyOS!"
-
-if [ "$install_kyos" = "yes" ]; then
-    ## One last check before wiping the disk!
-    print_info "Formatting the disk: $disk"
+# Function to escalate privileges
+escalate_privileges() {
+    print_info "KyOS installer requires root privileges for system installation."
     
-    universal_menu "All data on $disk will be lost. Do you wish to proceed with the installation" "no" "yes" "no"
-    format_drive="$choice"
-    
-    if [[ "$format_drive" = "yes" ]]; then
-        print_choice "Formatting the drive and installing KyOS."
-        print_info "Wiping $disk."
-        wipefs -af "$disk"
-        sgdisk -Zo "$disk"
+    # Try sudo first
+    if command -v sudo >/dev/null 2>&1; then
+        print_info "Attempting to escalate privileges using sudo..."
+        exec sudo "$0" "$@"
+    # Try doas as fallback
+    elif command -v doas >/dev/null 2>&1; then
+        print_info "Attempting to escalate privileges using doas..."
+        exec doas "$0" "$@"
     else
-        print_choice "Exiting before formatting the drive."
-        exit
+        print_error "No privilege escalation method found (sudo/doas)."
+        print_error "Please run this script as root or install sudo/doas."
+        exit 1
     fi
-else
-    print_choice "Installation cancelled by user."
-    exit
+}
+
+# Function to show help
+show_help() {
+    print_banner
+    echo -e "${CYAN}Usage:${NC}"
+    echo "  kyosinstall [OPTIONS]"
+    echo ""
+    echo -e "${CYAN}Options:${NC}"
+    echo "  --auto, -a        Run automated installation (uses sensible defaults)"
+    echo "  --tui, -t         Run TUI (Text User Interface) installation"
+    echo "  --help, -h        Show this help message"
+    echo "  --version, -v     Show version information"
+    echo ""
+    echo -e "${CYAN}Description:${NC}"
+    echo "  KyOS Installation System provides an easy way to install Dragon Arch"
+    echo "  with full support for BlackArch tools, NVIDIA drivers, and more."
+    echo ""
+    echo "  If no mode is specified, you will be prompted to choose."
+    echo ""
+    echo -e "${CYAN}Examples:${NC}"
+    echo "  kyosinstall           # Interactive mode selection"
+    echo "  kyosinstall --auto    # Automated installation"
+    echo "  kyosinstall --tui     # TUI installation"
+}
+
+# Function to show version
+show_version() {
+    print_banner
+    echo -e "${CYAN}KyOS Installation System${NC}"
+    echo "Version: $version"
+    echo "Part of Dragon Arch (KyOS)"
+    echo ""
+    echo "For more information, visit:"
+    echo "https://github.com/rubberpirate/ky-suigetsu"
+}
+
+# Function to select installation mode
+select_mode() {
+    print_banner
+    echo -e "${CYAN}Please select installation mode:${NC}"
+    echo ""
+    echo "1) Automated Installation (Recommended)"
+    echo "   - Uses sensible defaults for quick setup"
+    echo "   - Suitable for most users"
+    echo "   - Can still review settings before installation"
+    echo ""
+    echo "2) TUI Installation (Advanced)"
+    echo "   - Full Text User Interface with all options"
+    echo "   - Configure every aspect manually"
+    echo "   - Recommended for experienced users"
+    echo ""
+    echo "3) Show Help"
+    echo "4) Exit"
+    echo ""
+    
+    while true; do
+        read -p "Enter your choice (1-4): " choice
+        case $choice in
+            1)
+                return 1  # Auto mode
+                ;;
+            2)
+                return 2  # TUI mode
+                ;;
+            3)
+                show_help
+                exit 0
+                ;;
+            4)
+                print_info "Installation cancelled by user."
+                exit 0
+                ;;
+            *)
+                print_error "Invalid choice. Please enter 1, 2, 3, or 4."
+                ;;
+        esac
+    done
+}
+
+# Function to run automated installation
+run_auto_install() {
+    print_info "Starting automated installation..."
+    
+    if [ ! -f "/usr/local/bin/kyosinstall-auto" ]; then
+        print_error "Automated installer not found at /usr/local/bin/kyosinstall-auto"
+        exit 1
+    fi
+    
+    exec /usr/local/bin/kyosinstall-auto "$@"
+}
+
+# Function to run TUI installation
+run_tui_install() {
+    print_info "Starting TUI installation..."
+    
+    if [ ! -f "/usr/local/bin/kyos-install" ]; then
+        print_error "TUI installer not found at /usr/local/bin/kyos-install"
+        exit 1
+    fi
+    
+    exec /usr/local/bin/kyos-install "$@"
+}
+
+# Main script logic
+main() {
+    local mode=""
+    local auto_mode=false
+    local tui_mode=false
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --auto|-a)
+                auto_mode=true
+                shift
+                ;;
+            --tui|-t)
+                tui_mode=true
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            --version|-v)
+                show_version
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                print_info "Use --help for usage information."
+                exit 1
+                ;;
+        esac
+    done
+    
+    # Check for conflicting modes
+    if [ "$auto_mode" = true ] && [ "$tui_mode" = true ]; then
+        print_error "Cannot specify both --auto and --tui modes."
+        exit 1
+    fi
+    
+    # Check if running as root, escalate if not
+    if ! check_root; then
+        escalate_privileges "$@"
+        # If we reach here, escalation failed
+        print_error "Failed to escalate privileges."
+        exit 1
+    fi
+    
+    print_success "Running with root privileges."
+    
+    # Determine mode
+    if [ "$auto_mode" = true ]; then
+        run_auto_install "$@"
+    elif [ "$tui_mode" = true ]; then
+        run_tui_install "$@"
+    else
+        # No mode specified, let user choose
+        select_mode
+        local mode_choice=$?
+        
+        if [ $mode_choice -eq 1 ]; then
+            run_auto_install "$@"
+        elif [ $mode_choice -eq 2 ]; then
+            run_tui_install "$@"
+        fi
+    fi
+}
+
+# Check if script is being sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
 fi
-    
-    print_info "Reflector grabbing top 20 mirrors sorted by download rate."
-    echo "This may take a couple of minutes."
-    reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist &>/dev/null
-
-    print_info "Partitioning the disk: ${disk}"
-    echo "File system type: $fs_type"
-    parted -s "$disk" \
-        mklabel gpt \
-        mkpart ESP fat32 1MiB 1025MiB \
-        set 1 esp on \
-        mkpart CRYPTROOT 1025MiB 100%
-        
-        ESP="/dev/disk/by-partlabel/ESP"
-        CRYPTROOT="/dev/disk/by-partlabel/CRYPTROOT"
-        
-        partprobe "$disk"
-        
-        print_info "Formatting EFI Partition as FAT32."
-        mkfs.fat -F 32 "$ESP"
-        
-        if [[ "$encryption" = "yes" ]]; then
-            print_info "Creating LUKS container for root partition."
-            echo -n "$lukspass" | cryptsetup luksFormat "$CRYPTROOT" -d -
-            echo -n "$lukspass" | cryptsetup open "$CRYPTROOT" cryptroot -d - 
-        fi
-
-        if [[ "$fs_type" = "btrfs" ]]; then
-            if [[ "$encryption" = "yes" ]]; then
-                BTRFS="/dev/mapper/cryptroot"
-            else
-                BTRFS="$CRYPTROOT"
-            fi
-            
-            print_info "Formatting the BTRFS partition."
-            mkfs.btrfs "$BTRFS" &>/dev/null
-            mount "$BTRFS" /mnt
-            
-            print_info "Creating BTRFS subvolumes."
-            subvols=(snapshots var_pkgs var_log home root srv)
-            for subvol in '' "${subvols[@]}"; do
-                btrfs su cr /mnt/@"$subvol" &>/dev/null
-            done
-            
-            print_info "Mounting the newly created subvolumes."
-            umount /mnt
-            mountopts="ssd,noatime,compress-force=zstd:3,discard=async"
-            mount -o "$mountopts",subvol=@ "$BTRFS" /mnt
-            mkdir -p /mnt/{home,root,srv,.snapshots,var/{log,cache/pacman/pkg},boot}
-            for subvol in "${subvols[@]:2}"; do
-                mount -o "$mountopts",subvol=@"$subvol" "$BTRFS" /mnt/"${subvol//_//}"
-            done
-            chmod 750 /mnt/root
-            mount -o "$mountopts",subvol=@snapshots "$BTRFS" /mnt/.snapshots
-            mount -o "$mountopts",subvol=@var_pkgs "$BTRFS" /mnt/var/cache/pacman/pkg
-            chattr +C /mnt/var/log
-            mount "$ESP" /mnt/boot/
-        else
-            if [[ "$encryption" = "yes" ]]; then
-                EXT4="/dev/mapper/cryptroot"
-            else
-                EXT4="$CRYPTROOT"
-            fi
-
-            print_info "Formatting the EXT4 partition."
-            mkfs.ext4 "$EXT4" &>/dev/null
-            
-            print_info "Mounting the newly created partitions."
-            mount "$EXT4" /mnt
-            mkdir -p /mnt/{home,root,srv,var/{log,cache/pacman/pkg},boot}
-            chmod 750 /mnt/root
-            # chattr +C /mnt/var/log
-            mount "$ESP" /mnt/boot/
-        fi
-
-	print_info "Checking which microcode to install."
-        CPU=$(grep vendor_id /proc/cpuinfo)
-        if [[ "$CPU" == *"AuthenticAMD"* ]]; then
-            print_choice "An AMD CPU has been detected, the AMD microcode will be installed."
-            microcode="amd-ucode"
-        else
-            print_choice "An Intel CPU has been detected, the Intel microcode will be installed."
-            microcode="intel-ucode"
-        fi
-        
-        # Re-installing keyring because sometimes we have key problems
-        print_info "Clearing the pacman cache."
-        yes | pacman -Scc || print_choice "Finished clearing the cache."
-        yes | pacman -Syy archlinux-keyring || print_choice "Could not install the Arch keyring."
-	pacman-key --init
-        pacman-key --populate
-	
-        print_info "Waiting for pacman keyring init to complete."
-        if [[ $(systemctl show pacman-init.service | grep SubState=failed) ]]; then
-            systemctl start pacman-init || echo "Error: pacman-init failed to start." && exit
-	    sleep 10
-        fi
-
-        print_info "Installing the base system."
-        pacstrap -K /mnt base base-devel "$kernel" "$kernel"-headers linux-firmware "$microcode" 
-        pacstrap /mnt - < /root/pkgs-base
-
-        if [[ "$fs_type" = "btrfs" ]]; then
-            print_info "Installing important btrfs-related packages."
-            pacstrap /mnt - < /root/pkgs-btrfs
-	fi
-
-        if [ "$kyos_desktop" = "yes" ]; then
-            print_info "Installing KyOS Qtile desktop packages."
-            pacstrap /mnt - < /root/pkgs-qtile
-        fi
-
-        print_info "Enabling NetworkManager service."
-        systemctl enable NetworkManager --root=/mnt &>/dev/null
-
-        print_info "Setting the hostname as $hostname."
-        echo "$hostname" > /mnt/etc/hostname
-
-        print_info "Generating the fstab."
-        genfstab -U /mnt >> /mnt/etc/fstab
-
-        print_info "Configuring selected locale and keymap."
-        sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
-        echo "LANG=$locale" > /mnt/etc/locale.conf
-        echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
-
-        print_info "Setting hosts file."
-        cat > /mnt/etc/hosts <<-EOF
-        127.0.0.1   localhost
-        ::1         localhost
-        127.0.1.1   $hostname.localdomain   $hostname
-EOF
-
-        print_info "Virtual machine detected. Setting up VM guest tools."
-        vm_check
-	
-        print_info "Configuring /etc/mkinitcpio.conf."
-        cat > /mnt/etc/mkinitcpio.conf <<-EOF
-        HOOKS=(systemd autodetect keyboard sd-vconsole modconf block sd-encrypt filesystems)
-EOF
-	print_info "Copying KyOS Grub theme into boot directory."
-	mkdir -p /mnt/boot/grub/themes/kyos-grub/
-        rsync -avr /run/archiso/airootfs/usr/share/grub/themes/kyos-grub/ /mnt/boot/grub/themes/kyos-grub/
-        sed -i "s/^GRUB_DISTRIBUTOR=\"Arch\"/GRUB_DISTRIBUTOR=\"KyOS\"/" /mnt/etc/default/grub
-        sed -i "s/^#GRUB_THEME.*/GRUB_THEME=\"\/boot\/grub\/themes\/kyos-grub\/theme.txt\"/" /mnt/etc/default/grub
-	
-        if [[ "$encryption" = "yes" ]]; then
-            print_info "Setting up LUKS encryption in grub."
-            UUID=$(blkid -s UUID -o value $CRYPTROOT)
-            if [[ "$fs_type" = "btrfs" ]]; then
-                sed -i "\,^GRUB_CMDLINE_LINUX=\"\",s,\",&rd.luks.name=$UUID=cryptroot root=$BTRFS," /mnt/etc/default/grub
-            else
-                sed -i "\,^GRUB_CMDLINE_LINUX=\"\",s,\",&rd.luks.name=$UUID=cryptroot root=$EXT4," /mnt/etc/default/grub
-            fi
-        fi
-
-        print_info "Running arch-chroot for system configuration."
-        arch-chroot /mnt /bin/bash -e <<-EOF
-        
-            echo "Setting up timezone."
-            ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-        
-            echo "Setting up clock."
-            hwclock --systohc
-        
-            echo "Generating locales."
-            locale-gen
-        
-            echo "Generating a new initramfs."
-            mkinitcpio -P
-        
-            if [[ "$fs_type" = "btrfs" ]]; then
-                echo "Configuring snapper."
-                umount /.snapshots
-                rm -r /.snapshots
-                snapper --no-dbus -c root create-config /
-                btrfs subvolume delete /.snapshots
-                mkdir /.snapshots
-                mount -a &>/dev/null
-                chmod 750 /.snapshots
-            fi
-        
-            echo "Installing GRUB bootloader."
-            if [ "$firmware_type" = "UEFI" ]; then
-                grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=GRUB
-            else
-                grub-install --target=i386-pc "$disk"
-            fi
-        
-            echo "Making GRUB config file."
-            grub-mkconfig -o /boot/grub/grub.cfg
-	    
-            echo "Installing alacritty themes."
-            mkdir -p /home/"$username"/.config/alacritty/themes
-            git clone https://github.com/alacritty/alacritty-theme /home/"$username"/.config/alacritty/themes
-	    
-            echo "Updating the man page database"
-            mandb -c
-EOF
-	
-        print_info "Setting root password."
-        echo "root:$rootpass" | arch-chroot /mnt chpasswd
-
-        print_info "Adding user $username to the system with root privileges."
-        arch-chroot /mnt useradd -m -G wheel,audio,video,optical,storage -s /bin/fish "$username"
-        echo "$username:$userpass" | arch-chroot /mnt chpasswd
-
-        print_info "Copying files into new installation."
-	mkdir -p /mnt/home/"$username"/.local/share/fonts/
-        rsync -avr /run/archiso/airootfs/etc/skel/ /mnt/home/"$username"/
-        rsync -avr /mnt/etc/dtos/ /mnt/home/"$username"/
-        rsync -avr /run/archiso/airootfs/etc/sddm.conf.d/ /mnt/etc/sddm.conf.d/
-        rsync -av /run/archiso/airootfs/etc/bash.bashrc /mnt/etc/
-        rsync -av /run/archiso/airootfs/etc/doas.conf /mnt/etc/
-        rsync -av /run/archiso/airootfs/etc/os-release /mnt/etc/
-        rsync -av /run/archiso/airootfs/etc/pacman.conf /mnt/etc/
-	mkdir -p /mnt/usr/share/backgrounds/kyos-backgrounds/
-        rsync -avr /run/archiso/airootfs/usr/share/backgrounds/kyos-backgrounds/ /mnt/usr/share/backgrounds/kyos-backgrounds/
-       
-        # NOT IMPLEMENTED YET!
-        # mkdir -p /mnt/etc/pacman.d/hooks/
-        # rsync -avr /run/archiso/airootfs/etc/pacman.d/hooks/ /mnt/etc/pacman.d/hooks/
- 
-        print_info "Changing some file permissions in user home directory."
-	arch-chroot /mnt chown -R "$username:$username" /home/"$username"
-	arch-chroot /mnt chmod 755 /home/"$username"/.config/qtile/autostart.sh
-	arch-chroot /mnt chmod -R 755 /home/"$username"/.local/bin/
-
-        print_info "Removing files that could cause some conflicts."
-	rm -rf /mnt/home/"$username"/.emacs.d
-        rm /mnt/usr/share/wayland-sessions/qtile-wayland.desktop
-	
-        sed -i '/^Background=/c\Background=\"/\usr/\share/\backgrounds\/kyos-backgrounds/\0277.jpg\"' /mnt/usr/share/sddm/themes/eucalyptus-drop/theme.conf
-	
-        print_info "Configuring ZRAM."
-        cat > /mnt/etc/systemd/zram-generator.conf <<-EOF
-        [zram0]
-        zram-size = min(ram / 2, 8192)
-EOF
-
-        print_info "Enabling systemd services."
-        if [[ "$fs_type" = "btrfs" ]]; then
-            services=(reflector.timer 
-                      snapper-timeline.timer 
-                      snapper-cleanup.timer 
-                      btrfs-scrub@-.timer 
-                      btrfs-scrub@home.timer 
-                      btrfs-scrub@var-log.timer 
-                      btrfs-scrub@\\x2esnapshots.timer 
-                      grub-btrfsd.service
-                      sddm.service
-                      systemd-oomd.service
-                      udisks2.service)
-            for service in "${services[@]}"; do
-                systemctl enable "$service" --root=/mnt
-            done
-        else
-            services=(reflector.timer 
-                      sddm.service
-                      systemd-oomd.service
-                      udisks2.service)
-            for service in "${services[@]}"; do
-                systemctl enable "$service" --root=/mnt
-            done
-        fi
-
-	print_info "Removing 'sudo' in favor of 'doas'."
-        arch-chroot /mnt /bin/bash -e <<-EOF
-            yes | pacman -Rdd sudo
-            ln -s /usr/bin/doas /usr/bin/sudo
-EOF
-
-        print_info "Installation of KyOS completed! You may now reboot the computer."
-        
-print_info "KyOS installation finished successfully!"
-echo "You can now reboot your system."
-
-exit

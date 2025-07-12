@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete KyOS Guide | KyOS Dragon Arch</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                <span>KyOS</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../index.html#features">Features</a></li>
+                <li><a href="../index.html#download">Download</a></li>
+                <li><a href="../index.html#docs" class="active">Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="sidebar-content">
+                <h3>Documentation</h3>
+                <ul class="sidebar-menu">
+                    <li><a href="complete-guide.html" class="active">Complete Guide</a></li>
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="qtile-mastery.html">Qtile Mastery</a></li>
+                    <li><a href="keybindings-reference.html">Keybindings Reference</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    <li class="sidebar-divider"></li>
+                    <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://qtile.org/manual/" target="_blank">Qtile Documentation <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://github.com/rubberpirate/kyos" target="_blank">GitHub Repository <i class="fas fa-external-link-alt"></i></a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="container">
+                <header class="docs-header">
+                    <h1>Complete KyOS Guide</h1>
+                    <p class="docs-subtitle">Everything you need to know about KyOS Dragon Arch</p>
+                </header>
+
+                <div class="docs-body">
+                    <section class="doc-section">
+                        <h2 id="introduction">Introduction to KyOS</h2>
+                        <p>KyOS (Dragon Arch) is a modern, security-focused Arch Linux distribution designed for developers, security professionals, and power users. Built around the powerful Qtile tiling window manager, KyOS provides a keyboard-driven, highly customizable desktop environment that maximizes productivity and system control.</p>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>What makes KyOS special?</strong> KyOS combines the flexibility of Arch Linux with carefully curated tools, sensible defaults, and a beautiful desktop environment that works out of the box.
+                        </div>
+
+                        <h3>Key Features</h3>
+                        <ul>
+                            <li><strong>Qtile Window Manager:</strong> Python-based tiling window manager with powerful customization</li>
+                            <li><strong>Security Tools:</strong> Pre-installed penetration testing and security analysis tools</li>
+                            <li><strong>Developer Ready:</strong> Full development environment with modern tools and workflows</li>
+                            <li><strong>Rolling Release:</strong> Latest packages and features from Arch Linux repositories</li>
+                            <li><strong>Minimalist Design:</strong> Clean, distraction-free interface focused on productivity</li>
+                        </ul>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="getting-started">Getting Started</h2>
+                        
+                        <h3>System Requirements</h3>
+                        <div class="requirements-grid">
+                            <div class="requirement-item">
+                                <h4>Minimum Requirements</h4>
+                                <ul>
+                                    <li>64-bit processor (x86_64)</li>
+                                    <li>2GB RAM (4GB recommended)</li>
+                                    <li>20GB free disk space</li>
+                                    <li>USB port or DVD drive</li>
+                                    <li>Internet connection</li>
+                                </ul>
+                            </div>
+                            <div class="requirement-item">
+                                <h4>Recommended Specifications</h4>
+                                <ul>
+                                    <li>Modern multi-core processor</li>
+                                    <li>8GB+ RAM for development</li>
+                                    <li>50GB+ SSD storage</li>
+                                    <li>Graphics card with 1GB VRAM</li>
+                                    <li>UEFI firmware support</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h3>Download and Verification</h3>
+                        <ol>
+                            <li>Download the latest KyOS ISO from our <a href="https://github.com/rubberpirate/kyos/releases/latest" target="_blank">GitHub releases page</a></li>
+                            <li>Verify the ISO checksum to ensure integrity</li>
+                            <li>Create a bootable USB drive using tools like Rufus, Balena Etcher, or dd</li>
+                        </ol>
+
+                        <div class="code-block">
+                            <h4>Verifying ISO Checksum (Linux)</h4>
+                            <pre><code># Download the checksum file
+wget https://github.com/rubberpirate/kyos/releases/latest/download/kyos.sha256
+
+# Verify the ISO
+sha256sum -c kyos.sha256</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="installation">Installation Process</h2>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> Always backup your important data before installing any operating system.
+                        </div>
+
+                        <h3>Boot from Live USB</h3>
+                        <ol>
+                            <li>Insert the KyOS USB drive and boot from it</li>
+                            <li>Select "Boot KyOS Dragon Arch" from the boot menu</li>
+                            <li>Wait for the live environment to load</li>
+                            <li>You'll be greeted with the KyOS desktop</li>
+                        </ol>
+
+                        <h3>Running the Installer</h3>
+                        <p>KyOS includes a smart installer that guides you through the installation process:</p>
+                        
+                        <div class="code-block">
+                            <h4>Start Installation</h4>
+                            <pre><code># Launch the graphical installer
+kyos-install
+
+# Or use the automated installer for advanced users
+sudo kyosinstall-auto</code></pre>
+                        </div>
+
+                        <h3>Installation Steps</h3>
+                        <ol>
+                            <li><strong>Language & Keyboard:</strong> Select your preferred language and keyboard layout</li>
+                            <li><strong>Disk Partitioning:</strong> Choose automatic or manual partitioning</li>
+                            <li><strong>User Account:</strong> Create your user account and set passwords</li>
+                            <li><strong>System Configuration:</strong> Configure timezone, hostname, and services</li>
+                            <li><strong>Package Selection:</strong> Choose additional software packages</li>
+                            <li><strong>Installation:</strong> Watch real-time progress as the system installs</li>
+                        </ol>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Pro Tip:</strong> The installer shows real-time package installation progress, so you can see exactly what's happening during installation.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="first-boot">First Boot and Initial Setup</h2>
+                        
+                        <h3>Welcome to KyOS</h3>
+                        <p>After installation and first boot, you'll be greeted by the KyOS welcome application that helps you:</p>
+                        <ul>
+                            <li>Update the system packages</li>
+                            <li>Install additional software</li>
+                            <li>Configure the desktop environment</li>
+                            <li>Learn essential keybindings</li>
+                            <li>Connect to online resources</li>
+                        </ul>
+
+                        <h3>Essential First Steps</h3>
+                        <ol>
+                            <li><strong>System Update:</strong> Always update your system after installation
+                                <div class="code-block">
+                                    <pre><code>sudo pacman -Syu</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Configure AUR Helper:</strong> Install yay for AUR package management
+                                <div class="code-block">
+                                    <pre><code>sudo pacman -S yay</code></pre>
+                                </div>
+                            </li>
+                            <li><strong>Install Graphics Drivers:</strong> Install appropriate drivers for your hardware</li>
+                            <li><strong>Configure Network:</strong> Set up WiFi and network connections</li>
+                        </ol>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="qtile-basics">Understanding Qtile</h2>
+                        
+                        <p>Qtile is the heart of the KyOS desktop experience. As a tiling window manager, it automatically organizes your windows for maximum screen utilization and productivity.</p>
+
+                        <h3>Core Concepts</h3>
+                        <ul>
+                            <li><strong>Workspaces:</strong> Virtual desktops for organizing different tasks</li>
+                            <li><strong>Layouts:</strong> Different ways windows can be arranged (tiled, floating, maximized)</li>
+                            <li><strong>Groups:</strong> Named workspaces (1-9) for specific purposes</li>
+                            <li><strong>Bars:</strong> Status bars showing system information and workspace status</li>
+                        </ul>
+
+                        <h3>Essential Keybindings</h3>
+                        <div class="keybinding-grid">
+                            <div class="keybinding-category">
+                                <h4>Window Management</h4>
+                                <ul>
+                                    <li><kbd>Super + j/k</kbd> - Move focus between windows</li>
+                                    <li><kbd>Super + h/l</kbd> - Resize windows</li>
+                                    <li><kbd>Super + Shift + j/k</kbd> - Move windows</li>
+                                    <li><kbd>Super + f</kbd> - Toggle fullscreen</li>
+                                    <li><kbd>Super + Shift + q</kbd> - Close window</li>
+                                </ul>
+                            </div>
+                            <div class="keybinding-category">
+                                <h4>Applications</h4>
+                                <ul>
+                                    <li><kbd>Super + Return</kbd> - Terminal</li>
+                                    <li><kbd>Super + d</kbd> - Application launcher</li>
+                                    <li><kbd>Super + w</kbd> - Web browser</li>
+                                    <li><kbd>Super + e</kbd> - File manager</li>
+                                    <li><kbd>Super + c</kbd> - Code editor</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-keyboard"></i>
+                            <strong>Learn More:</strong> See our comprehensive <a href="keybindings-reference.html">Keybindings Reference</a> for all available shortcuts.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="customization">Customization Guide</h2>
+                        
+                        <h3>Qtile Configuration</h3>
+                        <p>Qtile's configuration is written in Python, making it incredibly powerful and flexible:</p>
+                        
+                        <div class="code-block">
+                            <h4>Configuration File Location</h4>
+                            <pre><code># Main configuration file
+~/.config/qtile/config.py
+
+# Backup the original before modifying
+cp ~/.config/qtile/config.py ~/.config/qtile/config.py.backup</code></pre>
+                        </div>
+
+                        <h3>Common Customizations</h3>
+                        
+                        <h4>Changing Themes</h4>
+                        <p>KyOS comes with several built-in themes. Switch between them easily:</p>
+                        <div class="code-block">
+                            <pre><code># In your config.py, find the colors section
+colors = {
+    'theme': 'dracula',  # Options: dracula, nord, gruvbox, catppuccin
+}</code></pre>
+                        </div>
+
+                        <h4>Adding Custom Keybindings</h4>
+                        <div class="code-block">
+                            <pre><code># Add to the keys list in config.py
+Key([mod], "b", lazy.spawn("firefox"), desc="Launch Firefox"),
+Key([mod], "m", lazy.spawn("thunderbird"), desc="Launch Email"),</code></pre>
+                        </div>
+
+                        <h4>Workspace Configuration</h4>
+                        <div class="code-block">
+                            <pre><code># Customize workspace names and layouts
+groups = [
+    Group("1", label="󰣇", layout="monadtall"),
+    Group("2", label="", layout="monadtall"), 
+    Group("3", label="", layout="monadtall"),
+    Group("4", label="󰎄", layout="monadwide"),
+    Group("5", label="󰋩", layout="monadtall"),
+]</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="package-management">Package Management</h2>
+                        
+                        <h3>Pacman Basics</h3>
+                        <p>KyOS uses Arch Linux's powerful pacman package manager:</p>
+                        
+                        <div class="command-grid">
+                            <div class="command-group">
+                                <h4>System Updates</h4>
+                                <div class="code-block">
+                                    <pre><code># Update package database and system
+sudo pacman -Syu
+
+# Update package database only
+sudo pacman -Sy
+
+# Force refresh of package database
+sudo pacman -Syy</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="command-group">
+                                <h4>Installing Packages</h4>
+                                <div class="code-block">
+                                    <pre><code># Install a package
+sudo pacman -S package_name
+
+# Install multiple packages
+sudo pacman -S package1 package2 package3
+
+# Install from local file
+sudo pacman -U package.pkg.tar.xz</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="command-group">
+                                <h4>Removing Packages</h4>
+                                <div class="code-block">
+                                    <pre><code># Remove package
+sudo pacman -R package_name
+
+# Remove package and dependencies
+sudo pacman -Rs package_name
+
+# Remove package, deps, and config files
+sudo pacman -Rns package_name</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="command-group">
+                                <h4>Searching and Information</h4>
+                                <div class="code-block">
+                                    <pre><code># Search for packages
+pacman -Ss search_term
+
+# Get package information
+pacman -Si package_name
+
+# List installed packages
+pacman -Q</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>AUR (Arch User Repository)</h3>
+                        <p>Access thousands of additional packages through the AUR using yay:</p>
+                        
+                        <div class="code-block">
+                            <pre><code># Install AUR package
+yay -S aur_package_name
+
+# Update AUR packages
+yay -Syu
+
+# Search AUR
+yay -Ss search_term</code></pre>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>AUR Safety:</strong> Always review PKGBUILDs before installing AUR packages. The AUR contains user-submitted content that isn't officially verified.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="security-tools">Security Tools Suite</h2>
+                        
+                        <p>KyOS includes a comprehensive collection of security and penetration testing tools:</p>
+
+                        <h3>Network Security</h3>
+                        <ul>
+                            <li><strong>Nmap:</strong> Network discovery and security auditing</li>
+                            <li><strong>Wireshark:</strong> Network protocol analyzer</li>
+                            <li><strong>Netcat:</strong> Network utility for reading/writing network connections</li>
+                            <li><strong>Masscan:</strong> High-speed port scanner</li>
+                        </ul>
+
+                        <h3>Web Application Testing</h3>
+                        <ul>
+                            <li><strong>Burp Suite:</strong> Web application security testing platform</li>
+                            <li><strong>OWASP ZAP:</strong> Web application security scanner</li>
+                            <li><strong>SQLmap:</strong> Automatic SQL injection tool</li>
+                            <li><strong>Dirb/Gobuster:</strong> Directory and file brute-forcing tools</li>
+                        </ul>
+
+                        <h3>Forensics and Analysis</h3>
+                        <ul>
+                            <li><strong>Autopsy:</strong> Digital forensics platform</li>
+                            <li><strong>Volatility:</strong> Memory forensics framework</li>
+                            <li><strong>Binwalk:</strong> Firmware analysis tool</li>
+                            <li><strong>John the Ripper:</strong> Password cracking tool</li>
+                        </ul>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-shield-alt"></i>
+                            <strong>Ethical Use:</strong> These tools are for educational purposes, authorized testing, and improving security. Always ensure you have permission before testing any systems.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="development">Development Environment</h2>
+                        
+                        <h3>Pre-installed Development Tools</h3>
+                        <ul>
+                            <li><strong>VS Code:</strong> Feature-rich code editor</li>
+                            <li><strong>Git:</strong> Version control system</li>
+                            <li><strong>Python:</strong> Python 3 with pip and virtual environments</li>
+                            <li><strong>Node.js:</strong> JavaScript runtime with npm</li>
+                            <li><strong>Docker:</strong> Containerization platform</li>
+                            <li><strong>Build Tools:</strong> GCC, make, and development libraries</li>
+                        </ul>
+
+                        <h3>Setting Up Development Workflows</h3>
+                        
+                        <h4>Python Development</h4>
+                        <div class="code-block">
+                            <pre><code># Create virtual environment
+python -m venv myproject
+source myproject/bin/activate
+
+# Install packages
+pip install -r requirements.txt</code></pre>
+                        </div>
+
+                        <h4>Node.js Development</h4>
+                        <div class="code-block">
+                            <pre><code># Install Node Version Manager
+yay -S nvm
+
+# Use specific Node version
+nvm install node
+nvm use node</code></pre>
+                        </div>
+
+                        <h4>Docker Workflows</h4>
+                        <div class="code-block">
+                            <pre><code># Start Docker service
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add user to docker group
+sudo usermod -aG docker $USER</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="system-maintenance">System Maintenance</h2>
+                        
+                        <h3>Regular Maintenance Tasks</h3>
+                        
+                        <h4>System Updates</h4>
+                        <p>Keep your system updated regularly:</p>
+                        <div class="code-block">
+                            <pre><code># Full system update
+sudo pacman -Syu
+
+# Update AUR packages
+yay -Syu</code></pre>
+                        </div>
+
+                        <h4>Cleaning Package Cache</h4>
+                        <div class="code-block">
+                            <pre><code># Remove old package versions
+sudo pacman -Sc
+
+# Remove all cached packages
+sudo pacman -Scc
+
+# Clean AUR cache
+yay -Sc</code></pre>
+                        </div>
+
+                        <h4>Managing Services</h4>
+                        <div class="code-block">
+                            <pre><code># List running services
+systemctl list-units --type=service --state=running
+
+# Enable service at boot
+sudo systemctl enable service_name
+
+# Start service now
+sudo systemctl start service_name
+
+# Check service status
+systemctl status service_name</code></pre>
+                        </div>
+
+                        <h3>Log Management</h3>
+                        <div class="code-block">
+                            <pre><code># View system logs
+journalctl
+
+# View logs for specific service
+journalctl -u service_name
+
+# View recent logs
+journalctl -f
+
+# Clear old logs
+sudo journalctl --vacuum-time=2weeks</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="troubleshooting">Troubleshooting Common Issues</h2>
+                        
+                        <h3>Boot Issues</h3>
+                        
+                        <h4>System Won't Boot</h4>
+                        <ol>
+                            <li>Boot from KyOS live USB</li>
+                            <li>Mount your root partition: <code>sudo mount /dev/sdXY /mnt</code></li>
+                            <li>Chroot into system: <code>sudo arch-chroot /mnt</code></li>
+                            <li>Reinstall bootloader: <code>grub-install /dev/sdX && grub-mkconfig -o /boot/grub/grub.cfg</code></li>
+                        </ol>
+
+                        <h4>Graphics Issues</h4>
+                        <div class="code-block">
+                            <pre><code># Install appropriate graphics drivers
+# For NVIDIA
+sudo pacman -S nvidia nvidia-utils
+
+# For AMD
+sudo pacman -S xf86-video-amdgpu
+
+# For Intel
+sudo pacman -S xf86-video-intel</code></pre>
+                        </div>
+
+                        <h3>Network Issues</h3>
+                        <div class="code-block">
+                            <pre><code># Check network interface status
+ip link show
+
+# Restart NetworkManager
+sudo systemctl restart NetworkManager
+
+# Connect to WiFi manually
+nmcli device wifi connect "SSID" password "password"</code></pre>
+                        </div>
+
+                        <h3>Audio Issues</h3>
+                        <div class="code-block">
+                            <pre><code># Unmute audio
+amixer sset Master unmute
+amixer sset Master 50%
+
+# Restart audio service
+sudo systemctl restart alsa-state</code></pre>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-life-ring"></i>
+                            <strong>Need More Help?</strong> Visit our <a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">GitHub Discussions</a> for community support or check the <a href="troubleshooting.html">detailed troubleshooting guide</a>.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="advanced-topics">Advanced Topics</h2>
+                        
+                        <h3>Custom Kernel Compilation</h3>
+                        <p>For advanced users who need custom kernel features:</p>
+                        <div class="code-block">
+                            <pre><code># Install kernel build dependencies
+sudo pacman -S base-devel
+
+# Download kernel source
+git clone https://github.com/archlinux/linux.git
+cd linux
+
+# Configure and build
+make menuconfig
+make -j$(nproc)
+sudo make modules_install
+sudo make install</code></pre>
+                        </div>
+
+                        <h3>System Hardening</h3>
+                        <ul>
+                            <li>Configure firewall with ufw or iptables</li>
+                            <li>Set up AppArmor or SELinux</li>
+                            <li>Configure secure boot</li>
+                            <li>Implement disk encryption</li>
+                            <li>Harden SSH configuration</li>
+                        </ul>
+
+                        <h3>Backup Strategies</h3>
+                        <div class="code-block">
+                            <pre><code># System backup with rsync
+sudo rsync -aAXv / /backup/location --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"}
+
+# Snapshot with timeshift
+sudo timeshift --create --comments "Pre-update snapshot"</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="contributing">Contributing to KyOS</h2>
+                        
+                        <p>KyOS is an open-source project that welcomes contributions from the community:</p>
+
+                        <h3>Ways to Contribute</h3>
+                        <ul>
+                            <li><strong>Bug Reports:</strong> Report issues on our GitHub repository</li>
+                            <li><strong>Feature Requests:</strong> Suggest new features or improvements</li>
+                            <li><strong>Documentation:</strong> Help improve or translate documentation</li>
+                            <li><strong>Code Contributions:</strong> Submit pull requests for bug fixes or features</li>
+                            <li><strong>Testing:</strong> Test new releases and provide feedback</li>
+                        </ul>
+
+                        <h3>Development Setup</h3>
+                        <div class="code-block">
+                            <pre><code># Clone the repository
+git clone https://github.com/rubberpirate/kyos.git
+cd kyos
+
+# Install development dependencies
+sudo pacman -S archiso
+
+# Build test ISO
+sudo mkarchiso -v .</code></pre>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-heart"></i>
+                            <strong>Join the Community:</strong> Connect with other KyOS users and developers on our <a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">GitHub Discussions</a>.
+                        </div>
+                    </section>
+
+                    <div class="doc-navigation">
+                        <a href="installation-guide.html" class="nav-link next">
+                            <span>Next: Installation Guide</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                        <span>KyOS</span>
+                    </div>
+                    <p>The Dragon Arch - Powerful, Secure, Beautiful</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/rubberpirate/kyos/releases/latest" target="_blank">Download</a></li>
+                        <li><a href="complete-guide.html">Documentation</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos" target="_blank">Source Code</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki</a></li>
+                        <li><a href="https://qtile.org/" target="_blank">Qtile Docs</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/issues" target="_blank">Bug Reports</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Support Forum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KyOS Dragon Arch. Open source under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customization - KyOS Documentation</title>
+    <meta name="description" content="Complete guide to customizing your KyOS desktop environment, themes, and system settings.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="../index.html#home" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#installer" class="nav-link">Installer</a>
+                <a href="../index.html#desktop" class="nav-link">Desktop</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="../index.html#docs" class="nav-link">Docs</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <h3>Documentation</h3>
+                    <nav class="docs-nav">
+                        <a href="installation-guide.html" class="docs-nav-link">Installation Guide</a>
+                        <a href="quick-start.html" class="docs-nav-link">Quick Start</a>
+                        <a href="dual-boot-setup.html" class="docs-nav-link">Dual Boot Setup</a>
+                        <a href="system-requirements.html" class="docs-nav-link">System Requirements</a>
+                        <a href="qtile-basics.html" class="docs-nav-link">Qtile Basics</a>
+                        <a href="customization.html" class="docs-nav-link active">Customization</a>
+                        <a href="package-management.html" class="docs-nav-link">Package Management</a>
+                        <a href="security-tools.html" class="docs-nav-link">Security Tools</a>
+                        <a href="troubleshooting.html" class="docs-nav-link">Troubleshooting</a>
+                        <a href="contributing.html" class="docs-nav-link">Contributing</a>
+                    </nav>
+                </aside>
+                
+                <main class="docs-main">
+                    <div class="docs-header">
+                        <h1>Customization Guide</h1>
+                        <p class="docs-subtitle">Make KyOS truly yours with extensive customization options</p>
+                    </div>
+
+                    <div class="docs-content-body">
+                        <section class="docs-section">
+                            <h2>Overview</h2>
+                            <p>
+                                KyOS is built for customization. From Qtile window manager configuration to system themes,
+                                wallpapers, and terminal settings, you can tailor every aspect of your desktop environment.
+                            </p>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Qtile Configuration</h2>
+                            
+                            <h3>Configuration File Location</h3>
+                            <p>Qtile configuration is stored in Python files:</p>
+                            <div class="code-block">
+                                <pre><code># Main configuration
+~/.config/qtile/config.py
+
+# Additional modules (if used)
+~/.config/qtile/settings/
+~/.config/qtile/modules/</code></pre>
+                            </div>
+
+                            <h3>Basic Customizations</h3>
+                            
+                            <h4>Changing Key Bindings</h4>
+                            <div class="code-block">
+                                <pre><code># Example: Adding a custom keybinding
+from libqtile.config import Key
+from libqtile.lazy import lazy
+
+keys = [
+    # Launch terminal
+    Key([mod], "Return", lazy.spawn(terminal)),
+    
+    # Custom application launcher
+    Key([mod], "d", lazy.spawn("rofi -show drun")),
+    
+    # Volume controls
+    Key([], "XF86AudioRaiseVolume", lazy.spawn("amixer -q set Master 5%+")),
+    Key([], "XF86AudioLowerVolume", lazy.spawn("amixer -q set Master 5%-")),
+]</code></pre>
+                            </div>
+
+                            <h4>Workspace Configuration</h4>
+                            <div class="code-block">
+                                <pre><code># Customize workspace names and behavior
+groups = [
+    Group("1", label="🏠"),  # Home
+    Group("2", label="🌐"),  # Web
+    Group("3", label="💻"),  # Code
+    Group("4", label="📁"),  # Files
+    Group("5", label="🎵"),  # Music
+    Group("6", label="🎮"),  # Games
+]</code></pre>
+                            </div>
+
+                            <h4>Bar Configuration</h4>
+                            <div class="code-block">
+                                <pre><code># Customize the status bar
+from libqtile import bar, widget
+
+screens = [
+    Screen(
+        top=bar.Bar(
+            [
+                widget.GroupBox(
+                    highlight_method="block",
+                    inactive="#808080",
+                    active="#ffffff",
+                    this_current_screen_border="#00ff00",
+                ),
+                widget.Prompt(),
+                widget.WindowName(),
+                widget.Systray(),
+                widget.Clock(format='%Y-%m-%d %a %I:%M %p'),
+            ],
+            24,  # Bar height
+            background="#1a1a1a",
+        ),
+    ),
+]</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Themes and Appearance</h2>
+                            
+                            <h3>GTK Themes</h3>
+                            <p>Customize GTK applications appearance:</p>
+                            <div class="code-block">
+                                <pre><code># Install theme manager
+sudo pacman -S lxappearance
+
+# Popular dark themes
+sudo pacman -S arc-gtk-theme
+sudo pacman -S numix-gtk-theme
+yay -S dracula-gtk-theme</code></pre>
+                            </div>
+
+                            <h3>Icon Themes</h3>
+                            <div class="code-block">
+                                <pre><code># Popular icon themes
+sudo pacman -S papirus-icon-theme
+sudo pacman -S numix-icon-theme-git
+yay -S la-capitaine-icon-theme</code></pre>
+                            </div>
+
+                            <h3>Cursor Themes</h3>
+                            <div class="code-block">
+                                <pre><code># Install cursor themes
+sudo pacman -S xcursor-themes
+yay -S capitaine-cursors</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Wallpapers and Backgrounds</h2>
+                            
+                            <h3>Static Wallpapers</h3>
+                            <div class="code-block">
+                                <pre><code># Set wallpaper with feh
+feh --bg-scale /path/to/wallpaper.jpg
+
+# Set wallpaper with nitrogen
+nitrogen --set-scaled /path/to/wallpaper.jpg
+
+# Set wallpaper from terminal
+qtile cmd-obj -o core -f eval -a "core.group().screen.set_wallpaper('/path/to/wallpaper.jpg')"</code></pre>
+                            </div>
+
+                            <h3>Wallpaper Directories</h3>
+                            <p>KyOS includes beautiful wallpapers in:</p>
+                            <ul>
+                                <li><code>/usr/share/backgrounds/</code> - System wallpapers</li>
+                                <li><code>~/.local/share/backgrounds/</code> - User wallpapers</li>
+                                <li><code>~/.wallpapers/</code> - Custom wallpaper directory</li>
+                            </ul>
+
+                            <h3>Dynamic Wallpapers</h3>
+                            <div class="code-block">
+                                <pre><code># Install variety for wallpaper management
+yay -S variety
+
+# Auto-changing wallpapers with a script
+#!/bin/bash
+WALLPAPERS_DIR="$HOME/.wallpapers"
+while true; do
+    feh --bg-scale "$(find $WALLPAPERS_DIR -type f | shuf -n1)"
+    sleep 3600  # Change every hour
+done</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Terminal Customization</h2>
+                            
+                            <h3>Alacritty Configuration</h3>
+                            <p>Customize the default terminal emulator:</p>
+                            <div class="code-block">
+                                <pre><code># Alacritty config location
+~/.config/alacritty/alacritty.yml
+
+# Example color scheme and font configuration
+colors:
+  primary:
+    background: '#1a1a1a'
+    foreground: '#f8f8f2'
+  normal:
+    black:   '#000000'
+    red:     '#ff5555'
+    green:   '#50fa7b'
+    yellow:  '#f1fa8c'
+    blue:    '#bd93f9'
+    magenta: '#ff79c6'
+    cyan:    '#8be9fd'
+    white:   '#f8f8f2'
+
+font:
+  normal:
+    family: "JetBrains Mono"
+  size: 12</code></pre>
+                            </div>
+
+                            <h3>Zsh Configuration</h3>
+                            <div class="code-block">
+                                <pre><code># Install Oh My Zsh
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Popular themes
+ZSH_THEME="powerlevel10k/powerlevel10k"  # After installing powerlevel10k
+ZSH_THEME="agnoster"
+ZSH_THEME="robbyrussell"
+
+# Useful plugins
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    sudo
+    web-search
+)</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Application Launchers</h2>
+                            
+                            <h3>Rofi Configuration</h3>
+                            <div class="code-block">
+                                <pre><code># Rofi config location
+~/.config/rofi/config.rasi
+
+# Basic configuration
+configuration {
+    display-drun: "Applications:";
+    display-window: "Windows:";
+    drun-display-format: "{name}";
+    font: "JetBrains Mono 12";
+    modi: "window,run,drun";
+}
+
+# Apply themes
+rofi-theme-selector</code></pre>
+                            </div>
+
+                            <h3>Dmenu Alternative</h3>
+                            <div class="code-block">
+                                <pre><code># Install bemenu (Wayland-compatible)
+sudo pacman -S bemenu
+
+# Custom dmenu script
+#!/bin/bash
+bemenu-run \
+    --fn "JetBrains Mono 12" \
+    --tb "#1a1a1a" \
+    --tf "#00ff00" \
+    --fb "#1a1a1a" \
+    --ff "#ffffff" \
+    --hb "#00ff00" \
+    --hf "#000000"</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>System Customization</h2>
+                            
+                            <h3>Login Manager (SDDM)</h3>
+                            <div class="code-block">
+                                <pre><code># SDDM theme configuration
+sudo nano /etc/sddm.conf
+
+[Theme]
+Current=astronaut  # KyOS custom theme
+
+# Available themes location
+/usr/share/sddm/themes/</code></pre>
+                            </div>
+
+                            <h3>Boot Splash</h3>
+                            <div class="code-block">
+                                <pre><code># Install plymouth for boot splash
+sudo pacman -S plymouth
+
+# Set plymouth theme
+sudo plymouth-set-default-theme -R kyos-theme</code></pre>
+                            </div>
+
+                            <h3>System Sounds</h3>
+                            <div class="code-block">
+                                <pre><code># Disable system beep
+echo "blacklist pcspkr" | sudo tee /etc/modprobe.d/nobeep.conf
+
+# Custom notification sounds
+~/.local/share/sounds/</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Configuration Management</h2>
+                            
+                            <h3>Dotfiles Management</h3>
+                            <div class="code-block">
+                                <pre><code># Initialize dotfiles repository
+cd ~
+git init
+git remote add origin https://github.com/yourusername/dotfiles.git
+
+# Track important configs
+git add .config/qtile/
+git add .config/alacritty/
+git add .zshrc
+git add .vimrc
+
+# Commit and push
+git commit -m "Initial dotfiles"
+git push -u origin main</code></pre>
+                            </div>
+
+                            <h3>Backup and Restore</h3>
+                            <div class="code-block">
+                                <pre><code># Create backup script
+#!/bin/bash
+BACKUP_DIR="$HOME/dotfiles-backup-$(date +%Y%m%d)"
+mkdir -p "$BACKUP_DIR"
+
+# Backup important configs
+cp -r ~/.config/qtile "$BACKUP_DIR/"
+cp -r ~/.config/alacritty "$BACKUP_DIR/"
+cp ~/.zshrc "$BACKUP_DIR/"
+cp ~/.vimrc "$BACKUP_DIR/"
+
+echo "Backup created in $BACKUP_DIR"</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Advanced Customization</h2>
+                            
+                            <h3>Custom Qtile Widgets</h3>
+                            <div class="code-block">
+                                <pre><code># Create custom widget
+from libqtile import widget
+from libqtile.widget import base
+
+class CustomWidget(base.ThreadPoolText):
+    def __init__(self, **config):
+        super().__init__("", **config)
+        self.add_defaults(base.PollText.defaults)
+        
+    def poll(self):
+        # Your custom logic here
+        return "Custom Output"</code></pre>
+                            </div>
+
+                            <h3>Startup Applications</h3>
+                            <div class="code-block">
+                                <pre><code># Add to Qtile config.py
+import subprocess
+import os
+
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    subprocess.call([home])
+
+# Create autostart.sh
+#!/bin/bash
+picom &          # Compositor
+nitrogen --restore &  # Wallpaper
+nm-applet &      # Network manager
+blueman-applet & # Bluetooth
+dunst &          # Notifications</code></pre>
+                            </div>
+                        </section>
+
+                        <div class="docs-footer">
+                            <div class="docs-nav-buttons">
+                                <a href="qtile-basics.html" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i>
+                                    Qtile Basics
+                                </a>
+                                <a href="troubleshooting.html" class="btn btn-primary">
+                                    Troubleshooting
+                                    <i data-feather="arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution 
+                        designed for developers and enthusiasts.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 KyOS. Built with ❤️ for the Linux community.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

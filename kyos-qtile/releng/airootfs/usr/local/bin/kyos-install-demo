@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# Test script to demonstrate enhanced package installation visibility
+# This simulates what users will see during KyOS installation
+#
+
+echo "🐉 KyOS Installation Progress Demo"
+echo "=================================="
+echo ""
+
+# Simulate base system installation
+echo "🐉 ================================"
+echo "📦 INSTALLING BASE SYSTEM PACKAGES"
+echo "🐉 ================================"
+echo "You will see real-time progress below with visual indicators:"
+echo "  📦 = Package operations"
+echo "  🔍 = Checking/verification"
+echo "  📥 = Downloading"
+echo "  🧩 = Dependency resolution"
+echo ""
+
+echo "🚀 Installing 12 base system packages..."
+echo "📋 Packages: base base-devel linux linux-firmware grub efibootmgr dosfstools os-prober mtools networkmanager dhcpcd git sudo"
+echo ""
+
+# Simulate package installation output
+packages=(
+    "base"
+    "base-devel" 
+    "linux"
+    "linux-firmware"
+    "grub"
+    "efibootmgr"
+    "dosfstools"
+    "os-prober"
+    "mtools"
+    "networkmanager"
+    "dhcpcd"
+    "git"
+    "sudo"
+)
+
+for i in "${!packages[@]}"; do
+    pkg="${packages[$i]}"
+    current=$((i + 1))
+    total=${#packages[@]}
+    
+    echo "📦 ($current/$total) Installing $pkg..."
+    sleep 0.5
+    echo "🔍 checking dependencies..."
+    sleep 0.3
+    echo "🧩 resolving dependencies..."
+    sleep 0.3
+    echo "📥 downloading $pkg..."
+    sleep 0.4
+    echo "✅ $pkg installed successfully"
+    echo ""
+done
+
+echo ""
+echo "✅ Base system installation completed successfully!"
+echo "📊 Installed 12 packages successfully"
+echo ""
+
+# Simulate desktop package installation
+echo "🐉 ================================="
+echo "🖥️  INSTALLING DESKTOP PACKAGES"
+echo "🐉 ================================="
+echo ""
+
+desktop_packages=("qtile" "firefox" "alacritty" "thunar" "neofetch")
+
+for i in "${!desktop_packages[@]}"; do
+    pkg="${desktop_packages[$i]}"
+    current=$((i + 1))
+    total=${#desktop_packages[@]}
+    
+    echo ""
+    echo "┌─────────────────────────────────────────────────────────────┐"
+    echo "│ [$current/$total] Installing: $pkg"
+    echo "└─────────────────────────────────────────────────────────────┘"
+    echo ""
+    
+    sleep 0.3
+    echo "  📦 Installing $pkg..."
+    sleep 0.4
+    echo "  🔍 Checking package integrity..."
+    sleep 0.3
+    echo "  📥 Downloading package files..."
+    sleep 0.5
+    echo "  🧩 Resolving dependencies..."
+    sleep 0.3
+    echo ""
+    echo "  ✅ Successfully installed: $pkg"
+    echo ""
+    
+    percentage=$((current * 100 / total))
+    echo "🚀 Progress: $percentage% ($current/$total packages completed)"
+    echo ""
+done
+
+echo ""
+echo "🎉 Installation Complete!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ All packages installed successfully"
+echo "🐉 Welcome to KyOS - Dragon Arch!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# KyOS Installation System Help
+cat << 'EOF'
+KyOS Installation System (kyos-install)
+======================================
+
+DESCRIPTION:
+    The unified installation system for KyOS (Kage's Operating System).
+    Provides a professional Text User Interface (TUI) for installing KyOS
+    with support for BlackArch repository, NVIDIA drivers, and advanced features.
+    
+    Featuring the iconic KyOS dragon logo - representing power, precision,
+    and the mystical art of system administration.
+
+USAGE:
+    kyos-install
+
+FEATURES:
+    • Professional TUI interface with dragon-inspired branding
+    • Automated and interactive installation modes
+    • BlackArch security repository access (2600+ tools available)
+    • NVIDIA driver installation and configuration
+    • ZRAM compressed swap support
+    • VirtualBox optimization and compatibility
+    • Disk encryption support
+    • Custom user configuration
+    • Multiple filesystem support (btrfs, ext4)
+    • Multiple kernel options (linux, linux-lts, linux-zen)
+
+INSTALLATION MODES:
+    • Automated Mode: Quick installation with sensible defaults
+    • Interactive Mode: Full configuration control
+
+REQUIREMENTS:
+    • UEFI or BIOS system
+    • Internet connection
+    • 4GB RAM minimum (8GB recommended)
+    • 40GB disk space minimum
+
+KEYBOARD SHORTCUTS:
+    • Tab/Shift+Tab: Navigate options
+    • Space: Select/deselect options  
+    • Enter: Confirm selection
+    • Ctrl+C: Cancel installation
+
+SUPPORT:
+    For help and support, visit: https://github.com/kyos-project/kyos
+
+AUTHORS:
+    KyOS Development Team
+    Based on work by Derek Taylor (DistroTube)
+
+LICENSE:
+    GPL-3.0
+
+EOF

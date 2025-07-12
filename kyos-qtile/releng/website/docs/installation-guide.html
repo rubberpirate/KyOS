@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Guide - KyOS Documentation</title>
+    <meta name="description" content="Complete guide to installing KyOS on your system with step-by-step instructions.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+    
+    <style>
+        .doc-nav {
+            position: fixed;
+            top: 80px;
+            left: 2rem;
+            width: 250px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        .doc-content {
+            margin-left: 300px;
+            padding: var(--spacing-3xl) var(--spacing-lg);
+            max-width: 800px;
+        }
+        
+        .doc-nav h4 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            font-size: 1rem;
+        }
+        
+        .doc-nav ul {
+            list-style: none;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .doc-nav li {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .doc-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            display: block;
+            transition: all var(--transition-fast);
+        }
+        
+        .doc-nav a:hover {
+            background: var(--bg-tertiary);
+            color: var(--primary-color);
+        }
+        
+        .doc-nav a.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .code-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .step {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-xl) 0;
+        }
+        
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: var(--spacing-md);
+        }
+        
+        @media (max-width: 1200px) {
+            .doc-nav {
+                display: none;
+            }
+            
+            .doc-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Navigation -->
+    <nav class="doc-nav">
+        <h4>Getting Started</h4>
+        <ul>
+            <li><a href="#overview" class="active">Overview</a></li>
+            <li><a href="#requirements">Requirements</a></li>
+            <li><a href="#preparation">Preparation</a></li>
+        </ul>
+        
+        <h4>Installation</h4>
+        <ul>
+            <li><a href="#booting">Booting Live ISO</a></li>
+            <li><a href="#installer">Running Installer</a></li>
+            <li><a href="#partitioning">Partitioning</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+        </ul>
+        
+        <h4>Post-Installation</h4>
+        <ul>
+            <li><a href="#first-boot">First Boot</a></li>
+            <li><a href="#updates">Updates</a></li>
+            <li><a href="#customization">Customization</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="doc-content">
+        <h1>KyOS Installation Guide</h1>
+        <p class="hero-subtitle">
+            Complete step-by-step guide to installing KyOS on your system. 
+            This guide covers everything from preparation to post-installation setup.
+        </p>
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>
+                KyOS features an advanced TUI (Text User Interface) installer that makes installation 
+                simple and straightforward. The installer supports multiple partitioning modes including 
+                dual-boot scenarios and provides automatic configuration for most hardware.
+            </p>
+            
+            <div class="info-box">
+                <h4><i data-feather="info"></i> What makes KyOS installer special?</h4>
+                <ul>
+                    <li>Beautiful TUI with intuitive navigation</li>
+                    <li>Automatic privilege escalation - no sudo required</li>
+                    <li>Smart dual-boot detection and setup</li>
+                    <li>Automatic dotfiles and VM configuration</li>
+                    <li>Comprehensive error handling and logging</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="requirements">
+            <h2>System Requirements</h2>
+            <div class="step">
+                <h3>Minimum Requirements</h3>
+                <ul>
+                    <li><strong>Architecture:</strong> 64-bit (x86_64) processor</li>
+                    <li><strong>Memory:</strong> 2 GB RAM (4 GB recommended)</li>
+                    <li><strong>Storage:</strong> 20 GB free disk space (30 GB recommended)</li>
+                    <li><strong>Graphics:</strong> Any graphics card with basic 2D acceleration</li>
+                    <li><strong>Network:</strong> Internet connection for package downloads</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Recommended Specifications</h3>
+                <ul>
+                    <li><strong>Memory:</strong> 8 GB RAM or more</li>
+                    <li><strong>Storage:</strong> SSD with 50 GB+ free space</li>
+                    <li><strong>Graphics:</strong> Dedicated GPU for better performance</li>
+                    <li><strong>Network:</strong> Ethernet connection for faster downloads</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="preparation">
+            <h2>Preparation</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div>
+                    <h3>Download KyOS ISO</h3>
+                    <p>Download the latest KyOS ISO from the official website and verify its integrity.</p>
+                    <div class="code-block">
+                        <pre># Download the ISO (example)
+wget https://kyos.org/downloads/kyos-2024.01-x86_64.iso
+
+# Verify checksum
+sha256sum kyos-2024.01-x86_64.iso</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div>
+                    <h3>Create Bootable USB</h3>
+                    <p>Create a bootable USB drive using your preferred method:</p>
+                    <div class="code-block">
+                        <pre># Using dd command (Linux/macOS)
+sudo dd if=kyos-2024.01-x86_64.iso of=/dev/sdX bs=4M status=progress
+
+# Using Rufus (Windows) or Etcher (cross-platform) is recommended</pre>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <h4><i data-feather="alert-triangle"></i> Warning</h4>
+                        <p>Make sure to replace <code>/dev/sdX</code> with your actual USB device. 
+                        This operation will erase all data on the USB drive.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div>
+                    <h3>Backup Important Data</h3>
+                    <p>Before installation, ensure you have backed up any important data from your system.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="booting">
+            <h2>Booting from Live ISO</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div>
+                    <h3>Boot from USB</h3>
+                    <p>Insert the USB drive and boot from it. You may need to:</p>
+                    <ul>
+                        <li>Access BIOS/UEFI settings (usually F2, F12, or Delete during boot)</li>
+                        <li>Disable Secure Boot if necessary</li>
+                        <li>Set USB as first boot device</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div>
+                    <h3>Live Environment</h3>
+                    <p>KyOS will boot directly into the Qtile desktop environment without requiring a display manager. 
+                    You'll be automatically logged in as the 'live' user.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="installer">
+            <h2>Running the Installer</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div>
+                    <h3>Launch Installer</h3>
+                    <p>Open a terminal and run the installer:</p>
+                    <div class="code-block">
+                        <pre># Simply run the installer command
+kyosinstall</pre>
+                    </div>
+                    <p>No sudo required! The installer handles privilege escalation automatically.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div>
+                    <h3>Choose Installation Mode</h3>
+                    <p>Select between:</p>
+                    <ul>
+                        <li><strong>Automated:</strong> Uses sensible defaults for quick installation</li>
+                        <li><strong>Interactive:</strong> Full control over all settings</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="partitioning">
+            <h2>Partitioning Options</h2>
+            
+            <div class="step">
+                <h3>Full Disk Installation</h3>
+                <p>Erases the entire selected disk and installs KyOS. Recommended for dedicated systems.</p>
+            </div>
+
+            <div class="step">
+                <h3>Dual Boot Installation</h3>
+                <p>Installs KyOS alongside existing operating systems using unallocated space. 
+                The installer will automatically detect and preserve existing OS installations.</p>
+                
+                <div class="info-box">
+                    <h4><i data-feather="info"></i> Dual Boot Requirements</h4>
+                    <ul>
+                        <li>Minimum 30 GB unallocated space</li>
+                        <li>Existing OS should have its bootloader intact</li>
+                        <li>UEFI systems: EFI system partition will be shared</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Manual Partitioning</h3>
+                <p>For advanced users who want complete control over partition layout. 
+                The installer will launch a partition manager and guide you through the process.</p>
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>System Configuration</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div>
+                    <h3>Basic Settings</h3>
+                    <p>Configure essential system settings:</p>
+                    <ul>
+                        <li>Username and password</li>
+                        <li>Hostname</li>
+                        <li>Timezone and locale</li>
+                        <li>Keyboard layout</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div>
+                    <h3>Additional Options</h3>
+                    <p>Choose optional features:</p>
+                    <ul>
+                        <li>Disk encryption (LUKS)</li>
+                        <li>Swap partition</li>
+                        <li>NVIDIA driver support</li>
+                        <li>BlackArch repository (penetration testing tools)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="first-boot">
+            <h2>First Boot</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div>
+                    <h3>Automatic Login</h3>
+                    <p>After installation, your system will automatically log you into the Qtile desktop environment.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div>
+                    <h3>Dotfiles Installation</h3>
+                    <p>KyOS automatically installs curated dotfiles from the kyos repository, 
+                    providing a beautiful and functional desktop out of the box.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div>
+                    <h3>VM Optimizations</h3>
+                    <p>If running in a virtual machine, additional configurations are automatically applied 
+                    for optimal performance.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="updates">
+            <h2>System Updates</h2>
+            
+            <div class="step">
+                <h3>Update System</h3>
+                <p>Keep your KyOS installation up to date:</p>
+                <div class="code-block">
+                    <pre># Update package database and system
+doas pacman -Syu
+
+# Update AUR packages (if enabled)
+yay -Syu</pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="customization">
+            <h2>Customization</h2>
+            
+            <div class="step">
+                <h3>Qtile Configuration</h3>
+                <p>Customize your Qtile window manager:</p>
+                <div class="code-block">
+                    <pre># Edit Qtile configuration
+nano ~/.config/qtile/config.py
+
+# Restart Qtile to apply changes
+# Use Mod+Ctrl+R (default keybinding)</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Theme Switching</h3>
+                <p>KyOS comes with multiple themes that can be easily switched using the included scripts.</p>
+            </div>
+        </section>
+
+        <div class="info-box">
+            <h4><i data-feather="help-circle"></i> Need Help?</h4>
+            <p>If you encounter any issues during installation, check the installation logs or visit our community for support.</p>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>
+        feather.replace();
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.doc-nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Update active link
+                    document.querySelectorAll('.doc-nav a').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Update active navigation based on scroll position
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const scrollPos = window.scrollY + 100;
+            
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const bottom = top + section.offsetHeight;
+                const id = section.getAttribute('id');
+                const link = document.querySelector(`.doc-nav a[href="#${id}"]`);
+                
+                if (scrollPos >= top && scrollPos <= bottom) {
+                    document.querySelectorAll('.doc-nav a').forEach(l => l.classList.remove('active'));
+                    if (link) link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

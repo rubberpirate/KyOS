@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - KyOS Documentation</title>
+    <meta name="description" content="Frequently asked questions about KyOS installation, configuration, and usage.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="faq.html" class="active">FAQ</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                </ul>
+                
+                <h4>Getting Started</h4>
+                <ul class="docs-menu">
+                    <li><a href="quick-start.html">Quick Start</a></li>
+                    <li><a href="first-steps.html">First Steps</a></li>
+                    <li><a href="package-management.html">Package Management</a></li>
+                </ul>
+                
+                <h4>Desktop Environment</h4>
+                <ul class="docs-menu">
+                    <li><a href="qtile-basics.html">Qtile Basics</a></li>
+                    <li><a href="keybindings.html">Keybindings</a></li>
+                    <li><a href="customization.html">Customization</a></li>
+                    <li><a href="themes.html">Themes</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Frequently Asked Questions</h1>
+                <p class="docs-subtitle">
+                    Find answers to common questions about KyOS installation, configuration, and usage.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>General Questions</h2>
+                
+                <div class="faq-item">
+                    <h3>What is KyOS?</h3>
+                    <p>KyOS is a modern, powerful, and beautiful Arch Linux-based distribution featuring the Qtile window manager, a user-friendly TUI installer, and carefully curated desktop environment designed for developers and enthusiasts.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Is KyOS suitable for beginners?</h3>
+                    <p>Yes! While KyOS is based on Arch Linux, it includes an intuitive installer and pre-configured desktop environment that makes it accessible to users new to Linux. The TUI installer handles most of the complex setup automatically.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What desktop environment does KyOS use?</h3>
+                    <p>KyOS uses Qtile, a highly configurable tiling window manager written in Python. It comes pre-configured with beautiful themes, useful widgets, and sensible keybindings while remaining fully customizable.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How often is KyOS updated?</h3>
+                    <p>KyOS follows a rolling release model based on Arch Linux, meaning you receive the latest updates continuously. Major ISO releases are created periodically with updated installer features and system improvements.</p>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Installation Questions</h2>
+                
+                <div class="faq-item">
+                    <h3>What are the minimum system requirements?</h3>
+                    <p>KyOS requires:</p>
+                    <ul>
+                        <li>64-bit processor (x86_64)</li>
+                        <li>2 GB RAM minimum (4 GB recommended)</li>
+                        <li>20 GB free disk space</li>
+                        <li>Internet connection for installation</li>
+                        <li>UEFI or Legacy BIOS support</li>
+                    </ul>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I dual boot KyOS with Windows?</h3>
+                    <p>Yes! The KyOS installer includes dual-boot support. You can install KyOS alongside Windows by selecting the "Dual Boot (Unallocated Space)" option in the installer. Make sure to have unallocated space available on your drive.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Do I need to manually partition my drive?</h3>
+                    <p>No, manual partitioning is optional. The installer offers three options:</p>
+                    <ul>
+                        <li><strong>Full Disk Installation</strong>: Automatic partitioning (easiest)</li>
+                        <li><strong>Dual Boot</strong>: Install alongside existing OS</li>
+                        <li><strong>Manual Partitioning</strong>: Full control over partitions (advanced)</li>
+                    </ul>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What if the installation fails?</h3>
+                    <p>If installation fails:</p>
+                    <ol>
+                        <li>Check the error message displayed</li>
+                        <li>Ensure your system meets minimum requirements</li>
+                        <li>Verify internet connectivity</li>
+                        <li>Try booting with different kernel parameters</li>
+                        <li>Check our <a href="troubleshooting.html">troubleshooting guide</a></li>
+                    </ol>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I install KyOS in a virtual machine?</h3>
+                    <p>Yes! KyOS works well in virtual machines. The installer includes VM-specific optimizations. Recommended VM settings:</p>
+                    <ul>
+                        <li>4 GB RAM or more</li>
+                        <li>30+ GB disk space</li>
+                        <li>Enable 3D acceleration if available</li>
+                        <li>2+ CPU cores for better performance</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Usage Questions</h2>
+                
+                <div class="faq-item">
+                    <h3>How do I install software on KyOS?</h3>
+                    <p>KyOS uses pacman (Arch Linux package manager) and supports AUR packages:</p>
+                    <div class="code-block">
+                        <pre><code># Install from official repositories
+doas pacman -S package-name
+
+# Search for packages
+pacman -Ss search-term
+
+# Install AUR packages (install yay first)
+yay -S aur-package-name</code></pre>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Why does KyOS use 'doas' instead of 'sudo'?</h3>
+                    <p>KyOS uses doas for security reasons. Doas is simpler, more secure, and has a smaller attack surface than sudo. It provides the same functionality with better security defaults. If you prefer sudo, you can install it: <code>doas pacman -S sudo</code></p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How do I update my system?</h3>
+                    <p>Update your KyOS system regularly:</p>
+                    <div class="code-block">
+                        <pre><code># Update package database and all packages
+doas pacman -Syu
+
+# Force refresh package database
+doas pacman -Syyu</code></pre>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How do I change the desktop theme?</h3>
+                    <p>KyOS themes can be customized by editing configuration files:</p>
+                    <ul>
+                        <li>Qtile config: <code>~/.config/qtile/config.py</code></li>
+                        <li>Terminal colors: <code>~/.config/alacritty/alacritty.yml</code></li>
+                        <li>GTK themes: <code>~/.config/gtk-3.0/settings.ini</code></li>
+                    </ul>
+                    <p>See our <a href="customization.html">customization guide</a> for detailed instructions.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What are the essential Qtile keybindings?</h3>
+                    <p>Here are the most important keybindings in KyOS:</p>
+                    <ul>
+                        <li><kbd>Super + Enter</kbd>: Open terminal</li>
+                        <li><kbd>Super + r</kbd>: Application launcher</li>
+                        <li><kbd>Super + q</kbd>: Close window</li>
+                        <li><kbd>Super + Tab</kbd>: Switch between windows</li>
+                        <li><kbd>Super + [1-9]</kbd>: Switch to workspace</li>
+                        <li><kbd>Super + Shift + [1-9]</kbd>: Move window to workspace</li>
+                    </ul>
+                    <p>See the complete list in our <a href="keybindings.html">keybindings guide</a>.</p>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Troubleshooting</h2>
+                
+                <div class="faq-item">
+                    <h3>My WiFi isn't working after installation</h3>
+                    <p>Try these solutions:</p>
+                    <ol>
+                        <li>Check if NetworkManager is running: <code>systemctl status NetworkManager</code></li>
+                        <li>Start NetworkManager: <code>doas systemctl enable --now NetworkManager</code></li>
+                        <li>Connect to WiFi: <code>nmcli device wifi connect "SSID" password "password"</code></li>
+                        <li>Check for driver issues: <code>lspci -k | grep -A3 Network</code></li>
+                    </ol>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Audio isn't working</h3>
+                    <p>Common audio fixes:</p>
+                    <ol>
+                        <li>Check if audio is muted: <code>pactl list sinks</code></li>
+                        <li>Unmute audio: <code>pactl set-sink-mute @DEFAULT_SINK@ false</code></li>
+                        <li>Install additional packages: <code>doas pacman -S pulseaudio-alsa alsa-utils</code></li>
+                        <li>Add user to audio group: <code>doas usermod -a -G audio $USER</code></li>
+                    </ol>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Display resolution is wrong</h3>
+                    <p>Fix display resolution:</p>
+                    <div class="code-block">
+                        <pre><code># List available resolutions
+xrandr
+
+# Set specific resolution
+xrandr --output HDMI-1 --mode 1920x1080
+
+# Make permanent by adding to ~/.xinitrc
+echo "xrandr --output HDMI-1 --mode 1920x1080" >> ~/.xinitrc</code></pre>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Package installation fails</h3>
+                    <p>If package installation fails:</p>
+                    <ol>
+                        <li>Update package database: <code>doas pacman -Sy</code></li>
+                        <li>Check internet connection: <code>ping archlinux.org</code></li>
+                        <li>Clear package cache: <code>doas pacman -Scc</code></li>
+                        <li>Check for conflicting packages: <code>pacman -Qdt</code></li>
+                    </ol>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Advanced Questions</h2>
+                
+                <div class="faq-item">
+                    <h3>Can I customize the Qtile configuration?</h3>
+                    <p>Absolutely! Qtile is highly customizable through Python configuration:</p>
+                    <ul>
+                        <li>Edit <code>~/.config/qtile/config.py</code></li>
+                        <li>Modify layouts, keys, widgets, and themes</li>
+                        <li>Restart Qtile: <kbd>Super + Ctrl + r</kbd></li>
+                        <li>Check <a href="qtile-basics.html">Qtile basics</a> for more details</li>
+                    </ul>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How do I enable AUR packages?</h3>
+                    <p>Install an AUR helper like yay:</p>
+                    <div class="code-block">
+                        <pre><code># Clone and install yay
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+# Now you can install AUR packages
+yay -S visual-studio-code-bin
+yay -S google-chrome</code></pre>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How do I backup my KyOS configuration?</h3>
+                    <p>Backup important configuration files:</p>
+                    <div class="code-block">
+                        <pre><code># Backup home directory configs
+tar -czf kyos-backup.tar.gz ~/.config ~/.bashrc ~/.xinitrc
+
+# Or use git for dotfiles management
+cd ~
+git init
+git add .config .bashrc .xinitrc
+git commit -m "Initial dotfiles backup"</code></pre>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I contribute to KyOS development?</h3>
+                    <p>Yes! KyOS welcomes contributions:</p>
+                    <ul>
+                        <li>Report bugs and issues</li>
+                        <li>Submit feature requests</li>
+                        <li>Contribute code improvements</li>
+                        <li>Help with documentation</li>
+                        <li>Share your customizations</li>
+                    </ul>
+                    <p>Check our <a href="contributing.html">contributing guide</a> for more information.</p>
+                </div>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="configuration.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    Configuration
+                </a>
+                <a href="system-requirements.html" class="nav-next">
+                    System Requirements
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+
+    <style>
+        .faq-item {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .faq-item ul, .faq-item ol {
+            margin: 0.5rem 0 0.5rem 1.5rem;
+        }
+
+        .faq-item li {
+            margin-bottom: 0.25rem;
+        }
+
+        kbd {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+    </style>
+</body>
+</html>

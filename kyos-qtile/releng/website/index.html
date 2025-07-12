@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KyOS - Powerful and Beautiful Linux Distribution</title>
+    <meta name="description" content="KyOS is a powerful and beautiful Arch Linux-based distribution featuring Qtile window manager, TUI installer, and modern desktop environment.">
+    <meta name="keywords" content="KyOS, Linux, Arch Linux, Qtile, TUI, installer, desktop environment">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/images/kyos.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#installer" class="nav-link">Installer</a>
+                <a href="#desktop" class="nav-link">Desktop</a>
+                <a href="#download" class="nav-link">Download</a>
+                <a href="#docs" class="nav-link">Docs</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">KyOS</span>
+                    <br>Powerful. Beautiful. Simple.
+                </h1>
+                <p class="hero-subtitle">
+                    Experience the perfect blend of power and elegance with KyOS - 
+                    an Arch Linux-based distribution featuring Qtile window manager, 
+                    intuitive TUI installer, and stunning desktop environment.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <i data-feather="download"></i>
+                        Download KyOS
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <i data-feather="play-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="terminal-window">
+                    <div class="terminal-header">
+                        <div class="terminal-buttons">
+                            <span class="btn-close"></span>
+                            <span class="btn-minimize"></span>
+                            <span class="btn-maximize"></span>
+                        </div>
+                        <span class="terminal-title">KyOS Installer</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="prompt">$</span>
+                            <span class="command">kyosinstall</span>
+                        </div>
+                        <div class="terminal-line output">
+                            <span class="text-blue">╔══════════════════════════════════════╗</span>
+                        </div>
+                        <div class="terminal-line output">
+                            <span class="text-blue">║</span>
+                            <span class="text-white">     Welcome to KyOS Installer     </span>
+                            <span class="text-blue">║</span>
+                        </div>
+                        <div class="terminal-line output">
+                            <span class="text-blue">╚══════════════════════════════════════╝</span>
+                        </div>
+                        <div class="terminal-line output">
+                            <span class="text-green">✓ System checks passed</span>
+                        </div>
+                        <div class="terminal-line output">
+                            <span class="text-yellow">→ Ready to install KyOS</span>
+                        </div>
+                        <div class="terminal-cursor"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Choose KyOS?</h2>
+                <p class="section-subtitle">
+                    Discover the features that make KyOS the perfect choice for developers, 
+                    enthusiasts, and anyone who values performance and aesthetics.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="zap"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Built on Arch Linux with Qtile window manager for maximum performance and minimal resource usage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="terminal"></i>
+                    </div>
+                    <h3>TUI Installer</h3>
+                    <p>Beautiful text-based installer with dual-boot support, manual partitioning, and automated setup.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="layout"></i>
+                    </div>
+                    <h3>Modern Desktop</h3>
+                    <p>Stunning Qtile configuration with carefully crafted dotfiles and beautiful themes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="shield"></i>
+                    </div>
+                    <h3>Secure by Default</h3>
+                    <p>Security-focused configuration with doas instead of sudo and hardened system settings.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="users"></i>
+                    </div>
+                    <h3>User-Friendly</h3>
+                    <p>Easy installation process with no need for manual privilege escalation or complex commands.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <h3>Highly Customizable</h3>
+                    <p>Extensive customization options with pre-configured dotfiles and easy theme switching.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installer Showcase -->
+    <section id="installer" class="installer-showcase">
+        <div class="container">
+            <div class="showcase-content">
+                <div class="showcase-text">
+                    <h2>Revolutionary TUI Installer</h2>
+                    <p>
+                        Experience the most advanced text-based installer in the Linux world. 
+                        KyOS installer combines simplicity with powerful features.
+                    </p>
+                    <ul class="feature-list">
+                        <li>
+                            <i data-feather="check-circle"></i>
+                            <span>Automatic privilege escalation</span>
+                        </li>
+                        <li>
+                            <i data-feather="check-circle"></i>
+                            <span>Dual-boot with Windows/Linux</span>
+                        </li>
+                        <li>
+                            <i data-feather="check-circle"></i>
+                            <span>Manual partitioning support</span>
+                        </li>
+                        <li>
+                            <i data-feather="check-circle"></i>
+                            <span>Automatic dotfiles installation</span>
+                        </li>
+                        <li>
+                            <i data-feather="check-circle"></i>
+                            <span>VM-specific optimizations</span>
+                        </li>
+                    </ul>
+                    <a href="#download" class="btn btn-primary">Try It Now</a>
+                </div>
+                <div class="showcase-image">
+                    <div class="installer-preview">
+                        <div class="installer-header">
+                            <span class="installer-title">KyOS Installation Menu</span>
+                        </div>
+                        <div class="installer-content">
+                            <div class="menu-item active">
+                                <span class="menu-number">1.</span>
+                                <span class="menu-text">Full Disk Installation</span>
+                            </div>
+                            <div class="menu-item">
+                                <span class="menu-number">2.</span>
+                                <span class="menu-text">Dual Boot (Unallocated Space)</span>
+                            </div>
+                            <div class="menu-item">
+                                <span class="menu-number">3.</span>
+                                <span class="menu-text">Manual Partitioning</span>
+                            </div>
+                            <div class="menu-separator"></div>
+                            <div class="menu-status">
+                                <span class="status-text">Status: Ready to install</span>
+                                <span class="status-indicator"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Desktop Gallery -->
+    <section id="desktop" class="desktop-gallery">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Beautiful Desktop Environment</h2>
+                <p class="section-subtitle">
+                    Immerse yourself in a carefully crafted desktop experience with Qtile window manager.
+                </p>
+            </div>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <img src="assets/images/desktop.png" alt="KyOS Desktop Environment" class="desktop-screenshot">
+                    </div>
+                    <h3>Default Desktop</h3>
+                    <p>Clean and minimal Qtile setup with custom bar and workspace management.</p>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <img src="assets/images/tilling_windows.png" alt="KyOS Tiling Windows" class="desktop-screenshot">
+                    </div>
+                    <h3>Tiling Window Manager</h3>
+                    <p>Efficient window management with Qtile's powerful tiling capabilities.</p>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <img src="assets/images/floating_windows.png" alt="KyOS Floating Windows" class="desktop-screenshot">
+                    </div>
+                    <h3>Flexible Layout</h3>
+                    <p>Switch between tiling and floating layouts seamlessly as needed.</p>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <img src="assets/images/terminal_packages_support.png" alt="KyOS Terminal and Package Support" class="desktop-screenshot">
+                    </div>
+                    <h3>Development Ready</h3>
+                    <p>Perfect environment for coding with powerful terminal and package management.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <div class="download-content">
+                <h2>Ready to Experience KyOS?</h2>
+                <p>
+                    Download the latest version of KyOS and discover the perfect balance 
+                    of power, beauty, and simplicity.
+                </p>
+                <div class="download-options">
+                    <div class="download-card">
+                        <div class="download-header">
+                            <h3>Latest Release</h3>
+                            <span class="version-badge">v2024.01</span>
+                        </div>
+                        <div class="download-details">
+                            <div class="detail-item">
+                                <i data-feather="hard-drive"></i>
+                                <span>Size: 2.8 GB</span>
+                            </div>
+                            <div class="detail-item">
+                                <i data-feather="calendar"></i>
+                                <span>Released: January 2024</span>
+                            </div>
+                            <div class="detail-item">
+                                <i data-feather="shield"></i>
+                                <span>SHA256 checksum included</span>
+                            </div>
+                        </div>
+                        <div class="download-buttons">
+                            <a href="https://github.com/rubberpirate/kyos/releases/latest" class="btn btn-primary btn-block" target="_blank">
+                                <i data-feather="download"></i>
+                                Download ISO
+                            </a>
+                            <a href="https://github.com/rubberpirate/kyos/releases" class="btn btn-secondary btn-block" target="_blank">
+                                <i data-feather="file-text"></i>
+                                View Releases
+                            </a>
+                        </div>
+                    </div>
+                    <div class="download-info">
+                        <h4>System Requirements</h4>
+                        <ul class="requirements-list">
+                            <li>
+                                <i data-feather="cpu"></i>
+                                <span>64-bit processor (x86_64)</span>
+                            </li>
+                            <li>
+                                <i data-feather="database"></i>
+                                <span>2 GB RAM (4 GB recommended)</span>
+                            </li>
+                            <li>
+                                <i data-feather="hard-drive"></i>
+                                <span>20 GB free disk space</span>
+                            </li>
+                            <li>
+                                <i data-feather="wifi"></i>
+                                <span>Internet connection for installation</span>
+                            </li>
+                        </ul>
+                        <div class="verification-info">
+                            <h4>Verification</h4>
+                            <p>Always verify your download integrity:</p>
+                            <code class="verification-code">
+                                sha256sum kyos-2024.01-x86_64.iso
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation -->
+    <section id="docs" class="documentation">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Documentation & Support</h2>
+                <p class="section-subtitle">
+                    Everything you need to get started with KyOS and make the most of your experience.
+                </p>
+            </div>
+            <div class="docs-grid">
+                <div class="doc-card featured">
+                    <div class="doc-icon">
+                        <i data-feather="book"></i>
+                    </div>
+                    <h3>Complete KyOS Guide</h3>
+                    <p>Everything you need to know about KyOS Dragon Arch in one comprehensive guide.</p>
+                    <a href="docs/complete-guide.html" class="doc-link">
+                        Complete Guide <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="book-open"></i>
+                    </div>
+                    <h3>Installation Guide</h3>
+                    <p>Step-by-step instructions for installing KyOS on your system.</p>
+                    <a href="docs/installation-guide.html" class="doc-link">
+                        Read Guide <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card featured">
+                    <div class="doc-icon">
+                        <i data-feather="layout"></i>
+                    </div>
+                    <h3>Qtile Mastery</h3>
+                    <p>Master the powerful Qtile window manager with advanced tips and configurations.</p>
+                    <a href="docs/qtile-mastery.html" class="doc-link">
+                        Master Qtile <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card featured">
+                    <div class="doc-icon">
+                        <i data-feather="keyboard"></i>
+                    </div>
+                    <h3>Keybindings Reference</h3>
+                    <p>Complete keyboard shortcuts reference for maximum productivity.</p>
+                    <a href="docs/keybindings-reference.html" class="doc-link">
+                        View Keys <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="zap"></i>
+                    </div>
+                    <h3>Quick Start</h3>
+                    <p>Get up and running with KyOS in minutes with our quick start guide.</p>
+                    <a href="docs/quick-start.html" class="doc-link">
+                        Quick Start <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="hard-drive"></i>
+                    </div>
+                    <h3>Dual Boot Setup</h3>
+                    <p>Install KyOS alongside Windows or other Linux distributions.</p>
+                    <a href="docs/dual-boot-setup.html" class="doc-link">
+                        Setup Guide <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <h3>Configuration</h3>
+                    <p>Advanced configuration options and system settings.</p>
+                    <a href="docs/configuration.html" class="doc-link">
+                        Configure <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="tool"></i>
+                    </div>
+                    <h3>Troubleshooting</h3>
+                    <p>Solutions to common problems and troubleshooting tips.</p>
+                    <a href="docs/troubleshooting.html" class="doc-link">
+                        Get Help <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="help-circle"></i>
+                    </div>
+                    <h3>FAQ</h3>
+                    <p>Find answers to frequently asked questions about KyOS.</p>
+                    <a href="docs/faq.html" class="doc-link">
+                        View FAQ <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="git-branch"></i>
+                    </div>
+                    <h3>Contributing</h3>
+                    <p>Learn how to contribute to the KyOS project and community.</p>
+                    <a href="docs/contributing.html" class="doc-link">
+                        Contribute <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="keyboard"></i>
+                    </div>
+                    <h3>Keybindings</h3>
+                    <p>Master KyOS keyboard shortcuts and key combinations.</p>
+                    <a href="docs/keybindings.html" class="doc-link">
+                        View Keys <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="package"></i>
+                    </div>
+                    <h3>Package Management</h3>
+                    <p>Learn pacman, AUR, and package management in KyOS.</p>
+                    <a href="docs/package-management.html" class="doc-link">
+                        Manage Packages <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="shield"></i>
+                    </div>
+                    <h3>Security Tools</h3>
+                    <p>Explore penetration testing and security tools with BlackArch.</p>
+                    <a href="docs/security-tools.html" class="doc-link">
+                        Security Guide <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">
+                        <i data-feather="users"></i>
+                    </div>
+                    <h3>Community</h3>
+                    <p>Join the KyOS community for support, discussions, and contributions.</p>
+                    <a href="https://github.com/rubberpirate/kyos/discussions" class="doc-link" target="_blank">
+                        Join Community <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution 
+                        designed for developers and enthusiasts.
+                    </p>
+                    <div class="social-links">
+                        <a href="https://github.com/rubberpirate/kyos" class="social-link" target="_blank">
+                            <i data-feather="github"></i>
+                        </a>
+                        <a href="https://www.reddit.com/r/archlinux" class="social-link" target="_blank">
+                            <i data-feather="message-circle"></i>
+                        </a>
+                        <a href="https://discord.gg/archlinux" class="social-link" target="_blank">
+                            <i data-feather="message-square"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Download</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/rubberpirate/kyos/releases/latest" target="_blank">Latest Release</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/releases" target="_blank">Previous Versions</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/releases" target="_blank">Checksums</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos" target="_blank">Source Code</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="docs/complete-guide.html">Complete Guide</a></li>
+                        <li><a href="docs/installation-guide.html">Installation</a></li>
+                        <li><a href="docs/qtile-mastery.html">Qtile Mastery</a></li>
+                        <li><a href="docs/keybindings-reference.html">Keybindings</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/rubberpirate/kyos" target="_blank">GitHub</a></li>
+                        <li><a href="https://discord.gg/archlinux" target="_blank">Discord</a></li>
+                        <li><a href="https://www.reddit.com/r/archlinux" target="_blank">Reddit</a></li>
+                        <li><a href="https://bbs.archlinux.org/" target="_blank">Forum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 KyOS. Built with ❤️ for the Linux community.</p>
+                </div>
+                <div class="footer-legal">
+                    <a href="https://github.com/rubberpirate/kyos/blob/main/LICENSE" target="_blank">License</a>
+                    <a href="https://github.com/rubberpirate/kyos" target="_blank">Source Code</a>
+                    <a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

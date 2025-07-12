@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Management - KyOS Documentation</title>
+    <meta name="description" content="Learn how to manage packages in KyOS using pacman, AUR helpers, and package maintenance.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="../index.html#home" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#installer" class="nav-link">Installer</a>
+                <a href="../index.html#desktop" class="nav-link">Desktop</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="../index.html#docs" class="nav-link">Docs</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <h3>Documentation</h3>
+                    <nav class="docs-nav">
+                        <a href="installation-guide.html" class="docs-nav-link">Installation Guide</a>
+                        <a href="quick-start.html" class="docs-nav-link">Quick Start</a>
+                        <a href="dual-boot-setup.html" class="docs-nav-link">Dual Boot Setup</a>
+                        <a href="system-requirements.html" class="docs-nav-link">System Requirements</a>
+                        <a href="qtile-basics.html" class="docs-nav-link">Qtile Basics</a>
+                        <a href="customization.html" class="docs-nav-link">Customization</a>
+                        <a href="package-management.html" class="docs-nav-link active">Package Management</a>
+                        <a href="troubleshooting.html" class="docs-nav-link">Troubleshooting</a>
+                        <a href="contributing.html" class="docs-nav-link">Contributing</a>
+                    </nav>
+                </aside>
+                
+                <main class="docs-main">
+                    <div class="docs-header">
+                        <h1>Package Management</h1>
+                        <p class="docs-subtitle">Master package management in KyOS with pacman, AUR, and more</p>
+                    </div>
+
+                    <div class="docs-content-body">
+                        <section class="docs-section">
+                            <h2>Overview</h2>
+                            <p>
+                                KyOS uses the powerful Arch Linux package management system, featuring pacman for official packages
+                                and AUR (Arch User Repository) for community packages. This guide covers everything from basic
+                                package operations to advanced management techniques.
+                            </p>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Pacman - The Package Manager</h2>
+                            
+                            <h3>Basic Operations</h3>
+                            
+                            <h4>Installing Packages</h4>
+                            <div class="code-block">
+                                <pre><code># Install a single package
+sudo pacman -S package_name
+
+# Install multiple packages
+sudo pacman -S package1 package2 package3
+
+# Install with confirmation for dependencies
+sudo pacman -S --needed package_name
+
+# Install from specific repository
+sudo pacman -S core/linux</code></pre>
+                            </div>
+
+                            <h4>Searching for Packages</h4>
+                            <div class="code-block">
+                                <pre><code># Search in package database
+pacman -Ss search_term
+
+# Search installed packages
+pacman -Qs search_term
+
+# Get detailed package information
+pacman -Si package_name
+
+# Get info about installed package
+pacman -Qi package_name</code></pre>
+                            </div>
+
+                            <h4>Updating the System</h4>
+                            <div class="code-block">
+                                <pre><code># Update package database
+sudo pacman -Sy
+
+# Upgrade all packages
+sudo pacman -Su
+
+# Full system update (recommended)
+sudo pacman -Syu
+
+# Force refresh and update
+sudo pacman -Syyu</code></pre>
+                            </div>
+
+                            <h4>Removing Packages</h4>
+                            <div class="code-block">
+                                <pre><code># Remove a package
+sudo pacman -R package_name
+
+# Remove package and unused dependencies
+sudo pacman -Rs package_name
+
+# Remove package, dependencies, and config files
+sudo pacman -Rns package_name
+
+# Remove orphaned packages
+sudo pacman -Rns $(pacman -Qtdq)</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>AUR - Arch User Repository</h2>
+                            
+                            <h3>What is AUR?</h3>
+                            <p>
+                                The Arch User Repository (AUR) is a community-driven repository for Arch users.
+                                It contains package scripts (PKGBUILDs) that allow you to compile packages from source
+                                with makepkg and then install them with pacman.
+                            </p>
+
+                            <h3>Installing AUR Helper (Yay)</h3>
+                            <div class="code-block">
+                                <pre><code># Install base-devel group (if not already installed)
+sudo pacman -S --needed base-devel git
+
+# Clone yay repository
+git clone https://aur.archlinux.org/yay.git
+cd yay
+
+# Build and install yay
+makepkg -si
+
+# Clean up
+cd ..
+rm -rf yay</code></pre>
+                            </div>
+
+                            <h3>Using Yay</h3>
+                            <div class="code-block">
+                                <pre><code># Install AUR package
+yay -S aur_package_name
+
+# Search AUR packages
+yay -Ss search_term
+
+# Update system including AUR packages
+yay -Syu
+
+# Remove AUR package
+yay -R package_name
+
+# Clean package cache
+yay -Sc</code></pre>
+                            </div>
+
+                            <h3>Manual AUR Installation</h3>
+                            <div class="code-block">
+                                <pre><code># Clone AUR package
+git clone https://aur.archlinux.org/package_name.git
+cd package_name
+
+# Review PKGBUILD (important for security)
+cat PKGBUILD
+
+# Build and install
+makepkg -si
+
+# Clean up
+cd ..
+rm -rf package_name</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Package Information and Management</h2>
+                            
+                            <h3>Listing Packages</h3>
+                            <div class="code-block">
+                                <pre><code># List all installed packages
+pacman -Q
+
+# List explicitly installed packages
+pacman -Qe
+
+# List packages by installation date
+expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort
+
+# List largest packages
+expac -H M '%m\t%n' | sort -h</code></pre>
+                            </div>
+
+                            <h3>Package Dependencies</h3>
+                            <div class="code-block">
+                                <pre><code># Show package dependencies
+pacman -Si package_name | grep "Depends On"
+
+# Show what packages depend on a package
+pacman -Sii package_name
+
+# List orphaned packages
+pacman -Qtdq
+
+# Find which package owns a file
+pacman -Qo /path/to/file</code></pre>
+                            </div>
+
+                            <h3>Package Cache Management</h3>
+                            <div class="code-block">
+                                <pre><code># Clean package cache (keep 3 most recent versions)
+sudo paccache -r
+
+# Clean cache completely
+sudo pacman -Sc
+
+# Remove all cached packages
+sudo pacman -Scc
+
+# Check cache size
+du -sh /var/cache/pacman/pkg/</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Flatpak Support</h2>
+                            
+                            <h3>Installing Flatpak</h3>
+                            <div class="code-block">
+                                <pre><code># Install flatpak
+sudo pacman -S flatpak
+
+# Add Flathub repository
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo</code></pre>
+                            </div>
+
+                            <h3>Using Flatpak</h3>
+                            <div class="code-block">
+                                <pre><code># Search for applications
+flatpak search application_name
+
+# Install application
+flatpak install flathub org.application.Name
+
+# Run application
+flatpak run org.application.Name
+
+# Update applications
+flatpak update
+
+# List installed applications
+flatpak list
+
+# Remove application
+flatpak uninstall org.application.Name</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Snap Support</h2>
+                            
+                            <h3>Installing Snapd</h3>
+                            <div class="code-block">
+                                <pre><code># Install snapd
+yay -S snapd
+
+# Enable snapd service
+sudo systemctl enable --now snapd.socket
+
+# Create symlink for classic snaps
+sudo ln -s /var/lib/snapd/snap /snap</code></pre>
+                            </div>
+
+                            <h3>Using Snap</h3>
+                            <div class="code-block">
+                                <pre><code># Search for snaps
+snap find search_term
+
+# Install snap
+sudo snap install package_name
+
+# List installed snaps
+snap list
+
+# Update snaps
+sudo snap refresh
+
+# Remove snap
+sudo snap remove package_name</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Best Practices</h2>
+                            
+                            <h3>System Maintenance</h3>
+                            <ul>
+                                <li>Update regularly with <code>sudo pacman -Syu</code></li>
+                                <li>Clean package cache periodically</li>
+                                <li>Remove orphaned packages</li>
+                                <li>Review AUR PKGBUILDs before installing</li>
+                                <li>Keep a list of explicitly installed packages</li>
+                            </ul>
+
+                            <h3>Security Considerations</h3>
+                            <ul>
+                                <li>Always review PKGBUILDs from AUR</li>
+                                <li>Prefer official repositories over AUR when possible</li>
+                                <li>Keep your system updated</li>
+                                <li>Be cautious with development packages (-git, -svn, etc.)</li>
+                                <li>Verify package signatures when available</li>
+                            </ul>
+
+                            <h3>Backup Your Package List</h3>
+                            <div class="code-block">
+                                <pre><code># Export explicitly installed packages
+pacman -Qqe > pkglist.txt
+
+# Restore packages on new system
+sudo pacman -S --needed - < pkglist.txt
+
+# Export AUR packages separately
+pacman -Qqem > aur_pkglist.txt</code></pre>
+                            </div>
+                        </section>
+
+                        <section class="docs-section">
+                            <h2>Troubleshooting</h2>
+                            
+                            <h3>Common Issues</h3>
+                            
+                            <h4>Database Lock</h4>
+                            <div class="code-block">
+                                <pre><code># Remove lock file (only if pacman is not running)
+sudo rm /var/lib/pacman/db.lck</code></pre>
+                            </div>
+
+                            <h4>Signature Issues</h4>
+                            <div class="code-block">
+                                <pre><code># Refresh package database and keyring
+sudo pacman -Sy archlinux-keyring
+sudo pacman-key --refresh-keys</code></pre>
+                            </div>
+
+                            <h4>Broken Dependencies</h4>
+                            <div class="code-block">
+                                <pre><code># Force refresh package database
+sudo pacman -Syyu
+
+# Downgrade problematic package
+sudo pacman -U /var/cache/pacman/pkg/package-version.pkg.tar.xz</code></pre>
+                            </div>
+                        </section>
+
+                        <div class="docs-footer">
+                            <div class="docs-nav-buttons">
+                                <a href="qtile-basics.html" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i>
+                                    Qtile Basics
+                                </a>
+                                <a href="troubleshooting.html" class="btn btn-primary">
+                                    Troubleshooting
+                                    <i data-feather="arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution 
+                        designed for developers and enthusiasts.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="installation-guide.html">Installation</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 KyOS. Built with ❤️ for the Linux community.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

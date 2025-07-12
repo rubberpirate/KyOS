@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qtile Basics - KyOS Documentation</title>
+    <meta name="description" content="Learn the basics of the Qtile window manager in KyOS - layouts, workspaces, and configuration.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="../assets/images/kyos.png" alt="KyOS" class="logo">
+                <span class="brand-text">KyOS</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../index.html#features" class="nav-link">Features</a>
+                <a href="../index.html#download" class="nav-link">Download</a>
+                <a href="installation-guide.html" class="nav-link">Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Documentation Content -->
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>Documentation</h3>
+                <ul class="docs-menu">
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                </ul>
+                
+                <h4>Getting Started</h4>
+                <ul class="docs-menu">
+                    <li><a href="quick-start.html">Quick Start</a></li>
+                    <li><a href="first-steps.html">First Steps</a></li>
+                    <li><a href="package-management.html">Package Management</a></li>
+                </ul>
+                
+                <h4>Desktop Environment</h4>
+                <ul class="docs-menu">
+                    <li><a href="qtile-basics.html" class="active">Qtile Basics</a></li>
+                    <li><a href="keybindings.html">Keybindings</a></li>
+                    <li><a href="customization.html">Customization</a></li>
+                    <li><a href="themes.html">Themes</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Qtile Window Manager Basics</h1>
+                <p class="docs-subtitle">
+                    Learn the fundamentals of Qtile, the powerful Python-based window manager that powers KyOS.
+                </p>
+            </div>
+
+            <section class="docs-section">
+                <h2>What is Qtile?</h2>
+                
+                <p>Qtile is a full-featured, hackable tiling window manager written and configured in Python. It's designed to be simple, small, and extensible. In KyOS, Qtile provides:</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h3>🪟 Tiling Window Management</h3>
+                        <p>Windows automatically arrange themselves to efficiently use screen space without overlapping.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🐍 Python Configuration</h3>
+                        <p>Configure everything using Python code, making it extremely flexible and programmable.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🏢 Multiple Workspaces</h3>
+                        <p>Organize applications across different virtual desktops for better workflow management.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>📊 Customizable Bar</h3>
+                        <p>Flexible status bar with widgets for system information, notifications, and more.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Window Layouts</h2>
+                
+                <p>Qtile supports multiple layout algorithms. KyOS comes pre-configured with the most useful ones:</p>
+                
+                <div class="layout-grid">
+                    <div class="layout-card">
+                        <h3>MonadTall (Default)</h3>
+                        <div class="layout-preview">
+                            <div class="layout-diagram monadtall">
+                                <div class="window main">Main</div>
+                                <div class="window side">
+                                    <div class="subwindow">Side 1</div>
+                                    <div class="subwindow">Side 2</div>
+                                </div>
+                            </div>
+                        </div>
+                        <p>One large main window on the left, stack of smaller windows on the right.</p>
+                        <ul>
+                            <li>Perfect for coding with editor + terminals</li>
+                            <li>Main window gets most screen space</li>
+                            <li>Side windows stack vertically</li>
+                        </ul>
+                    </div>
+
+                    <div class="layout-card">
+                        <h3>Max</h3>
+                        <div class="layout-preview">
+                            <div class="layout-diagram max">
+                                <div class="window fullscreen">Fullscreen Window</div>
+                            </div>
+                        </div>
+                        <p>One window takes up the entire screen at a time.</p>
+                        <ul>
+                            <li>Great for focus-intensive work</li>
+                            <li>Presentations and media</li>
+                            <li>Switch between windows with keyboard</li>
+                        </ul>
+                    </div>
+
+                    <div class="layout-card">
+                        <h3>Floating</h3>
+                        <div class="layout-preview">
+                            <div class="layout-diagram floating">
+                                <div class="window float1">Window 1</div>
+                                <div class="window float2">Window 2</div>
+                                <div class="window float3">Window 3</div>
+                            </div>
+                        </div>
+                        <p>Traditional overlapping windows that you can drag and resize.</p>
+                        <ul>
+                            <li>Similar to Windows/macOS</li>
+                            <li>Good for image editing, games</li>
+                            <li>Drag windows manually</li>
+                        </ul>
+                    </div>
+
+                    <div class="layout-card">
+                        <h3>Columns</h3>
+                        <div class="layout-preview">
+                            <div class="layout-diagram columns">
+                                <div class="window col1">Col 1</div>
+                                <div class="window col2">Col 2</div>
+                                <div class="window col3">Col 3</div>
+                            </div>
+                        </div>
+                        <p>Windows arranged in vertical columns.</p>
+                        <ul>
+                            <li>Good for wide monitors</li>
+                            <li>Compare multiple documents</li>
+                            <li>Equal width columns</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Switching Layouts</h3>
+                <div class="code-block">
+                    <pre><code># Key combinations to switch layouts
+Super + Space          # Cycle through available layouts
+Super + Shift + Space  # Cycle backwards through layouts
+
+# Or use specific layout shortcuts (if configured)
+Super + m              # Switch to Max layout
+Super + t              # Switch to MonadTall layout
+Super + f              # Toggle floating for current window</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Workspaces (Groups)</h2>
+                
+                <p>Qtile organizes windows into workspaces called "groups". KyOS comes with 9 workspaces by default:</p>
+                
+                <div class="workspace-grid">
+                    <div class="workspace-item">
+                        <div class="workspace-number">1</div>
+                        <h4>General</h4>
+                        <p>Default workspace for most applications</p>
+                    </div>
+                    <div class="workspace-item">
+                        <div class="workspace-number">2</div>
+                        <h4>Web</h4>
+                        <p>Web browsers and internet applications</p>
+                    </div>
+                    <div class="workspace-item">
+                        <div class="workspace-number">3</div>
+                        <h4>Code</h4>
+                        <p>Development environment and editors</p>
+                    </div>
+                    <div class="workspace-item">
+                        <div class="workspace-number">4</div>
+                        <h4>Files</h4>
+                        <p>File managers and document viewers</p>
+                    </div>
+                    <div class="workspace-item">
+                        <div class="workspace-number">5</div>
+                        <h4>Media</h4>
+                        <p>Video, audio, and image applications</p>
+                    </div>
+                    <div class="workspace-item">
+                        <div class="workspace-number">6-9</div>
+                        <h4>Custom</h4>
+                        <p>Available for your specific needs</p>
+                    </div>
+                </div>
+
+                <h3>Workspace Navigation</h3>
+                <div class="code-block">
+                    <pre><code># Switch to workspace
+Super + [1-9]              # Switch to workspace 1-9
+Super + Left/Right         # Move between adjacent workspaces
+
+# Move windows between workspaces
+Super + Shift + [1-9]      # Move current window to workspace 1-9
+Super + Shift + Left/Right # Move window to adjacent workspace
+
+# Move window and follow it
+Super + Ctrl + [1-9]       # Move window and switch to that workspace</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>The Status Bar</h2>
+                
+                <p>KyOS includes a customized status bar at the top of the screen with useful widgets:</p>
+                
+                <div class="bar-preview">
+                    <div class="bar-widget">Groups</div>
+                    <div class="bar-widget">Window Title</div>
+                    <div class="bar-spacer"></div>
+                    <div class="bar-widget">System Tray</div>
+                    <div class="bar-widget">Volume</div>
+                    <div class="bar-widget">Network</div>
+                    <div class="bar-widget">Clock</div>
+                </div>
+
+                <h3>Bar Widgets Explained</h3>
+                <ul>
+                    <li><strong>GroupBox:</strong> Shows all workspaces and highlights the active one</li>
+                    <li><strong>WindowName:</strong> Displays the title of the currently focused window</li>
+                    <li><strong>Systray:</strong> Shows system tray icons from running applications</li>
+                    <li><strong>Volume:</strong> Current audio volume level</li>
+                    <li><strong>Net:</strong> Network connection status and activity</li>
+                    <li><strong>Clock:</strong> Current date and time</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Window Management</h2>
+                
+                <h3>Focus and Selection</h3>
+                <p>Qtile uses keyboard-driven window management:</p>
+                <div class="code-block">
+                    <pre><code># Navigate between windows
+Super + h/j/k/l           # Move focus left/down/up/right
+Super + Tab               # Cycle through windows
+Alt + Tab                 # Traditional window switcher
+
+# Window operations
+Super + q                 # Close current window
+Super + Shift + q         # Kill current window (force close)
+Super + f                 # Toggle fullscreen
+Super + Shift + f         # Toggle floating mode</code></pre>
+                </div>
+
+                <h3>Resizing Windows</h3>
+                <div class="code-block">
+                    <pre><code># Resize windows (in tiling layouts)
+Super + Ctrl + h/l        # Shrink/grow main window horizontally
+Super + Ctrl + j/k        # Shrink/grow main window vertically
+
+# Move windows around
+Super + Shift + h/j/k/l   # Move window in that direction
+
+# In floating mode
+Super + Button1           # Drag window
+Super + Button3           # Resize window</code></pre>
+                </div>
+
+                <h3>Window Rules</h3>
+                <p>KyOS comes with smart window rules that automatically handle certain applications:</p>
+                <ul>
+                    <li><strong>Dialog boxes:</strong> Automatically float</li>
+                    <li><strong>Games:</strong> Often fullscreen by default</li>
+                    <li><strong>Media players:</strong> May float for easier positioning</li>
+                    <li><strong>System tools:</strong> Configured for optimal workspace placement</li>
+                </ul>
+            </section>
+
+            <section class="docs-section">
+                <h2>Configuration Basics</h2>
+                
+                <h3>Configuration File Location</h3>
+                <p>Qtile configuration is stored in a Python file:</p>
+                <div class="code-block">
+                    <pre><code># Main configuration file
+~/.config/qtile/config.py
+
+# Backup the original before editing
+cp ~/.config/qtile/config.py ~/.config/qtile/config.py.backup
+
+# Edit with your favorite editor
+nano ~/.config/qtile/config.py</code></pre>
+                </div>
+
+                <h3>Configuration Structure</h3>
+                <p>The config file contains several main sections:</p>
+                <div class="code-block">
+                    <pre><code># Key bindings
+keys = [
+    Key([mod], "Return", lazy.spawn(terminal)),
+    # ... more key bindings
+]
+
+# Window layouts
+layouts = [
+    layout.MonadTall(),
+    layout.Max(),
+    # ... more layouts
+]
+
+# Workspaces (groups)
+groups = [Group(i) for i in "123456789"]
+
+# Status bar configuration
+screens = [
+    Screen(
+        top=bar.Bar([
+            widget.GroupBox(),
+            widget.WindowName(),
+            # ... more widgets
+        ], 30),
+    ),
+]</code></pre>
+                </div>
+
+                <h3>Applying Changes</h3>
+                <p>After editing the configuration:</p>
+                <div class="code-block">
+                    <pre><code># Test configuration syntax
+python ~/.config/qtile/config.py
+
+# If no errors, restart Qtile to apply changes
+Super + Ctrl + r
+
+# Or restart from terminal
+qtile cmd-obj -o cmd -f restart</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Common Customizations</h2>
+                
+                <h3>Adding New Key Bindings</h3>
+                <div class="code-block">
+                    <pre><code># Example: Add key binding to open file manager
+keys.extend([
+    Key([mod], "e", lazy.spawn("thunar")),
+    Key([mod], "w", lazy.spawn("firefox")),
+    Key([mod, "shift"], "s", lazy.spawn("flameshot gui")),
+])</code></pre>
+                </div>
+
+                <h3>Customizing the Bar</h3>
+                <div class="code-block">
+                    <pre><code># Add/modify widgets in the bar
+widget_list = [
+    widget.GroupBox(
+        active=colors[2],           # Color for active workspace
+        inactive=colors[7],         # Color for inactive workspaces
+        rounded=False,              # Square workspace indicators
+        highlight_method="line",    # Underline active workspace
+    ),
+    widget.Sep(linewidth=0, padding=6),
+    widget.WindowName(foreground=colors[6]),
+    widget.Spacer(),
+    widget.CPU(foreground=colors[4]),
+    widget.Memory(foreground=colors[8]),
+    widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
+]</code></pre>
+                </div>
+
+                <h3>Adding New Layouts</h3>
+                <div class="code-block">
+                    <pre><code># Add more layouts to your config
+layouts = [
+    layout.MonadTall(margin=8),
+    layout.MonadWide(margin=8),
+    layout.Max(),
+    layout.Floating(),
+    layout.Columns(border_width=2),
+    layout.TreeTab(),
+]</code></pre>
+                </div>
+            </section>
+
+            <section class="docs-section">
+                <h2>Tips for New Users</h2>
+                
+                <div class="tips-container">
+                    <div class="tip-item">
+                        <h3>🚀 Start Simple</h3>
+                        <p>Use the default configuration for a few days before making changes. This helps you understand how Qtile works naturally.</p>
+                    </div>
+
+                    <div class="tip-item">
+                        <h3>📖 Learn the Shortcuts</h3>
+                        <p>Memorize the basic key bindings first. Window management becomes second nature once you know the shortcuts.</p>
+                    </div>
+
+                    <div class="tip-item">
+                        <h3>🔄 Experiment Safely</h3>
+                        <p>Always backup your config before making changes. You can quickly revert if something breaks.</p>
+                    </div>
+
+                    <div class="tip-item">
+                        <h3>🐍 Learn Python Basics</h3>
+                        <p>Basic Python knowledge helps you customize Qtile more effectively. The syntax is beginner-friendly.</p>
+                    </div>
+
+                    <div class="tip-item">
+                        <h3>👥 Join the Community</h3>
+                        <p>The Qtile and KyOS communities are helpful for learning advanced configurations and troubleshooting.</p>
+                    </div>
+
+                    <div class="tip-item">
+                        <h3>📚 Read the Docs</h3>
+                        <p>Qtile has excellent documentation at qtile.org. Check it for advanced features and widget options.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="docs-navigation">
+                <a href="first-steps.html" class="nav-prev">
+                    <i data-feather="arrow-left"></i>
+                    First Steps
+                </a>
+                <a href="keybindings.html" class="nav-next">
+                    Keybindings
+                    <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="../assets/images/kyos.png" alt="KyOS" class="footer-logo">
+                        <span class="brand-text">KyOS</span>
+                    </div>
+                    <p class="footer-description">
+                        A powerful and beautiful Arch Linux-based distribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>feather.replace();</script>
+
+    <style>
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .feature-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .layout-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .layout-preview {
+            margin: 1rem 0;
+            height: 120px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .layout-diagram {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            gap: 4px;
+        }
+
+        .layout-diagram.monadtall .main {
+            flex: 2;
+            background: var(--primary-color);
+            opacity: 0.8;
+        }
+
+        .layout-diagram.monadtall .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .layout-diagram.monadtall .subwindow {
+            flex: 1;
+            background: var(--accent-color);
+            opacity: 0.6;
+        }
+
+        .layout-diagram.max .fullscreen {
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            opacity: 0.8;
+        }
+
+        .layout-diagram.floating {
+            position: relative;
+        }
+
+        .layout-diagram.floating .window {
+            position: absolute;
+            width: 60px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            opacity: 0.8;
+        }
+
+        .layout-diagram.floating .float1 {
+            top: 10px;
+            left: 10px;
+            background: var(--primary-color);
+        }
+
+        .layout-diagram.floating .float2 {
+            top: 30px;
+            left: 40px;
+            background: var(--accent-color);
+        }
+
+        .layout-diagram.floating .float3 {
+            top: 50px;
+            left: 70px;
+            background: var(--secondary-color);
+        }
+
+        .layout-diagram.columns .window {
+            flex: 1;
+            opacity: 0.8;
+        }
+
+        .layout-diagram.columns .col1 {
+            background: var(--primary-color);
+        }
+
+        .layout-diagram.columns .col2 {
+            background: var(--accent-color);
+        }
+
+        .layout-diagram.columns .col3 {
+            background: var(--secondary-color);
+        }
+
+        .window {
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .workspace-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .workspace-number {
+            background: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 600;
+        }
+
+        .workspace-item h4 {
+            margin: 0.5rem 0;
+            color: var(--primary-color);
+        }
+
+        .bar-preview {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 1rem 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .bar-widget {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .bar-spacer {
+            flex: 1;
+        }
+
+        .tips-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tip-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .tip-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</body>
+</html>

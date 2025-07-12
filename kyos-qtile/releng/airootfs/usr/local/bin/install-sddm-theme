@@ -1,0 +1,14 @@
+#!/bin/bash
+# SDDM Theme Installation Hook for KyOS
+# This script copies the sddm-astronaut-theme after system packages are installed
+
+# Ensure target directory exists
+mkdir -p /usr/share/sddm/themes
+
+# Copy the astronaut theme from our assets
+if [ -d "/usr/local/share/kyos-assets/sddm-astronaut-theme" ]; then
+    cp -r /usr/local/share/kyos-assets/sddm-astronaut-theme /usr/share/sddm/themes/
+    echo "✓ SDDM astronaut theme installed"
+else
+    echo "⚠ SDDM astronaut theme not found in assets"
+fi

@@ -24,7 +24,9 @@ file_permissions=(
   ["/root/.automated_script.sh"]="0:0:755"
   ["/root/.gnupg"]="0:0:700"
   ["/usr/local/bin/choose-mirror"]="0:0:755"
-  ["/usr/local/bin/kyosinstall"]="0:0:755"
+  ["/usr/local/bin/kyos-install"]="0:0:755"
+  ["/usr/local/bin/kyos-install-backend"]="0:0:755"
+  ["/usr/local/bin/kyos-install-help"]="0:0:755"
   ["/usr/local/bin/kyos-welcome"]="0:0:755"
   ["/usr/local/bin/Installation_guide"]="0:0:755"
   ["/usr/local/bin/livecd-sound"]="0:0:755"
@@ -32,6 +34,5 @@ file_permissions=(
   ["/usr/local/bin/start-qtile-live"]="0:0:755"
   ["/usr/local/bin/live-session-start"]="0:0:755"
   ["/usr/local/bin/kyosinstall-auto"]="0:0:755"
-  ["/usr/local/bin/kyosinstall-tui"]="0:0:755"
   ["/usr/local/bin/installer"]="0:0:755"
 )

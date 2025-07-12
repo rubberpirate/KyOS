@@ -1,0 +1,12 @@
+# KyOS SDDM Configuration - Force X11 Default
+[General]
+DisplayServer=x11
+DefaultSession=qtile
+
+[X11]
+MinimumVT=1
+ServerPath=/usr/bin/X
+ServerArguments=-nolisten tcp
+
+[Wayland]
+# Wayland support available but not default

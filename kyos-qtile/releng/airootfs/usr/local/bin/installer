@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# KyOS Installer Launcher
-# Provides choice between automated and interactive installation
+# KyOS Installation System Launcher
+# Launches the unified KyOS installer with professional TUI interface
 
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
@@ -10,52 +10,22 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
-echo "========================================"
-echo "    KyOS (Arch Linux) Installer"
-echo "========================================"
-echo "This will install KyOS with these defaults:"
-echo "- No user input required"
-echo "- No disk encryption"
-echo "- Username: kyos / Password: kyos123"
-echo "- Root password: root123"
-echo "- Hostname: kyos-pc"
-echo "- Full KyOS desktop environment"
-echo "========================================"
+echo "========================================="
+echo "     KyOS Installation System"
+echo "========================================="
+echo "Professional installer for KyOS with:"
+echo "- Interactive TUI interface"
+echo "- BlackArch penetration testing tools"
+echo "- NVIDIA driver support"
+echo "- VirtualBox optimization"
+echo "- Automated and manual modes"
+echo "========================================="
 echo
 
-echo "Available options:"
-echo "1) Run automated installer (Recommended)"
-echo "2) Run interactive installer"
-echo "3) Run TUI installer (Modern interface)"
-echo "4) Exit"
-echo
+echo "Starting KyOS Installation System..."
+echo "NOTE: This requires root privileges. You will be prompted for your password."
 
-while true; do
-    echo -n "Enter your choice (1-4): "
-    read -r choice
-    
-    case $choice in
-        1)
-            echo "Starting automated installer..."
-            echo "NOTE: This requires root privileges. You will be prompted for your password."
-            exec sudo /usr/local/bin/kyosinstall-auto
-            ;;
-        2)
-            echo "Starting interactive installer..."
-            echo "NOTE: This requires root privileges. You will be prompted for your password."
-            exec sudo /usr/local/bin/kyosinstall
-            ;;
-        3)
-            echo "Starting TUI installer..."
-            echo "NOTE: This requires root privileges. You will be prompted for your password."
-            exec sudo /usr/local/bin/kyosinstall-tui
-            ;;
-        4)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid choice. Please enter 1, 2, 3, or 4."
-            ;;
-    esac
-done
+# Log the launcher invocation
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] KyOS installer launcher started by user: $(whoami)" >> /tmp/kyos-install/launcher.log 2>/dev/null || true
+
+exec sudo /usr/local/bin/kyos-install

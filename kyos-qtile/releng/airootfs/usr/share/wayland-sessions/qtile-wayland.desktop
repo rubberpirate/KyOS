@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Qtile (Wayland)
+Comment=Qtile Window Manager (Wayland)
+Exec=qtile start -b wayland
+Icon=qtile
+Type=Application
+DesktopNames=qtile-wayland
+Keywords=wm;tiling;wayland

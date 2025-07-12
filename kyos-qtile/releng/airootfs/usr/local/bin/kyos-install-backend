@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# KyOS Installation Backend
+# This script is called by kyos-install to perform the actual installation
+# It's essentially the automated installer with configuration support
+
+exec /usr/local/bin/kyosinstall-auto "$@"

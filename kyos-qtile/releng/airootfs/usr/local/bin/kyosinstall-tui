@@ -78,12 +78,12 @@ Welcome() {
  ██╔═██╗   ╚██╔╝  ██║   ██║╚════██║
  ██║  ██╗   ██║   ╚██████╔╝███████║
  ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚══════╝
-        Kage's Operating System
+        Dragon Arch
 EOF
 )
 
     clear
-    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "$(gum style --foreground "$main_color" "$kyos_banner")" "Ready to install KyOS (Kage's Operating System)?" "$(gum style --foreground "$main_color" "KyOS TUI Installer version: $version")")"
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "$(gum style --foreground "$main_color" "$kyos_banner")" "Ready to install KyOS (Dragon Arch)?" "$(gum style --foreground "$main_color" "KyOS TUI Installer version: $version")")"
     local CONTINUE=$?
 
     if [[ $CONTINUE -ne 0 ]]; then

@@ -16,8 +16,196 @@ set -euo pipefail
 set +m
 set +H
 
+# Function to handle script errors
+error_handler() {
+    local line_no=$1
+    local bash_lineno=$2
+    local last_command=$3
+    local code=$4
+    
+    echo ""
+    echo "=============================================="
+    echo "ERROR: Installation script failed!"
+    echo "=============================================="
+    echo "Line: $line_no"
+    echo "Bash Line: $bash_lineno" 
+    echo "Command: $last_command"
+    echo "Exit Code: $code"
+    echo "=============================================="
+    echo ""
+    echo "Please check the error above and try again."
+    echo "If the problem persists, please report this issue."
+    echo ""
+    exit $code
+}
+
+# Set up error handling
+trap 'error_handler ${LINENO} $BASH_LINENO "$BASH_COMMAND" $?' ERR
+
+# Check if running as root, if not, re-run with sudo
+if [[ $EUID -ne 0 ]]; then
+    echo "This installer requires root privileges. Re-running with sudo..."
+    echo "You may be prompted for your password."
+    exec sudo -E "$0" "$@"
+fi
+
+# Double-check we're actually running as root now
+if [[ $EUID -ne 0 ]]; then
+    echo "ERROR: Failed to obtain root privileges. Please run with sudo:"
+    echo "sudo $0 $*"
+    exit 1
+fi
+
 # Let's clear the tty when starting script
 clear
+
+# Debug information
+echo "=============================================="
+echo "KyOS Automated Installation System"
+echo "=============================================="
+echo "Debug Information:"
+echo "- Script: $0"
+echo "- Arguments: $*"
+echo "- Current user: $(whoami)"
+echo "- Effective UID: $EUID"
+echo "- Running as root: $([ $EUID -eq 0 ] && echo 'YES' || echo 'NO')"
+echo "- Environment: $([ -d /run/archiso ] && echo 'Live ISO' || echo 'Installed System')"
+echo "- Working directory: $(pwd)"
+echo "=============================================="
+echo
+
+# Verify we're in the correct environment
+if [[ ! -d /run/archiso ]]; then
+    echo "WARNING: This installer is designed to run from the KyOS live environment."
+    echo "Please boot from the KyOS ISO and run the installer from there."
+    echo ""
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+fi
+
+# --- Logging Configuration ---
+
+# Create log directory and setup logging
+LOG_DIR="/var/log/kyos-install"
+LOG_FILE="$LOG_DIR/kyosinstall-auto-$(date +%Y%m%d-%H%M%S).log"
+ERROR_LOG="$LOG_DIR/kyosinstall-auto-errors-$(date +%Y%m%d-%H%M%S).log"
+
+# Create log directory if it doesn't exist
+mkdir -p "$LOG_DIR" 2>/dev/null || {
+    # If /var/log is not writable, use /tmp
+    LOG_DIR="/tmp/kyos-install"
+    LOG_FILE="$LOG_DIR/kyosinstall-auto-$(date +%Y%m%d-%H%M%S).log"
+    ERROR_LOG="$LOG_DIR/kyosinstall-auto-errors-$(date +%Y%m%d-%H%M%S).log"
+    mkdir -p "$LOG_DIR"
+}
+
+# Function to log messages with timestamp
+log_message() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $message" | tee -a "$LOG_FILE"
+}
+
+# Function to log errors
+log_error() {
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [ERROR] $message" | tee -a "$LOG_FILE" | tee -a "$ERROR_LOG"
+}
+
+# Function to log command execution
+log_command() {
+    local cmd="$*"
+    log_message "COMMAND" "Executing: $cmd"
+    
+    # Execute command and capture both stdout and stderr
+    {
+        eval "$cmd" 2>&1
+        local exit_code=$?
+        if [ $exit_code -ne 0 ]; then
+            log_error "Command failed with exit code $exit_code: $cmd"
+        else
+            log_message "SUCCESS" "Command completed successfully: $cmd"
+        fi
+        return $exit_code
+    } | tee -a "$LOG_FILE"
+}
+
+# Function to create final installation report
+create_install_report() {
+    local report_file="$LOG_DIR/kyosinstall-auto-report-$(date +%Y%m%d-%H%M%S).txt"
+    
+    cat > "$report_file" << EOF
+================================================================================
+                     KyOS Automated Installation Report
+================================================================================
+Installation Date: $(date)
+Installation Type: Automated (kyosinstall-auto)
+
+SYSTEM CONFIGURATION:
+- Hostname: kyos-pc
+- Username: kyos
+- Timezone: America/New_York
+- Locale: en_US.UTF-8
+- Keyboard Layout: us
+
+DISK CONFIGURATION:
+- Target Device: Auto-detected
+- UEFI Mode: Auto-detected
+- Encryption: Disabled
+- Swap: ZRAM
+
+ADDITIONAL OPTIONS:
+- BlackArch Support: ${blackarch_enabled:-false}
+- NVIDIA Support: ${nvidia_enabled:-false}
+- Filesystem: btrfs
+- Kernel: linux
+
+LOG FILES:
+- Main Log: $LOG_FILE
+- Error Log: $ERROR_LOG
+- This Report: $report_file
+
+INSTALLATION STATUS:
+$(if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+    echo "⚠ COMPLETED WITH ERRORS - Please check error log for details"
+    echo ""
+    echo "ERRORS ENCOUNTERED:"
+    tail -20 "$ERROR_LOG" | sed 's/^/  /'
+else
+    echo "✓ COMPLETED SUCCESSFULLY"
+fi)
+
+================================================================================
+End of Report
+================================================================================
+EOF
+
+    # Copy logs to installed system if possible
+    if [ -d "/mnt/var/log" ]; then
+        mkdir -p "/mnt/var/log/kyos-install" 2>/dev/null
+        cp "$LOG_FILE" "$ERROR_LOG" "$report_file" "/mnt/var/log/kyos-install/" 2>/dev/null && \
+            log_message "INFO" "Logs copied to installed system: /var/log/kyos-install/"
+    fi
+    
+    echo "$report_file"
+}
+
+# Set up error handling and logging
+set -E
+trap 'log_error "Script failed at line $LINENO: $BASH_COMMAND"; create_install_report; exit 1' ERR
+
+# Initialize logging
+log_message "INFO" "KyOS Automated Installation System starting"
+log_message "INFO" "Log file: $LOG_FILE"
+log_message "INFO" "Error log: $ERROR_LOG"
+log_message "INFO" "PID: $$, User: $(whoami), PWD: $(pwd)"
 
 echo "=============================================="
 echo "KyOS AUTOMATED INSTALLER"
@@ -34,6 +222,9 @@ echo "- Filesystem: btrfs"
 echo "- Encryption: NO"
 echo "- Kernel: linux"
 echo "- Install KyOS desktop: YES"
+echo "- BlackArch repository: NO (default)"
+echo "- NVIDIA support: NO (default)"
+echo "- Swap: ZRAM (default)"
 echo "=============================================="
 echo
 
@@ -61,33 +252,369 @@ print_choice () {
     echo -ne "${BOLD}${GREEN}>> $1${RESET}\n\n"
 }
 
+# Enhanced package installation function with better visibility
+install_package_with_progress() {
+    local package="$1"
+    local current="$2"
+    local total="$3"
+    local description="${4:-$package}"
+    
+    echo ""
+    echo "┌─────────────────────────────────────────────────────────────┐"
+    echo "│ [$current/$total] Installing: $description"
+    echo "└─────────────────────────────────────────────────────────────┘"
+    echo ""
+    
+    # Install with verbose output
+    if arch-chroot /mnt pacman -S --noconfirm --needed "$package" 2>&1 | while IFS= read -r line; do
+        # Add visual indicators for different types of output
+        if [[ "$line" =~ ^.*error.*$ ]] || [[ "$line" =~ ^.*failed.*$ ]]; then
+            echo "  ❌ $line"
+        elif [[ "$line" =~ ^.*warning.*$ ]]; then
+            echo "  ⚠️  $line" 
+        elif [[ "$line" =~ ^.*installing.*$ ]] || [[ "$line" =~ ^.*upgrading.*$ ]]; then
+            echo "  📦 $line"
+        elif [[ "$line" =~ ^.*checking.*$ ]]; then
+            echo "  🔍 $line"
+        elif [[ "$line" =~ ^.*loading.*$ ]]; then
+            echo "  📥 $line"
+        elif [[ "$line" =~ ^.*resolving.*$ ]]; then
+            echo "  🧩 $line"
+        else
+            echo "  💾 $line"
+        fi
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done; then
+        echo ""
+        echo "  ✅ Successfully installed: $package"
+        echo ""
+        return 0
+    else
+        echo ""
+        echo "  ❌ Failed to install: $package"
+        echo ""
+        return 1
+    fi
+}
+
 vm_check () {
     hypervisor=$(systemd-detect-virt 2>/dev/null || echo "none")
     case $hypervisor in
-        kvm )       pacstrap /mnt qemu-guest-agent &>/dev/null
+        kvm )       echo "→ Installing KVM guest agent..."
+                    pacstrap /mnt qemu-guest-agent 2>&1 | while IFS= read -r line; do
+                        echo "  $line"
+                    done &>/dev/null
                     systemctl enable qemu-guest-agent --root=/mnt &>/dev/null
+                    echo "✓ KVM guest tools configured"
                     ;;
-        vmware  )   pacstrap /mnt open-vm-tools &>/dev/null
+        vmware  )   echo "→ Installing VMware tools..."
+                    pacstrap /mnt open-vm-tools 2>&1 | while IFS= read -r line; do
+                        echo "  $line"
+                    done &>/dev/null
                     systemctl enable vmtoolsd --root=/mnt &>/dev/null
                     systemctl enable vmware-vmblock-fuse --root=/mnt &>/dev/null
+                    echo "✓ VMware tools configured"
                     ;;
-        oracle )    pacstrap /mnt virtualbox-guest-utils &>/dev/null
+        oracle )    echo "→ Installing VirtualBox guest utilities..."
+                    pacstrap /mnt virtualbox-guest-utils 2>&1 | while IFS= read -r line; do
+                        echo "  $line"
+                    done &>/dev/null
                     systemctl enable vboxservice --root=/mnt &>/dev/null
+                    echo "✓ VirtualBox guest utilities configured"
                     ;;
-        microsoft ) pacstrap /mnt hyperv &>/dev/null
+        microsoft ) echo "→ Installing Hyper-V tools..."
+                    pacstrap /mnt hyperv 2>&1 | while IFS= read -r line; do
+                        echo "  $line"
+                    done &>/dev/null
                     systemctl enable hv_fcopy_daemon --root=/mnt &>/dev/null
                     systemctl enable hv_kvp_daemon --root=/mnt &>/dev/null
                     systemctl enable hv_vss_daemon --root=/mnt &>/dev/null
+                    echo "✓ Hyper-V tools configured"
                     ;;
     esac
 }
 
-echo -e "${BOLD}${GREEN}\
-     _| | |_ ___  ___ (_)_ __  ___| |_ __ _| | |
-    / _\` | __/ _ \/ __| | '_ \/ __| __/ _\` | | |
-   | (_| | || (_) \__ \ | | | \__ \ || (_| | | |
-    \__,_|\__\___/|___/_|_| |_|___/\__\__,_|_|_|
-${RESET}" 
+detect_graphics() {
+    print_info "Detecting graphics hardware..."
+    
+    # Check for NVIDIA GPU
+    if lspci | grep -i nvidia >/dev/null 2>&1; then
+        local nvidia_card=$(lspci | grep -i nvidia | head -1 | cut -d: -f3- | sed 's/^ *//')
+        print_info "NVIDIA GPU detected: $nvidia_card"
+        return 0
+    fi
+    
+    # Check for AMD GPU
+    if lspci | grep -i amd | grep -i vga >/dev/null 2>&1; then
+        local amd_card=$(lspci | grep -i amd | grep -i vga | head -1 | cut -d: -f3- | sed 's/^ *//')
+        print_info "AMD GPU detected: $amd_card"
+        return 1
+    fi
+    
+    # Check for Intel integrated graphics
+    if lspci | grep -i intel | grep -i vga >/dev/null 2>&1; then
+        local intel_card=$(lspci | grep -i intel | grep -i vga | head -1 | cut -d: -f3- | sed 's/^ *//')
+        print_info "Intel integrated graphics detected: $intel_card"
+        return 2
+    fi
+    
+    # Fallback - check for any VGA controller
+    if lspci | grep -i vga >/dev/null 2>&1; then
+        local generic_card=$(lspci | grep -i vga | head -1 | cut -d: -f3- | sed 's/^ *//')
+        print_info "Graphics controller detected: $generic_card"
+        return 3
+    fi
+    
+    print_info "No graphics hardware detected (running in VM or headless?)"
+    return 4
+}
+
+install_blackarch() {
+    print_info "Setting up BlackArch repository..."
+    
+    # Method 1: Try the official BlackArch bootstrap script
+    print_info "Attempting BlackArch bootstrap installation..."
+    if arch-chroot /mnt /bin/bash -c "
+        # Download and run the official BlackArch bootstrap
+        curl -O https://blackarch.org/strap.sh
+        chmod +x strap.sh
+        ./strap.sh 2>/dev/null || exit 1
+        # Update package databases
+        pacman -Syy --noconfirm
+    "; then
+        print_info "BlackArch repository setup completed successfully!"
+        print_info "BlackArch tools can now be installed with: pacman -S <package-name>"
+        print_info "List available tools with: pacman -Ss blackarch"
+        return 0
+    fi
+    
+    print_info "Bootstrap method failed, trying manual setup..."
+    
+    # Method 2: Manual setup as fallback
+    # Create temporary directory for BlackArch setup
+    local tmp_dir="/tmp/blackarch_strap"
+    mkdir -p "$tmp_dir"
+    cd "$tmp_dir" || return 1
+    
+    # Try multiple sources for the keyring
+    print_info "Downloading BlackArch keyring..."
+    local keyring_downloaded=false
+    
+    # Try different keyring sources
+    for url in \
+        "https://www.blackarch.org/keyring/blackarch-keyring.pkg.tar.zst" \
+        "https://mirror.f4st.host/archlinux/blackarch/blackarch/os/x86_64/blackarch-keyring-20140118-1-any.pkg.tar.xz" \
+        "https://blackarch.org/keyring/blackarch-keyring.pkg.tar.xz"
+    do
+        if curl -s -f -L -o blackarch-keyring.pkg.tar.* "$url"; then
+            keyring_downloaded=true
+            break
+        fi
+    done
+    
+    if [[ "$keyring_downloaded" == "false" ]]; then
+        print_info "Failed to download BlackArch keyring from all sources."
+        print_info "Adding BlackArch repository without keyring (less secure)..."
+        
+        # Fallback: Add repository without keyring verification
+        arch-chroot /mnt /bin/bash <<-EOF
+            # Add BlackArch repository with SigLevel = Never (less secure but works)
+            cat >> /etc/pacman.conf << 'REPO_EOF'
+
+[blackarch]
+SigLevel = Never
+Server = https://www.blackarch.org/blackarch/\$repo/os/\$arch
+Server = https://mirror.f4st.host/archlinux/blackarch/\$repo/os/\$arch
+REPO_EOF
+
+            # Update package databases
+            pacman -Syy --noconfirm || true
+EOF
+        rm -rf "$tmp_dir"
+        print_info "BlackArch repository added (without signature verification)."
+        print_info "You can now install BlackArch tools manually with: pacman -S <tool-name>"
+        return 0
+    fi
+    
+    # Install keyring in chroot
+    print_info "Installing BlackArch keyring..."
+    if ! arch-chroot /mnt /bin/bash <<-EOF
+        # Copy keyring to chroot
+        cp "$tmp_dir"/blackarch-keyring.pkg.tar.* /tmp/
+        
+        # Install the keyring
+        pacman --config /dev/null --noconfirm -U /tmp/blackarch-keyring.pkg.tar.* || exit 1
+        
+        # Initialize pacman keyring if needed
+        pacman-key --init || true
+        pacman-key --populate archlinux || true
+        pacman-key --populate blackarch || true
+EOF
+    then
+        print_info "Keyring installation failed, falling back to unsigned repository..."
+        # Use the fallback method
+        arch-chroot /mnt /bin/bash <<-EOF
+            cat >> /etc/pacman.conf << 'REPO_EOF'
+
+[blackarch]
+SigLevel = Never
+Server = https://www.blackarch.org/blackarch/\$repo/os/\$arch
+REPO_EOF
+            pacman -Syy --noconfirm || true
+EOF
+        rm -rf "$tmp_dir"
+        print_info "BlackArch repository added (fallback mode)."
+        print_info "You can now install BlackArch tools manually with: pacman -S <tool-name>"
+        return 0
+    fi
+    
+    # Add BlackArch repository to pacman.conf
+    print_info "Configuring BlackArch repository..."
+    arch-chroot /mnt /bin/bash <<-EOF
+        # Remove existing BlackArch entries if any
+        sed -i '/\[blackarch\]/,/^$/d' /etc/pacman.conf
+        
+        # Add BlackArch repository
+        cat >> /etc/pacman.conf << 'REPO_EOF'
+
+[blackarch]
+Server = https://www.blackarch.org/blackarch/\$repo/os/\$arch
+Server = https://mirror.f4st.host/archlinux/blackarch/\$repo/os/\$arch
+REPO_EOF
+
+        # Update package databases
+        pacman -Syy --noconfirm || true
+EOF
+    
+    # Cleanup
+    rm -rf "$tmp_dir"
+    print_info "BlackArch repository setup completed!"
+    print_info "The BlackArch repository is now available with 2600+ security tools."
+    print_info "Install tools individually with: pacman -S <tool-name>"
+    print_info "Browse available tools with: pacman -Ss blackarch"
+    print_info "Popular tools: nmap, metasploit, burpsuite, sqlmap, aircrack-ng"
+}
+
+install_nvidia_drivers() {
+    print_info "Installing NVIDIA drivers and utilities..."
+    
+    # Detect kernel type for proper DKMS driver selection
+    local kernel_pkg=""
+    case "$kernel" in
+        "linux")
+            kernel_pkg="nvidia-dkms"
+            ;;
+        "linux-lts")
+            kernel_pkg="nvidia-dkms"
+            ;;
+        "linux-zen")
+            kernel_pkg="nvidia-dkms"
+            ;;
+        *)
+            kernel_pkg="nvidia-dkms"
+            ;;
+    esac
+    
+    # Install NVIDIA drivers and utilities
+    arch-chroot /mnt /bin/bash -e <<-EOF
+        # Install NVIDIA drivers
+        pacman -S --noconfirm $kernel_pkg nvidia-utils nvidia-settings
+        
+        # Install additional NVIDIA utilities
+        pacman -S --noconfirm opencl-nvidia libva-nvidia-driver
+        
+        # Install envycontrol via pacman (if available)
+        pacman -S --noconfirm envycontrol || echo "envycontrol not available in repos, skipping"
+        
+        # Add nvidia modules to mkinitcpio.conf
+        sed -i 's/^MODULES=(\(.*\))/MODULES=(\1 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
+        
+        # Add nvidia-drm.modeset=1 to kernel parameters
+        if [ -f /etc/default/grub ]; then
+            sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nvidia-drm.modeset=1"/' /etc/default/grub
+        fi
+        
+        # Create nvidia hook for package manager
+        mkdir -p /etc/pacman.d/hooks
+        cat > /etc/pacman.d/hooks/nvidia.hook << HOOK_EOF
+[Trigger]
+Operation=Install
+Operation=Upgrade
+Operation=Remove
+Type=Package
+Target=nvidia-dkms
+Target=linux
+
+[Action]
+Description=Update NVIDIA module in initcpio
+Depends=mkinitcpio
+When=PostTransaction
+NeedsTargets
+Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P'
+HOOK_EOF
+
+        # Regenerate initramfs
+        mkinitcpio -P
+EOF
+    
+    print_info "NVIDIA drivers installation completed!"
+    print_info "Note: You can use 'envycontrol --switch nvidia' to switch to NVIDIA GPU after reboot."
+    print_info "Use 'envycontrol --switch integrated' to switch to integrated graphics."
+}
+
+setup_zram() {
+    print_info "Setting up ZRAM compressed swap..."
+    
+    # Install zram-generator
+    arch-chroot /mnt pacman -S --noconfirm zram-generator
+    
+    # Create zram-generator configuration
+    arch-chroot /mnt /bin/bash -e <<-EOF
+        # Create configuration directory
+        mkdir -p /etc/systemd/zram-generator.conf.d
+        
+        # Create zram configuration
+        cat > /etc/systemd/zram-generator.conf << ZRAM_EOF
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+swap-priority = 100
+fs-type = swap
+ZRAM_EOF
+        
+        # Enable zram service
+        systemctl enable systemd-zram-setup@zram0.service
+EOF
+    
+    print_info "ZRAM swap setup completed!"
+    print_info "ZRAM will use up to 50% of your RAM for compressed swap."
+}
+
+setup_swap_partition() {
+    print_info "Setting up swap partition..."
+    
+    # Create swap partition (this would need partition table modification)
+    # For now, we'll create a swap file instead as it's safer
+    print_info "Creating swap file (8GB) instead of partition for safety..."
+    
+    arch-chroot /mnt /bin/bash -e <<-EOF
+        # Create swap file
+        fallocate -l 8G /swapfile
+        chmod 600 /swapfile
+        mkswap /swapfile
+        
+        # Add to fstab
+        echo '/swapfile none swap defaults 0 0' >> /etc/fstab
+        
+        # Enable swap
+        swapon /swapfile
+EOF
+    
+    print_info "Swap file setup completed!"
+    print_info "Created 8GB swap file at /swapfile"
+}
+
+echo -e "${BOLD}${GREEN}KyOS AUTOMATED INSTALLER${RESET}"
 echo -e "${BOLD}       The AUTOMATED installation script for KyOS${RESET}\n"
 
 # Set all default values
@@ -102,6 +629,9 @@ fs_type="btrfs"
 encryption="no"
 kernel="linux"
 kyos_desktop="yes"
+blackarch_support="no"
+nvidia_support="no"
+swap_type="zram"
 
 # Check for TUI configuration file
 if [[ -n "${CONFIG_FILE:-}" && -f "${CONFIG_FILE:-}" ]]; then
@@ -129,6 +659,9 @@ elif [[ -f "/tmp/kyos-tui-config" ]]; then
     [[ -n "${ROOT_PASSWORD:-}" ]] && rootpass="$ROOT_PASSWORD"
     [[ -n "${HOSTNAME:-}" ]] && hostname="$HOSTNAME"
     [[ -n "${ENCRYPT:-}" ]] && encryption="$ENCRYPT"
+    [[ -n "${BLACKARCH:-}" ]] && blackarch_support="$BLACKARCH"
+    [[ -n "${NVIDIA:-}" ]] && nvidia_support="$NVIDIA"
+    [[ -n "${SWAP_TYPE:-}" ]] && swap_type="$SWAP_TYPE"
     print_info "TUI configuration loaded successfully."
 fi
 
@@ -142,6 +675,9 @@ echo -e "filesystem:\t${BOLD}${GREEN}$fs_type${RESET}"
 echo -e "encryption:\t${BOLD}${GREEN}$encryption${RESET}"
 echo -e "kernel:\t\t${BOLD}${GREEN}$kernel${RESET}"
 echo -e "kyos_desktop:\t${BOLD}${GREEN}$kyos_desktop${RESET}"
+echo -e "blackarch:\t${BOLD}${GREEN}$blackarch_support${RESET}"
+echo -e "nvidia:\t\t${BOLD}${GREEN}$nvidia_support${RESET}"
+echo -e "swap_type:\t${BOLD}${GREEN}$swap_type${RESET}"
 echo
 
 # Auto-select the first available disk
@@ -192,6 +728,35 @@ print_info "Reflector grabbing top 20 mirrors sorted by download rate."
 echo "This may take a couple of minutes."
 reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist &>/dev/null || echo "Warning: reflector failed, continuing with existing mirrors"
 
+echo ""
+echo "######################################################"
+echo "#                                                    #"
+echo "#            KYOS INSTALLATION STARTING             #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
+echo "Installation Plan:"
+echo "  → Disk: ${disk}"
+echo "  → File system: $fs_type"
+echo "  → Firmware: $firmware_type"
+echo "  → Hostname: $hostname"
+echo "  → Username: $username"
+echo "  → Desktop: KyOS Qtile"
+echo "  → BlackArch: $blackarch_support"
+echo "  → NVIDIA: $nvidia_support"
+echo "  → Swap: $swap_type"
+echo ""
+echo "Installation Progress:"
+echo "  1. ⏳ Disk partitioning and formatting"
+echo "  2. ⏳ Base system installation"
+echo "  3. ⏳ Desktop environment installation"
+echo "  4. ⏳ System configuration"
+echo "  5. ⏳ Bootloader installation"
+echo "  6. ⏳ Final setup and cleanup"
+echo ""
+echo "========================================"
+echo "STEP 1: DISK PARTITIONING AND SETUP"
+echo "========================================"
 print_info "Partitioning the disk: ${disk}"
 echo "File system type: $fs_type"
 echo "Firmware type: $firmware_type"
@@ -588,39 +1153,122 @@ else
     done
 fi
 
+echo ""
+echo "✓ Step 1 Complete: Disk partitioning and setup finished"
+echo ""
+echo "========================================"
+echo "STEP 2: BASE SYSTEM INSTALLATION"
+echo "========================================"
+
 print_info "Checking for CPU type and installing ucode."
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
     print_info "Installing Intel microcode."
-    pacstrap /mnt intel-ucode
+    echo "→ Installing intel-ucode..."
+    pacstrap /mnt intel-ucode 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done
 elif grep -E "AuthenticAMD" <<< ${proc_type}; then
     print_info "Installing AMD microcode."
-    pacstrap /mnt amd-ucode
+    echo "→ Installing amd-ucode..."
+    pacstrap /mnt amd-ucode 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done
 fi
 
 # Re-installing keyring because sometimes we have key problems
 print_info "Installing the base system and bootloader."
 echo "This may take several minutes depending on your internet connection."
-pacstrap -K /mnt base base-devel "${kernel}" linux-firmware grub efibootmgr dosfstools os-prober mtools networkmanager dhcpcd git sudo
+echo "Note: Some warnings about system bus configuration or firmware are normal during installation."
+echo ""
+echo "🐉 ================================"
+echo "📦 INSTALLING BASE SYSTEM PACKAGES"
+echo "🐉 ================================"
+echo "You will see real-time progress below with visual indicators:"
+echo "  📦 = Package operations"
+echo "  🔍 = Checking/verification"
+echo "  📥 = Downloading"
+echo "  🧩 = Dependency resolution"
+echo ""
+log_message "INFO" "Starting base system installation with pacstrap"
+
+# Count total packages for progress tracking
+base_packages=(base base-devel "${kernel}" linux-firmware grub efibootmgr dosfstools os-prober mtools networkmanager dhcpcd git sudo)
+total_packages=${#base_packages[@]}
+current_package=0
+
+echo "� Installing ${total_packages} base system packages..."
+echo "📋 Packages: ${base_packages[*]}"
+echo ""
+
+# Show real-time pacstrap progress with enhanced output
+pacstrap -K /mnt "${base_packages[@]}" 2>&1 | while IFS= read -r line; do
+    # Add visual indicators for different types of output
+    if [[ "$line" =~ ^.*error.*$ ]] || [[ "$line" =~ ^.*failed.*$ ]]; then
+        echo "❌ $line"
+    elif [[ "$line" =~ ^.*warning.*$ ]]; then
+        echo "⚠️  $line" 
+    elif [[ "$line" =~ installing.* ]] || [[ "$line" =~ upgrading.* ]]; then
+        echo "📦 $line"
+    elif [[ "$line" =~ checking.* ]]; then
+        echo "🔍 $line"
+    elif [[ "$line" =~ loading.* ]]; then
+        echo "📥 $line"
+    elif [[ "$line" =~ resolving.* ]]; then
+        echo "🧩 $line"
+    elif [[ "$line" =~ \[.*\] ]]; then
+        echo "📋 $line"
+    else
+        echo "� $line"
+    fi
+    
+    echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+done
+
+echo ""
+echo "✅ Base system installation completed successfully!"
+echo "📊 Installed ${total_packages} packages: ${base_packages[*]}"
+echo ""
+log_message "SUCCESS" "Base system installation completed"
 
 if [[ "$fs_type" = "btrfs" ]]; then
     print_info "Installing important btrfs-related packages."
-    pacstrap /mnt btrfs-progs snapper
+    echo "Installing: btrfs-progs snapper"
+    pacstrap /mnt btrfs-progs snapper 2>&1 | while IFS= read -r line; do
+        echo "$line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done
+    echo "✓ Btrfs packages installed successfully!"
 fi
 
 if [[ "$kyos_desktop" = "yes" ]]; then
     print_info "Installing KyOS Qtile desktop packages."
+    echo "Installing desktop environment packages. This may show some warnings which are normal."
+    log_message "INFO" "Starting KyOS desktop installation"
     
     # Setup chaotic-aur repository first
     print_info "Setting up chaotic-aur repository for AUR packages."
     print_info "Retrieving the primary key to enable installation of keyring and mirrorlist..."
+    echo ""
+    echo "================================"
+    echo "SETTING UP CHAOTIC-AUR REPOSITORY"
+    echo "================================"
     
     # Step 1: Get the primary key
-    arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com || {
-        print_info "Trying alternative keyserver..."
-        arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keys.gnupg.net || {
-            print_info "Trying another keyserver..."
-            arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver pgp.mit.edu || {
+    echo "→ Retrieving chaotic-aur primary key..."
+    arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+    done || {
+        echo "→ Trying alternative keyserver..."
+        arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver keys.gnupg.net 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+        done || {
+            echo "→ Trying another keyserver..."
+            arch-chroot /mnt pacman-key --recv-key 3056513887B78AEB --keyserver pgp.mit.edu 2>&1 | while IFS= read -r line; do
+                echo "  $line"
+            done || {
                 print_info "Warning: Could not retrieve chaotic-aur key. Skipping chaotic-aur setup."
                 return 0
             }
@@ -628,22 +1276,33 @@ if [[ "$kyos_desktop" = "yes" ]]; then
     }
     
     # Step 2: Locally sign the key
-    print_info "Locally signing the chaotic-aur key..."
-    arch-chroot /mnt pacman-key --lsign-key 3056513887B78AEB
+    echo "→ Locally signing the chaotic-aur key..."
+    arch-chroot /mnt pacman-key --lsign-key 3056513887B78AEB 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+    done
     
     # Step 3: Install keyring and mirrorlist packages
-    print_info "Installing chaotic-keyring and chaotic-mirrorlist packages..."
-    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' || {
-        print_info "Trying alternative mirror for keyring..."
-        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' || {
+    echo "→ Installing chaotic-keyring package..."
+    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+    done || {
+        echo "→ Trying alternative mirror for keyring..."
+        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+        done || {
             print_info "Warning: Could not install chaotic-keyring. Skipping chaotic-aur setup."
             return 0
         }
     }
     
-    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' || {
-        print_info "Trying alternative mirror for mirrorlist..."
-        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' || {
+    echo "→ Installing chaotic-mirrorlist package..."
+    arch-chroot /mnt pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+    done || {
+        echo "→ Trying alternative mirror for mirrorlist..."
+        arch-chroot /mnt pacman -U --noconfirm 'https://mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+        done || {
             print_info "Warning: Could not install chaotic-mirrorlist. Skipping chaotic-aur setup."
             return 0
         }
@@ -686,37 +1345,79 @@ EOF
     cp /etc/pacman.d/chaotic-mirrorlist /mnt/etc/pacman.d/chaotic-mirrorlist 2>/dev/null || true
     
     # Update package databases with full system update
+    echo ""
+    echo "================================"
+    echo "UPDATING PACKAGE DATABASES"
+    echo "================================"
     print_info "Running full system update and syncing mirrorlist..."
-    if ! arch-chroot /mnt pacman -Syu --noconfirm; then
-        print_info "Full system update failed, trying basic sync..."
-        if ! arch-chroot /mnt pacman -Sy --noconfirm; then
+    echo "→ Synchronizing package databases and updating system..."
+    if ! arch-chroot /mnt pacman -Syu --noconfirm 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done; then
+        echo "→ Full system update failed, trying basic sync..."
+        if ! arch-chroot /mnt pacman -Sy --noconfirm 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+            echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+        done; then
             print_info "Warning: Failed to update package databases. Some packages may not be available."
             print_info "Continuing with official repositories only..."
             
             # Remove problematic repositories if sync fails
             sed -i '/\[chaotic-aur\]/,/^$/d' /mnt/etc/pacman.conf
             sed -i '/\[dtos-core-repo\]/,/^$/d' /mnt/etc/pacman.conf
-            arch-chroot /mnt pacman -Sy --noconfirm
+            arch-chroot /mnt pacman -Sy --noconfirm 2>&1 | while IFS= read -r line; do
+                echo "  $line"
+            done
         fi
     else
-        print_info "Chaotic-AUR repository successfully configured and synchronized!"
+        print_info "✓ Chaotic-AUR repository successfully configured and synchronized!"
     fi
     
     # Install Pipewire audio system first to avoid conflicts
+    echo ""
+    echo "================================"
+    echo "INSTALLING AUDIO SYSTEM"
+    echo "================================"
     print_info "Setting up Pipewire audio system."
-    arch-chroot /mnt pacman -S --noconfirm --needed pipewire pipewire-alsa pipewire-pulse wireplumber pulsemixer
+    echo "→ Installing Pipewire core packages..."
+    arch-chroot /mnt pacman -S --noconfirm --needed pipewire pipewire-alsa pipewire-pulse wireplumber pulsemixer 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done
     
     # Install pipewire-jack separately with conflict resolution
-    print_info "Installing pipewire-jack (JACK compatibility)."
-    arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack || {
-        print_info "Resolving jack2 conflict..."
+    echo "→ Installing pipewire-jack (JACK compatibility)..."
+    if ! arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack 2>&1 | while IFS= read -r line; do
+        echo "  $line"
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    done; then
+        echo "→ Resolving jack2 conflict..."
         arch-chroot /mnt pacman -Rdd jack2 --noconfirm 2>/dev/null || true
-        arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack --overwrite '*'
-    }
+        arch-chroot /mnt pacman -S --noconfirm --needed pipewire-jack --overwrite '*' 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+            echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+        done
+    fi
+    echo "✓ Audio system installation completed!"
     
     # Now install remaining packages
+    echo ""
+    echo "================================"
+    echo "INSTALLING DESKTOP PACKAGES"
+    echo "================================"
     print_info "Installing remaining desktop packages."
+    echo "This may take 10-30 minutes depending on your internet connection."
+    echo ""
     failed_packages=()
+    package_count=0
+    
+    # Count total packages first
+    total_packages=$(grep -v '^#' /root/pkgs-qtile | grep -v '^$' | wc -l)
+    echo "📦 DESKTOP PACKAGE INSTALLATION PROGRESS"
+    echo "═══════════════════════════════════════════"
+    echo "Total packages to install: $total_packages"
+    echo ""
     
     while IFS= read -r line; do
         if [[ ! "$line" =~ ^#.* ]] && [[ -n "$line" ]]; then
@@ -725,21 +1426,32 @@ EOF
                 continue
             fi
             
-            # Try to install package with better error handling
-            print_info "Installing $line"
-            if ! arch-chroot /mnt pacman -S --noconfirm --needed "$line"; then
-                print_info "Failed to install $line, attempting conflict resolution..."
+            package_count=$((package_count + 1))
+            
+            # Use enhanced installation function for better visibility
+            if ! install_package_with_progress "$line" "$package_count" "$total_packages" "$line"; then
+                echo "  ⚠️  Package '$line' failed to install, attempting conflict resolution..."
                 
                 # Try removing jack2 if it conflicts
                 arch-chroot /mnt pacman -Rdd jack2 --noconfirm 2>/dev/null || true
                 
                 # Try installing again with overwrite
-                if ! arch-chroot /mnt pacman -S --noconfirm --needed "$line" --overwrite '*'; then
-                    print_info "WARNING: Failed to install package: $line"
+                echo "  🔄 Retrying installation with conflict resolution..."
+                if ! arch-chroot /mnt pacman -S --noconfirm --needed "$line" --overwrite '*' 2>&1 | while IFS= read -r output_line; do
+                    echo "    $output_line"
+                    echo "$output_line" >> "$LOG_FILE" 2>/dev/null || true
+                done; then
+                    echo "  ❌ FINAL FAILURE: Package '$line' could not be installed"
                     failed_packages+=("$line")
                     continue
                 fi
+                echo "  ✅ Successfully installed '$line' after conflict resolution"
             fi
+            
+            # Show progress percentage
+            percentage=$((package_count * 100 / total_packages))
+            echo "🚀 Progress: $percentage% ($package_count/$total_packages packages completed)"
+            echo ""
         fi
     done < /root/pkgs-qtile
     
@@ -783,18 +1495,76 @@ EOF
     fi
 fi
 
+# Install BlackArch support if requested
+log_message "DEBUG" "BlackArch support check: blackarch_support='$blackarch_support'"
+if [ "$blackarch_support" = "yes" ]; then
+    print_info "Setting up BlackArch repository access."
+    log_message "INFO" "Installing BlackArch repository and tools"
+    install_blackarch
+else
+    log_message "INFO" "BlackArch support disabled - skipping BlackArch installation"
+fi
+
+# Install NVIDIA drivers if requested
+if [ "$nvidia_support" = "yes" ]; then
+    print_info "Setting up NVIDIA drivers and utilities."
+    
+    # Run graphics detection first (disable exit on error for this check)
+    set +e
+    detect_graphics
+    gpu_type=$?
+    set -e
+    
+    if [ $gpu_type -eq 0 ]; then
+        print_info "NVIDIA GPU confirmed - proceeding with driver installation."
+        install_nvidia_drivers
+    else
+        print_info "No NVIDIA GPU detected (detected type: $gpu_type). Skipping NVIDIA driver installation."
+    fi
+fi
+
+# Setup swap based on user selection
+case "$swap_type" in
+    "zram")
+        print_info "Setting up ZRAM compressed swap."
+        setup_zram
+        ;;
+    "partition")
+        print_info "Setting up traditional swap."
+        setup_swap_partition
+        ;;
+    "none")
+        print_info "No swap will be configured."
+        ;;
+    *)
+        print_info "Unknown swap type '$swap_type', defaulting to ZRAM."
+        setup_zram
+        ;;
+esac
+
+echo ""
+echo "✓ Step 3 Complete: Desktop environment installation finished"
+echo ""
+echo "========================================"
+echo "STEP 4: SYSTEM CONFIGURATION"
+echo "========================================"
+
 print_info "Generating fstab."
+echo "→ Creating filesystem table..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 print_info "Setting the hostname as $hostname."
+echo "→ Configuring hostname..."
 echo "$hostname" > /mnt/etc/hostname
 
 print_info "Setting up localization."
+echo "→ Configuring network hosts..."
 echo "127.0.0.1   localhost
 ::1         localhost
 127.0.1.1   $hostname.localdomain   $hostname" > /mnt/etc/hosts
 
 print_info "Configuring selected locale and keymap."
+echo "→ Setting up locale ($locale) and keymap ($keymap)..."
 sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
 echo "LANG=$locale" > /mnt/etc/locale.conf
 echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
@@ -815,6 +1585,13 @@ echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel-sudo
 # Also setup doas as alternative
 echo "permit persist :wheel" > /mnt/etc/doas.conf
 
+echo ""
+echo "✓ Step 4 Complete: System configuration finished"
+echo ""
+echo "========================================"
+echo "STEP 5: BOOTLOADER INSTALLATION"
+echo "========================================"
+
 # Installation in chroot
 disk_var="$disk"
 username_var="$username"
@@ -824,35 +1601,38 @@ firmware_var="$firmware_type"
 arch-chroot /mnt /bin/bash <<EOF
     set -e  # Enable error checking after entering the environment
     
-    echo "Generating locales."
+    echo "→ Generating locales..."
     locale-gen
     
-    echo "Installing GRUB bootloader."
+    echo "→ Installing GRUB bootloader..."
     echo "Firmware type: $firmware_var"
     echo "Target disk: $disk_var"
     
     if [[ "$firmware_var" = "UEFI" ]]; then
-        echo "Installing GRUB for UEFI system..."
+        echo "→ Installing GRUB for UEFI system..."
         grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --debug || {
-            echo "GRUB UEFI installation failed, trying alternative method..."
+            echo "→ GRUB UEFI installation failed, trying alternative method..."
             grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable --debug
         }
+        echo "✓ GRUB UEFI installation completed"
     else
-        echo "Installing GRUB for BIOS system..."
+        echo "→ Installing GRUB for BIOS system..."
         echo "Using disk: $disk_var"
         grub-install --target=i386-pc --debug $disk_var || {
-            echo "GRUB BIOS installation failed!"
+            echo "ERROR: GRUB BIOS installation failed!"
             echo "Checking if BIOS boot partition exists..."
             parted $disk_var print
             exit 1
         }
+        echo "✓ GRUB BIOS installation completed"
     fi
     
-    echo "Generating GRUB configuration..."
+    echo "→ Generating GRUB configuration..."
     grub-mkconfig -o /boot/grub/grub.cfg || {
-        echo "GRUB configuration generation failed!"
+        echo "ERROR: GRUB configuration generation failed!"
         exit 1
     }
+    echo "✓ GRUB configuration generated successfully"
     
     if [[ "$kyos_desktop_var" = "yes" ]]; then
         echo "Installing alacritty themes."
@@ -865,7 +1645,14 @@ arch-chroot /mnt /bin/bash <<EOF
         chown -R "$username_var":"$username_var" /home/"$username_var"/.config
     fi
     
-    echo "Enabling essential services."
+    echo ""
+    echo "✓ Step 5 Complete: Bootloader installation finished"
+    echo ""
+    echo "========================================"
+    echo "STEP 6: FINAL SETUP AND SERVICES"
+    echo "========================================"
+    
+    echo "→ Enabling essential services..."
     
     if [[ "$kyos_desktop_var" = "yes" ]]; then
         # Enable services one by one with error handling - desktop installation
@@ -885,7 +1672,7 @@ arch-chroot /mnt /bin/bash <<EOF
         systemctl enable udisks2.service 2>/dev/null && echo "✓ Enabled udisks2" || echo "⚠ udisks2 not found"
     fi
     
-    echo "Configuring sudo and doas."
+    echo "→ Configuring sudo and doas..."
     # Keep sudo and also setup doas
     # Don't remove sudo as many KyOS scripts may depend on it
     echo "Both sudo and doas are available for administrative tasks."
@@ -930,17 +1717,188 @@ if [[ "$kyos_desktop" = "yes" ]]; then
     # Ensure fish shell is properly configured
     arch-chroot /mnt chsh -s /usr/bin/fish "$username" || echo "Warning: Could not set fish as default shell"
     
-    # Run any KyOS-specific post-install commands
+    # Install custom SDDM theme
+    print_info "Installing custom SDDM theme."
+    
+    # Copy SDDM configuration files to the installed system
+    if [[ -f /run/archiso/airootfs/etc/sddm.conf.installer-only ]]; then
+        cp /run/archiso/airootfs/etc/sddm.conf.installer-only /mnt/etc/sddm.conf
+        print_info "✓ SDDM configuration installed"
+    fi
+    
+    if [[ -d /run/archiso/airootfs/etc/sddm.conf.d.installer-only ]]; then
+        cp -r /run/archiso/airootfs/etc/sddm.conf.d.installer-only /mnt/etc/sddm.conf.d
+        print_info "✓ SDDM theme configuration installed"
+    fi
+    
+    # Copy SDDM theme installer and assets to the installed system
+    if [[ -f /run/archiso/airootfs/usr/local/bin/install-sddm-theme ]]; then
+        cp /run/archiso/airootfs/usr/local/bin/install-sddm-theme /mnt/usr/local/bin/ || echo "Warning: Could not copy SDDM theme installer"
+        chmod +x /mnt/usr/local/bin/install-sddm-theme || echo "Warning: Could not set SDDM theme installer permissions"
+    fi
+    
+    # Copy SDDM theme assets
+    if [[ -d /run/archiso/airootfs/usr/local/share/kyos-assets ]]; then
+        mkdir -p /mnt/usr/local/share/
+        rsync -avr /run/archiso/airootfs/usr/local/share/kyos-assets/ /mnt/usr/local/share/kyos-assets/ || echo "Warning: Could not copy KyOS assets"
+    fi
+    
+    # Run the SDDM theme installer
+    if [[ -f /mnt/usr/local/bin/install-sddm-theme ]]; then
+        arch-chroot /mnt /usr/local/bin/install-sddm-theme || echo "Warning: SDDM theme installation failed"
+    else
+        echo "Warning: SDDM theme installer not found"
+    fi
+    
+    # Install KyOS dotfiles from GitHub repository
+    print_info "Installing KyOS dotfiles and configurations..."
     arch-chroot /mnt /bin/bash -c "
-        # Update font cache
-        fc-cache -f 2>/dev/null || true
+        # Create temporary directory for dotfiles
+        temp_dir=\$(mktemp -d)
+        cd \"\$temp_dir\" || exit 1
         
-        # Update desktop database  
-        update-desktop-database 2>/dev/null || true
+        # Clone the KyOS dotfiles repository
+        if command -v git >/dev/null 2>&1; then
+            print_info 'Downloading KyOS dotfiles from GitHub...'
+            if git clone --depth 1 https://github.com/rubberpirate/ky-suigetsu.git . 2>/dev/null; then
+                if [[ -d 'Dots' ]]; then
+                    print_info 'Installing KyOS dotfiles to user home directory...'
+                    
+                    # Copy all dotfiles and configs to user home directory
+                    # Use rsync to handle hidden files and preserve permissions
+                    rsync -avr --exclude='.git' Dots/ /home/$username/ 2>/dev/null || {
+                        # Fallback to cp if rsync fails
+                        cp -r Dots/. /home/$username/ 2>/dev/null || echo 'Warning: Could not copy some dotfiles'
+                    }
+                    
+                    # Ensure proper ownership of all copied files
+                    chown -R $username:$username /home/$username/
+                    
+                    # Set proper permissions for config directories
+                    chmod 755 /home/$username/.config 2>/dev/null || true
+                    chmod 755 /home/$username/.local 2>/dev/null || true
+                    chmod 755 /home/$username/.local/bin 2>/dev/null || true
+                    chmod +x /home/$username/.local/bin/* 2>/dev/null || true
+                    
+                    print_info '✓ KyOS dotfiles installed successfully!'
+                    print_info 'User configurations and customizations are now ready.'
+                else
+                    echo 'Warning: Dots folder not found in repository'
+                fi
+            else
+                echo 'Warning: Failed to clone KyOS dotfiles repository'
+                echo 'You can manually install dotfiles later with:'
+                echo 'git clone https://github.com/rubberpirate/ky-suigetsu.git && cp -r ky-suigetsu/Dots/. ~/'
+            fi
+        else
+            echo 'Warning: git not available for dotfiles installation'
+            echo 'Install git and clone dotfiles manually after first boot'
+        fi
         
-        # Update icon cache
-        gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
-    " || echo "Warning: Some post-install commands failed"
+        # Cleanup temporary directory
+        cd / && rm -rf \"\$temp_dir\" 2>/dev/null || true
+    " || echo "Warning: Dotfiles installation encountered errors"
+    
+    # Check for VM environment and apply VM-specific configurations
+    print_info "Checking for virtual machine environment..."
+    
+    # Detect VM environment
+    hypervisor=$(systemd-detect-virt 2>/dev/null || echo "none")
+    is_vm=false
+    
+    case $hypervisor in
+        kvm|qemu|vmware|oracle|microsoft|xen|parallels)
+            is_vm=true
+            print_info "Virtual machine detected: $hypervisor"
+            ;;
+        *)
+            print_info "Physical hardware or unknown environment detected"
+            ;;
+    esac
+    
+    # Ask user if they want VM optimizations (even if not detected, for edge cases)
+    if [[ "$is_vm" == "true" ]]; then
+        print_info "Applying VM-specific optimizations automatically..."
+        apply_vm_config=true
+    else
+        # Ask user manually if they're running in a VM
+        print_info "Are you installing KyOS in a virtual machine?"
+        echo "This will apply VM-specific optimizations and configurations."
+        echo "Press 'y' for Yes, 'n' for No, or wait 10 seconds for auto-detection result..."
+        
+        apply_vm_config=false
+        if read -t 10 -n 1 -r vm_response; then
+            echo
+            case $vm_response in
+                [Yy]*)
+                    apply_vm_config=true
+                    print_info "User confirmed VM environment - applying VM configurations"
+                    ;;
+                *)
+                    print_info "Skipping VM-specific configurations"
+                    ;;
+            esac
+        else
+            echo
+            print_info "No response received - using auto-detection result"
+        fi
+    fi
+    
+    # Apply VM-specific configurations if requested
+    if [[ "$apply_vm_config" == "true" ]]; then
+        print_info "Installing VM-specific configurations..."
+        arch-chroot /mnt /bin/bash -c "
+            # Create temporary directory for VM configs
+            vm_temp_dir=\$(mktemp -d)
+            cd \"\$vm_temp_dir\" || exit 1
+            
+            # Clone repository again for VM configs
+            if command -v git >/dev/null 2>&1; then
+                if git clone --depth 1 https://github.com/rubberpirate/ky-suigetsu.git . 2>/dev/null; then
+                    if [[ -d 'only for vm' ]]; then
+                        print_info 'Applying VM-specific dotfiles and configurations...'
+                        
+                        # Copy VM-specific configs to .config directory
+                        if [[ -d '/home/$username/.config' ]]; then
+                            # Use rsync to merge VM configs with existing configs
+                            rsync -avr --exclude='.git' 'only for vm/' /home/$username/.config/ 2>/dev/null || {
+                                # Fallback to cp if rsync fails
+                                cp -r 'only for vm/.' /home/$username/.config/ 2>/dev/null || echo 'Warning: Could not copy some VM configs'
+                            }
+                        else
+                            # Create .config directory if it doesn't exist
+                            mkdir -p /home/$username/.config
+                            rsync -avr --exclude='.git' 'only for vm/' /home/$username/.config/ 2>/dev/null || {
+                                cp -r 'only for vm/.' /home/$username/.config/ 2>/dev/null || echo 'Warning: Could not copy some VM configs'
+                            }
+                        fi
+                        
+                        # Ensure proper ownership of VM configs
+                        chown -R $username:$username /home/$username/.config/
+                        
+                        # Set proper permissions for VM config files
+                        chmod 755 /home/$username/.config 2>/dev/null || true
+                        find /home/$username/.config -type d -exec chmod 755 {} \; 2>/dev/null || true
+                        find /home/$username/.config -type f -exec chmod 644 {} \; 2>/dev/null || true
+                        
+                        print_info '✓ VM-specific configurations applied successfully!'
+                        print_info 'Your KyOS installation is now optimized for virtual machines.'
+                    else
+                        echo 'Warning: VM configuration folder not found in repository'
+                    fi
+                else
+                    echo 'Warning: Failed to clone repository for VM configurations'
+                fi
+            else
+                echo 'Warning: git not available for VM configuration installation'
+            fi
+            
+            # Cleanup VM temp directory
+            cd / && rm -rf \"\$vm_temp_dir\" 2>/dev/null || true
+        " || echo "Warning: VM configuration installation encountered errors"
+    fi
+    
+    # ...existing code...
 fi
 
 print_info "Installation of KyOS completed! You may now reboot the computer."
@@ -965,6 +1923,11 @@ else
 fi
         
 print_info "KyOS automated installation finished successfully!"
+log_message "SUCCESS" "KyOS automated installation completed successfully"
+
+# Create final installation report
+report_file=$(create_install_report)
+
 echo "========================================"
 echo "Installation Summary:"
 echo "- Hostname: $hostname"
@@ -973,7 +1936,22 @@ echo "- Password: $userpass"
 echo "- Root password: $rootpass"
 echo "- Filesystem: $fs_type (no encryption)"
 echo "- Desktop: KyOS Qtile"
+echo "- BlackArch repository: $blackarch_support"
+echo "- NVIDIA support: $nvidia_support"
+echo "- Swap type: $swap_type"
+echo "========================================"
+echo "Installation logs and report saved:"
+echo "- Main Log: $LOG_FILE"
+if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+    echo "- Error Log: $ERROR_LOG (⚠ Errors found)"
+fi
+echo "- Report: $report_file"
+if [ -d "/mnt/var/log/kyos-install" ]; then
+    echo "- Installed System: /var/log/kyos-install/"
+fi
 echo "========================================"
 echo "You can now reboot your system with: reboot"
+
+log_message "INFO" "KyOS Automated Installation System exiting"
 
 exit

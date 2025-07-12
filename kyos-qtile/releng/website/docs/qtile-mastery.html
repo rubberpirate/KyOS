@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qtile Mastery Guide | KyOS Dragon Arch</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/images/kyos.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                <span>KyOS</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../index.html#features">Features</a></li>
+                <li><a href="../index.html#download">Download</a></li>
+                <li><a href="../index.html#docs" class="active">Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="sidebar-content">
+                <h3>Documentation</h3>
+                <ul class="sidebar-menu">
+                    <li><a href="complete-guide.html">Complete Guide</a></li>
+                    <li><a href="installation-guide.html">Installation Guide</a></li>
+                    <li><a href="qtile-mastery.html" class="active">Qtile Mastery</a></li>
+                    <li><a href="keybindings-reference.html">Keybindings Reference</a></li>
+                    <li><a href="system-requirements.html">System Requirements</a></li>
+                    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    <li class="sidebar-divider"></li>
+                    <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://qtile.org/manual/" target="_blank">Qtile Documentation <i class="fas fa-external-link-alt"></i></a></li>
+                    <li><a href="https://github.com/rubberpirate/kyos" target="_blank">GitHub Repository <i class="fas fa-external-link-alt"></i></a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="docs-content">
+            <div class="container">
+                <header class="docs-header">
+                    <h1>Qtile Mastery Guide</h1>
+                    <p class="docs-subtitle">Master the art of tiling window management with Qtile</p>
+                </header>
+
+                <div class="docs-body">
+                    <section class="doc-section">
+                        <h2 id="introduction">What is Qtile?</h2>
+                        <p>Qtile is a full-featured, hackable tiling window manager written and configured in Python. Unlike traditional desktop environments, Qtile automatically arranges your windows in organized layouts, maximizing screen real estate and minimizing mouse usage.</p>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Philosophy:</strong> Qtile follows the principle that your desktop should adapt to your workflow, not the other way around. Every aspect is configurable through Python code.
+                        </div>
+
+                        <h3>Why Choose Qtile?</h3>
+                        <ul>
+                            <li><strong>Python Configuration:</strong> No learning obscure config syntax - just Python</li>
+                            <li><strong>Highly Customizable:</strong> Every behavior can be modified or extended</li>
+                            <li><strong>Resource Efficient:</strong> Minimal memory and CPU usage</li>
+                            <li><strong>Keyboard Driven:</strong> Designed for maximum productivity with minimal mouse usage</li>
+                            <li><strong>Extensible:</strong> Rich ecosystem of widgets and extensions</li>
+                        </ul>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="core-concepts">Core Concepts</h2>
+                        
+                        <h3>Groups (Workspaces)</h3>
+                        <p>Groups in Qtile are like virtual desktops, allowing you to organize different tasks:</p>
+                        <ul>
+                            <li><strong>Default Groups:</strong> KyOS provides 9 groups (1-9) by default</li>
+                            <li><strong>Named Groups:</strong> Each group can have a custom name and icon</li>
+                            <li><strong>Persistent State:</strong> Windows remember their group assignments</li>
+                            <li><strong>Quick Switching:</strong> Jump between groups with Super + [1-9]</li>
+                        </ul>
+
+                        <h3>Layouts</h3>
+                        <p>Layouts determine how windows are arranged on screen:</p>
+                        
+                        <div class="layout-grid">
+                            <div class="layout-item">
+                                <h4>MonadTall</h4>
+                                <p>One main window on the left, stack on the right. Perfect for coding and reading.</p>
+                                <div class="layout-preview">
+                                    <div class="window main"></div>
+                                    <div class="window-stack">
+                                        <div class="window small"></div>
+                                        <div class="window small"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="layout-item">
+                                <h4>MonadWide</h4>
+                                <p>Main window on top, stack on the bottom. Great for wide monitors.</p>
+                                <div class="layout-preview wide">
+                                    <div class="window main-wide"></div>
+                                    <div class="window-stack horizontal">
+                                        <div class="window small"></div>
+                                        <div class="window small"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="layout-item">
+                                <h4>Columns</h4>
+                                <p>Dynamic columns that grow and shrink as needed.</p>
+                                <div class="layout-preview">
+                                    <div class="window column"></div>
+                                    <div class="window column"></div>
+                                    <div class="window column"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="layout-item">
+                                <h4>Max</h4>
+                                <p>One window maximized at a time. Switch between with focus commands.</p>
+                                <div class="layout-preview">
+                                    <div class="window maximized"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>Bars and Widgets</h3>
+                        <p>The status bar provides crucial system information and controls:</p>
+                        <ul>
+                            <li><strong>Group Box:</strong> Shows current group and available groups</li>
+                            <li><strong>Window Name:</strong> Displays the title of the focused window</li>
+                            <li><strong>System Tray:</strong> Houses application indicators</li>
+                            <li><strong>Clock:</strong> Current time and date</li>
+                            <li><strong>System Stats:</strong> CPU, memory, network usage</li>
+                        </ul>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="essential-workflows">Essential Workflows</h2>
+                        
+                        <h3>Window Management Workflow</h3>
+                        <ol>
+                            <li><strong>Launch Application:</strong> <kbd>Super + Return</kbd> for terminal, <kbd>Super + d</kbd> for launcher</li>
+                            <li><strong>Navigate Windows:</strong> <kbd>Super + j/k</kbd> to move focus up/down</li>
+                            <li><strong>Resize Windows:</strong> <kbd>Super + h/l</kbd> to make focused window larger/smaller</li>
+                            <li><strong>Move Windows:</strong> <kbd>Super + Shift + j/k</kbd> to swap window positions</li>
+                            <li><strong>Close Window:</strong> <kbd>Super + Shift + q</kbd> to close focused window</li>
+                        </ol>
+
+                        <h3>Multi-Monitor Setup</h3>
+                        <p>Qtile handles multiple monitors elegantly:</p>
+                        <div class="code-block">
+                            <h4>Automatic Monitor Detection</h4>
+                            <pre><code># Qtile automatically detects connected monitors
+# Use these keys to move between screens:
+# Super + period (.) - Focus next screen
+# Super + comma (,) - Focus previous screen
+# Super + Shift + period - Move window to next screen
+# Super + Shift + comma - Move window to previous screen</code></pre>
+                        </div>
+
+                        <h3>Floating Window Management</h3>
+                        <p>Some windows work better floating (like dialogs or media players):</p>
+                        <ul>
+                            <li><kbd>Super + Shift + Space</kbd> - Toggle floating on current window</li>
+                            <li><kbd>Super + Button1</kbd> - Drag floating windows</li>
+                            <li><kbd>Super + Button3</kbd> - Resize floating windows</li>
+                        </ul>
+
+                        <div class="alert alert-tip">
+                            <i class="fas fa-magic"></i>
+                            <strong>Pro Tip:</strong> Certain applications like file dialogs, calculator, and media players are automatically set to floating mode in KyOS.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="advanced-configuration">Advanced Configuration</h2>
+                        
+                        <h3>Understanding config.py</h3>
+                        <p>Your Qtile configuration lives in <code>~/.config/qtile/config.py</code>. This Python file defines every aspect of your desktop environment.</p>
+
+                        <h4>Configuration Structure</h4>
+                        <div class="code-block">
+                            <pre><code># ~/.config/qtile/config.py structure:
+
+# 1. Imports - Qtile modules and Python libraries
+from libqtile import bar, layout, widget
+from libqtile.config import Click, Drag, Group, Key, Match, Screen
+
+# 2. Key bindings - Define keyboard shortcuts
+keys = [
+    Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
+    # ... more keybindings
+]
+
+# 3. Groups - Virtual desktops/workspaces
+groups = [Group(i) for i in "123456789"]
+
+# 4. Layouts - Window arrangement algorithms
+layouts = [
+    layout.MonadTall(border_focus='#ff0000'),
+    layout.Max(),
+]
+
+# 5. Widgets - Status bar components
+widget_defaults = dict(font='Iosevka Nerd Font', fontsize=12)
+
+# 6. Screens - Monitor configuration
+screens = [
+    Screen(
+        top=bar.Bar([
+            widget.GroupBox(),
+            widget.WindowName(),
+            widget.Clock(),
+        ], 24),
+    ),
+]</code></pre>
+                        </div>
+
+                        <h3>Custom Keybindings</h3>
+                        <p>Create your own keyboard shortcuts for maximum efficiency:</p>
+
+                        <div class="code-block">
+                            <h4>Application Launchers</h4>
+                            <pre><code># Add to your keys list
+Key([mod], "b", lazy.spawn("firefox"), desc="Launch Firefox"),
+Key([mod], "c", lazy.spawn("code"), desc="Launch VS Code"),
+Key([mod], "m", lazy.spawn("thunderbird"), desc="Launch Email"),
+Key([mod], "g", lazy.spawn("gimp"), desc="Launch GIMP"),
+
+# Media keys
+Key([], "XF86AudioRaiseVolume", lazy.spawn("amixer set Master 5%+")),
+Key([], "XF86AudioLowerVolume", lazy.spawn("amixer set Master 5%-")),
+Key([], "XF86AudioMute", lazy.spawn("amixer set Master toggle")),</code></pre>
+                        </div>
+
+                        <div class="code-block">
+                            <h4>Custom Window Management</h4>
+                            <pre><code># Advanced window manipulation
+Key([mod, "shift"], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen"),
+Key([mod], "t", lazy.window.toggle_floating(), desc="Toggle floating"),
+Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+
+# Group management
+Key([mod, "shift"], "Right", lazy.screen.next_group(), desc="Next group"),
+Key([mod, "shift"], "Left", lazy.screen.prev_group(), desc="Previous group"),</code></pre>
+                        </div>
+
+                        <h3>Theme Customization</h3>
+                        <p>KyOS includes several beautiful themes. Customize colors and appearance:</p>
+
+                        <div class="code-block">
+                            <h4>Color Schemes</h4>
+                            <pre><code># Define your color palette
+colors = {
+    'background': '#1e1e2e',
+    'foreground': '#cdd6f4',
+    'primary': '#89b4fa',
+    'secondary': '#f38ba8',
+    'accent': '#a6e3a1',
+    'urgent': '#f38ba8',
+    'border_normal': '#313244',
+    'border_focus': '#89b4fa',
+}
+
+# Apply to layouts
+layouts = [
+    layout.MonadTall(
+        border_focus=colors['border_focus'],
+        border_normal=colors['border_normal'],
+        border_width=2,
+        margin=8,
+    ),
+]</code></pre>
+                        </div>
+
+                        <h3>Custom Widgets</h3>
+                        <p>Create your own status bar widgets for specific needs:</p>
+
+                        <div class="code-block">
+                            <h4>Weather Widget Example</h4>
+                            <pre><code># Add to your bar widgets
+widget.OpenWeather(
+    location='New York',
+    app_key='your_openweather_api_key',
+    format='{icon} {temp}°{units_temperature}',
+    update_interval=600,
+),
+
+# Custom command widget
+widget.GenPollText(
+    func=lambda: subprocess.check_output("uptime", shell=True, text=True).strip(),
+    update_interval=60,
+    foreground=colors['primary'],
+),</code></pre>
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="productivity-tips">Productivity Tips & Tricks</h2>
+                        
+                        <h3>Workspace Organization</h3>
+                        <p>Develop a consistent workspace strategy:</p>
+                        
+                        <div class="workspace-strategy">
+                            <div class="workspace-item">
+                                <h4>Group 1: Communication</h4>
+                                <ul>
+                                    <li>Email clients</li>
+                                    <li>Chat applications</li>
+                                    <li>Video conferencing</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="workspace-item">
+                                <h4>Group 2: Development</h4>
+                                <ul>
+                                    <li>Code editors</li>
+                                    <li>Terminals</li>
+                                    <li>Database tools</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="workspace-item">
+                                <h4>Group 3: Web Browsing</h4>
+                                <ul>
+                                    <li>Web browsers</li>
+                                    <li>Research tabs</li>
+                                    <li>Documentation</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="workspace-item">
+                                <h4>Group 4: Media</h4>
+                                <ul>
+                                    <li>Music players</li>
+                                    <li>Video players</li>
+                                    <li>Image editors</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h3>Automation Scripts</h3>
+                        <p>Create scripts to automate common tasks:</p>
+
+                        <div class="code-block">
+                            <h4>Development Environment Setup</h4>
+                            <pre><code>#!/bin/bash
+# ~/.local/bin/dev-setup
+
+# Launch development environment
+qtile cmd-obj -o group -f toscreen -a 2  # Switch to group 2
+code ~/projects/current-project &
+sleep 2
+gnome-terminal --working-directory=~/projects/current-project &
+firefox http://localhost:3000 &</code></pre>
+                        </div>
+
+                        <div class="code-block">
+                            <h4>Bind Script to Key</h4>
+                            <pre><code># Add to your keys in config.py
+Key([mod, "shift"], "d", lazy.spawn("/home/username/.local/bin/dev-setup"), 
+    desc="Setup development environment"),</code></pre>
+                        </div>
+
+                        <h3>Session Management</h3>
+                        <p>Save and restore window layouts:</p>
+
+                        <div class="code-block">
+                            <pre><code># Save current session
+qtile cmd-obj -o cmd -f to_layout_index -a 0  # Switch to first layout
+
+# Create session restore script
+echo "#!/bin/bash" > ~/.qtile-session
+qtile cmd-obj -o cmd -f get_state >> ~/.qtile-session
+
+# Restore session on login
+chmod +x ~/.qtile-session</code></pre>
+                        </div>
+
+                        <h3>Efficient Navigation</h3>
+                        <ul>
+                            <li><strong>Use Stack Navigation:</strong> <kbd>Super + j/k</kbd> to move through window stack</li>
+                            <li><strong>Master Multiple Layouts:</strong> Learn MonadTall, Columns, and Max layouts</li>
+                            <li><strong>Floating Toggle:</strong> <kbd>Super + Shift + Space</kbd> for temporary floating</li>
+                            <li><strong>Scratch Terminals:</strong> Use dropdown terminals for quick commands</li>
+                        </ul>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-rocket"></i>
+                            <strong>Power User Tip:</strong> Create custom layouts for specific workflows. For example, a three-column layout for code, terminal, and documentation.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="troubleshooting">Troubleshooting Qtile</h2>
+                        
+                        <h3>Configuration Errors</h3>
+                        <p>When your config.py has syntax errors, Qtile will fall back to default configuration:</p>
+
+                        <div class="code-block">
+                            <h4>Test Configuration</h4>
+                            <pre><code># Test your config without restarting
+python ~/.config/qtile/config.py
+
+# Check Qtile logs
+tail -f ~/.local/share/qtile/qtile.log
+
+# Restart Qtile safely
+Super + Ctrl + r</code></pre>
+                        </div>
+
+                        <h3>Common Issues</h3>
+                        
+                        <h4>Widgets Not Loading</h4>
+                        <div class="code-block">
+                            <pre><code># Install missing widget dependencies
+sudo pacman -S python-psutil python-iwlib
+
+# For weather widget
+pip install openweathermap-requests</code></pre>
+                        </div>
+
+                        <h4>Application Not Starting</h4>
+                        <div class="code-block">
+                            <pre><code># Check if application is in PATH
+which firefox
+
+# Launch with full path
+Key([mod], "b", lazy.spawn("/usr/bin/firefox")),
+
+# Debug application launch
+Key([mod], "b", lazy.spawn("sh -c 'firefox 2>&1 | tee /tmp/firefox.log'")),</code></pre>
+                        </div>
+
+                        <h4>Screen/Monitor Issues</h4>
+                        <div class="code-block">
+                            <pre><code># Force screen reconfiguration
+xrandr --auto
+
+# Restart Qtile
+Super + Ctrl + r
+
+# Check connected monitors
+xrandr --listmonitors</code></pre>
+                        </div>
+
+                        <h3>Performance Optimization</h3>
+                        <ul>
+                            <li><strong>Reduce Widget Update Frequency:</strong> Increase update_interval for system widgets</li>
+                            <li><strong>Disable Unused Layouts:</strong> Remove layouts you don't use from the layouts list</li>
+                            <li><strong>Optimize Startup:</strong> Use lazy loading for widgets that make network requests</li>
+                            <li><strong>Clean Up Processes:</strong> Regularly check for zombie processes with <code>ps aux</code></li>
+                        </ul>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="extending-qtile">Extending Qtile</h2>
+                        
+                        <h3>Writing Custom Widgets</h3>
+                        <p>Create your own widgets for specialized needs:</p>
+
+                        <div class="code-block">
+                            <h4>Simple Custom Widget</h4>
+                            <pre><code># ~/.config/qtile/widgets/custom.py
+from libqtile.widget import base
+import subprocess
+
+class GitStatus(base.ThreadPoolText):
+    """Widget to show git status of current project"""
+    
+    def __init__(self, directory="~/projects/current", **config):
+        self.directory = directory
+        super().__init__("", **config)
+        
+    def poll(self):
+        try:
+            result = subprocess.run(
+                ["git", "status", "--porcelain"], 
+                capture_output=True, 
+                text=True, 
+                cwd=self.directory
+            )
+            if result.returncode == 0:
+                changes = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
+                return f"Git: {changes} changes"
+            return "Git: Not a repo"
+        except:
+            return "Git: Error"</code></pre>
+                        </div>
+
+                        <div class="code-block">
+                            <h4>Using Custom Widget</h4>
+                            <pre><code># In your config.py
+from widgets.custom import GitStatus
+
+# Add to your bar
+screens = [
+    Screen(
+        top=bar.Bar([
+            # ... other widgets
+            GitStatus(directory="/home/user/myproject"),
+        ], 24),
+    ),
+]</code></pre>
+                        </div>
+
+                        <h3>Custom Layouts</h3>
+                        <p>Create layouts for specific workflows:</p>
+
+                        <div class="code-block">
+                            <pre><code># ~/.config/qtile/layouts/custom.py
+from libqtile import layout
+
+class TripleColumn(layout.Columns):
+    """Three-column layout for development workflow"""
+    
+    def __init__(self, **config):
+        super().__init__(
+            num_columns=3,
+            split=False,
+            border_focus='#89b4fa',
+            border_normal='#313244',
+            **config
+        )</code></pre>
+                        </div>
+
+                        <h3>Hooks and Events</h3>
+                        <p>Automate responses to window and system events:</p>
+
+                        <div class="code-block">
+                            <pre><code># In your config.py
+from libqtile import hook
+import subprocess
+
+@hook.subscribe.client_new
+def auto_group_assignment(client):
+    """Automatically assign applications to specific groups"""
+    if client.name == "firefox":
+        client.togroup("3")
+    elif client.name == "code":
+        client.togroup("2")
+    elif "terminal" in client.name.lower():
+        client.togroup("1")
+
+@hook.subscribe.startup_once
+def autostart():
+    """Run commands when Qtile starts"""
+    subprocess.Popen(["nm-applet"])  # Network manager
+    subprocess.Popen(["blueman-applet"])  # Bluetooth
+    subprocess.Popen(["pasystray"])  # Audio control</code></pre>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-code"></i>
+                            <strong>Learn More:</strong> Check the official <a href="https://qtile.org/manual/" target="_blank">Qtile documentation</a> for comprehensive API reference and advanced examples.
+                        </div>
+                    </section>
+
+                    <section class="doc-section">
+                        <h2 id="community-configs">Community Configurations</h2>
+                        
+                        <h3>Popular Configuration Themes</h3>
+                        <ul>
+                            <li><strong>Catppuccin:</strong> Soothing pastel theme with excellent readability</li>
+                            <li><strong>Dracula:</strong> Dark theme with vibrant accent colors</li>
+                            <li><strong>Nord:</strong> Arctic-inspired blue color palette</li>
+                            <li><strong>Gruvbox:</strong> Retro groove colors with warm contrast</li>
+                            <li><strong>Tokyo Night:</strong> Modern dark theme inspired by VS Code</li>
+                        </ul>
+
+                        <h3>Configuration Resources</h3>
+                        <ul>
+                            <li><a href="https://github.com/qtile/qtile-examples" target="_blank">Official Qtile Examples</a></li>
+                            <li><a href="https://github.com/topics/qtile-config" target="_blank">Community Configs on GitHub</a></li>
+                            <li><a href="https://www.reddit.com/r/qtile/" target="_blank">r/qtile Subreddit</a></li>
+                            <li><a href="https://qtile.discourse.group/" target="_blank">Qtile Discourse Forum</a></li>
+                        </ul>
+
+                        <h3>Sharing Your Configuration</h3>
+                        <p>When sharing your Qtile config, include:</p>
+                        <ul>
+                            <li>Complete config.py file</li>
+                            <li>Required dependencies (widgets, fonts)</li>
+                            <li>Screenshots of your setup</li>
+                            <li>Installation instructions</li>
+                            <li>Keybinding reference</li>
+                        </ul>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-users"></i>
+                            <strong>Join the Community:</strong> Share your configurations and learn from others in the KyOS <a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">discussions forum</a>.
+                        </div>
+                    </section>
+
+                    <div class="doc-navigation">
+                        <a href="complete-guide.html" class="nav-link prev">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Previous: Complete Guide</span>
+                        </a>
+                        <a href="keybindings-reference.html" class="nav-link next">
+                            <span>Next: Keybindings Reference</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="../assets/images/kyos.png" alt="KyOS Logo">
+                        <span>KyOS</span>
+                    </div>
+                    <p>The Dragon Arch - Powerful, Secure, Beautiful</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/rubberpirate/kyos/releases/latest" target="_blank">Download</a></li>
+                        <li><a href="complete-guide.html">Documentation</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos" target="_blank">Source Code</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://wiki.archlinux.org/" target="_blank">Arch Wiki</a></li>
+                        <li><a href="https://qtile.org/" target="_blank">Qtile Docs</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/issues" target="_blank">Bug Reports</a></li>
+                        <li><a href="https://github.com/rubberpirate/kyos/discussions" target="_blank">Support Forum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KyOS Dragon Arch. Open source under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
